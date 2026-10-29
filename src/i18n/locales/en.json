@@ -1,1 +1,8 @@
-{ "common": { "appName": "FitPose" } }
+{
+  "common": {
+    "appName": "FitPose"
+  },
+  "home": {
+    "openSpike": "Open camera test"
+  }
+}
