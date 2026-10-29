@@ -6,7 +6,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useDerivedValue } from 'react-native-reanimated';
 import { Camera, useCameraPermission } from 'react-native-vision-camera';
 
-import { droppedFrames } from '@/vision/metrics';
 import { toOverlayPoints } from '@/vision/overlay';
 import { useSpikeCamera } from '@/vision/useSpikeCamera';
 
@@ -40,7 +39,6 @@ export default function SpikeScreen() {
     );
   }
 
-  const { metrics } = stats;
   return (
     <View style={styles.fill} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
       <Camera style={styles.fill} device="front" isActive outputs={[frameOutput]} />
@@ -48,11 +46,11 @@ export default function SpikeScreen() {
         <Points points={points} mode="points" color="#3ddc84" strokeWidth={10} strokeCap="round" />
       </Canvas>
       <View style={styles.hud}>
-        <Text style={styles.hudText}>{t('spike.hud.fps', { value: metrics.fps.toFixed(1) })}</Text>
-        <Text style={styles.hudText}>{t('spike.hud.dropped', { value: droppedFrames(metrics) })}</Text>
-        <Text style={styles.hudText}>{t('spike.hud.inferP95', { value: metrics.p95InferMs.toFixed(1) })}</Text>
-        <Text style={styles.hudText}>{t('spike.hud.inferLast', { value: stats.inferMs.toFixed(1) })}</Text>
-        <Text style={styles.hudText}>{t('spike.hud.intervalP95', { value: metrics.p95IntervalMs.toFixed(1) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.fps', { value: stats.fps.toFixed(1) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.dropped', { value: stats.dropped })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.inferP95', { value: stats.p95InferMs.toFixed(1) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.inferLast', { value: stats.lastInferMs.toFixed(1) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.intervalP95', { value: stats.p95IntervalMs.toFixed(1) })}</Text>
         <Text style={styles.hudText}>{t('spike.hud.detection', { value: (stats.detectionRate * 100).toFixed(0) })}</Text>
         <Text style={styles.hudText}>{t('spike.hud.thermal', { value: stats.thermalStatus })}</Text>
       </View>
