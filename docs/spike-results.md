@@ -72,6 +72,26 @@ procesados según las marcas de tiempo de la cámara (33 ms = 30 FPS). Persona s
 - **Térmica:** 0 en todas las pruebas.
 - Pendiente: prueba de 10 min con lecturas a 0/5/10 min y Pixel 7 Pro.
 
+### Lite frente a full (2026-10-29, 15:19)
+
+Mismo teléfono, misma escena (persona de pie a ~2 m, brazos abiertos), delegado CPU, código `c3b9ffd` más un
+selector temporal de modelo (no subido). Modelo full: `pose_landmarker_full.task` float16 v1, sha256
+`5134a3aa…11b1`, 9,4 MB.
+
+| | lite | full |
+|---|---|---|
+| FPS (HUD) | 30 | 23 |
+| Inferencia p50 / p95 (nativo) | 25–29 / 33–38 ms | 30–37 / 56–60 ms |
+| Intervalo p95 | 34 ms | 67 ms |
+| Confianza de talones | 0,71–0,78 | 0,83–0,93 |
+| Puntas de los pies | Poco orientadas | Siguen la dirección del pie |
+| Índice y pulgar | En la palma, junto a la muñeca | Igual |
+| Orejas | Borde de la cara a la altura de los ojos | Igual |
+
+- MediaPipe **Pose** no rastrea dedos: los puntos 17–22 son aproximaciones de la mano en ambos modelos. La
+  cinemática no los usa.
+- El full mejora los pies (relevante para `SQ_HEELS_LIFT`) pero no cabe en 30 FPS en el S26 Ultra.
+
 ## Pixel 7 Pro
 
 Pendiente: aún no se ha conectado.
