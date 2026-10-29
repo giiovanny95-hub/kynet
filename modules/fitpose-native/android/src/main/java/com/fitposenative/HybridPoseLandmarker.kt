@@ -26,9 +26,18 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
   private val context: Context
     get() = NitroModules.applicationContext ?: throw IllegalStateException("Sin contexto de aplicación")
 
-  private val landmarker: PoseLandmarker by lazy { create(Delegate.GPU) ?: create(Delegate.CPU) ?: throw IllegalStateException("No se pudo crear PoseLandmarker") }
+  private var landmarkerOrNull: PoseLandmarker? = null
+  // CPU primero: con el modelo lite en el S26 Ultra la inferencia en CPU tarda ~25 ms (p50) y con el delegado
+  // GPU ~46 ms (Paso C, 2026-10-29). La GPU queda solo como alternativa si la CPU no arranca.
+  private val landmarker: PoseLandmarker
+    get() = landmarkerOrNull
+      ?: (create(Delegate.CPU) ?: create(Delegate.GPU) ?: throw IllegalStateException("No se pudo crear PoseLandmarker"))
+        .also { landmarkerOrNull = it }
 
   private var lastTimestampMs = -1L
+  private var lastWidth = 0
+  private var lastHeight = 0
+  private val timings = StageTimings(listOf("imagen", "mpimage", "inferencia", "empaquetado", "total", "intervalo"))
 
   private fun create(delegate: Delegate): PoseLandmarker? =
     try {
@@ -38,7 +47,7 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
         .setRunningMode(RunningMode.VIDEO)
         .setNumPoses(1)
         .build()
-      PoseLandmarker.createFromOptions(context, options)
+      PoseLandmarker.createFromOptions(context, options).also { Log.i(TAG, "PoseLandmarker creado con delegado $delegate") }
     } catch (e: Throwable) {
       Log.w(TAG, "PoseLandmarker con $delegate falló: ${e.message}")
       null
@@ -49,17 +58,33 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
     // MediaPipe exige marcas de tiempo estrictamente crecientes en modo VIDEO.
     val tMs = image.imageInfo.timestamp / 1_000_000L
     if (tMs <= lastTimestampMs) return null
+    val intervalNs = if (lastTimestampMs < 0) 0L else (tMs - lastTimestampMs) * 1_000_000L
     lastTimestampMs = tMs
 
+    if (image.width != lastWidth || image.height != lastHeight) {
+      lastWidth = image.width
+      lastHeight = image.height
+      Log.i(TAG, "cuadro ${image.width}x${image.height}, formato ${image.format}, giro ${image.imageInfo.rotationDegrees}")
+    }
+
+    val t0 = System.nanoTime()
+    // toBitmap() cuesta ~0,3 ms y girar dentro de MediaPipe ~1 ms (medido en el S26 Ultra): no compensa
+    // optimizarlos. El coste está en la inferencia.
     val bitmap = image.toBitmap()
+    val t1 = System.nanoTime()
     val mpImage = BitmapImageBuilder(bitmap).build()
     val rotation = image.imageInfo.rotationDegrees
     val processing = ImageProcessingOptions.builder()
       .setRotationDegrees(rotation)
       .build()
+    val t2 = System.nanoTime()
     val result = landmarker.detectForVideo(mpImage, processing, tMs)
-    val pose = result.landmarks().firstOrNull() ?: return null
-    if (pose.size != LANDMARKS) return null
+    val t3 = System.nanoTime()
+    val pose = result.landmarks().firstOrNull()
+    if (pose == null || pose.size != LANDMARKS) {
+      timings.add(t1 - t0, t2 - t1, t3 - t2, 0L, t3 - t0, intervalNs)
+      return null
+    }
 
     val buffer = ByteBuffer.allocateDirect(LANDMARKS * 4 * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
     for (lm in pose) {
@@ -72,7 +97,15 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
       buffer.putFloat(lm.visibility().orElse(0f))
     }
     buffer.rewind()
+    val t4 = System.nanoTime()
+    timings.add(t1 - t0, t2 - t1, t3 - t2, t4 - t3, t4 - t0, intervalNs)
     return ArrayBuffer.wrap(buffer)
+  }
+
+  override fun dispose() {
+    landmarkerOrNull?.close()
+    landmarkerOrNull = null
+    super.dispose()
   }
 
   /** Estado térmico de `PowerManager` (API 29+); en versiones anteriores devuelve -1 (desconocido). */
