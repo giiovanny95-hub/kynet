@@ -94,7 +94,10 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
       buffer.putFloat(x)
       buffer.putFloat(y)
       buffer.putFloat(lm.z())
-      buffer.putFloat(lm.visibility().orElse(0f))
+      // `presence` es la probabilidad de que el punto esté dentro del cuadro. Con los pies fuera de cuadro
+      // MediaPipe los inventa con visibility ~0,7 y presence ~0,1 (medido en el S26 Ultra): sin esto se
+      // dibujaban y llegaban a la cinemática como válidos.
+      buffer.putFloat(minOf(lm.visibility().orElse(0f), lm.presence().orElse(0f)))
     }
     buffer.rewind()
     val t4 = System.nanoTime()

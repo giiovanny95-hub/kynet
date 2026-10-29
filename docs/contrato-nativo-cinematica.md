@@ -4,7 +4,7 @@ Qué debe poner la capa de visión en cada `PoseFrame` que pasa a `step()` del m
 
 | Campo | Regla |
 |-------|-------|
-| `raw` | 33 landmarks de MediaPipe (`x, y, z, visibilidad`) normalizados a la imagen que vio el modelo. Si no hay persona, `toPoseFrame(undefined, meta)` devuelve un cuadro vacío (todas `v = 0`): el motor pausa y, tras 3 s, abandona la repetición. **No** se salta el cuadro. |
+| `raw` | 33 landmarks de MediaPipe (`x, y, z, v`) normalizados a la imagen que vio el modelo. `v = min(visibility, presence)`: MediaPipe inventa los puntos que quedan fuera de cuadro con `visibility` alta y `presence` baja (medido en el S26 Ultra con los pies fuera: v ≈ 0,7, presence ≈ 0,1), así que solo `visibility` no basta. Si no hay persona, `toPoseFrame(undefined, meta)` devuelve un cuadro vacío (todas `v = 0`): el motor pausa y, tras 3 s, abandona la repetición. **No** se salta el cuadro. |
 | `meta.tMs` | Marca de tiempo de cámara en **milisegundos** (`frame.timestamp` de CameraX viene en nanosegundos: dividir entre 1e6). Debe crecer; cuadros con marca repetida o menor se ignoran. |
 | `meta.width`, `meta.height` | Medidas de la imagen **ya en vertical** (la orientación en la que el usuario está de pie). |
 | `meta.rotation` | Giro que aún falta aplicar a las coordenadas para que queden en vertical. Siempre `rotation = 0`: aunque el módulo Kotlin pasa `imageInfo.rotationDegrees` a MediaPipe, este devuelve las coordenadas en el marco del buffer sin girar (medido en el Galaxy S26 Ultra, cámara frontal: el esqueleto salía acostado). Por eso `HybridPoseLandmarker.toUpright` gira cada punto antes de entregarlo a JS. **[DISPOSITIVO]** pendiente: comprobar con la mano izquierda que `lWrist` cae del lado correcto, y repetir en el Pixel 7 Pro. |
