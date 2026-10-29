@@ -1,6 +1,13 @@
 const OVERLAY_MIN_V = 0.5;
 
 /**
+ * Puntos de BlazePose33 que no se dibujan: orejas (7, 8) y meñique, índice y pulgar (17-22). Pose no rastrea
+ * dedos y las orejas las estima: en el S26 Ultra, con lite y full, los de la mano caen en la palma y las orejas a
+ * la altura de los ojos. La cinemática no los usa (decisión del usuario, 2026-10-29).
+ */
+const HIDDEN_POINTS: ReadonlySet<number> = new Set([7, 8, 17, 18, 19, 20, 21, 22]);
+
+/**
  * Landmarks normalizados (33 × x, y, z, v) a puntos de la vista para dibujar con Skia.
  * El espejo de la vista previa se aplica solo aquí (ver docs/contrato-nativo-cinematica.md).
  *
@@ -26,7 +33,7 @@ export function toOverlayPoints(
     const x = flat[i] ?? 0;
     const y = flat[i + 1] ?? 0;
     const v = flat[i + 3] ?? 0;
-    if (v < OVERLAY_MIN_V) continue;
+    if (v < OVERLAY_MIN_V || HIDDEN_POINTS.has(i / 4)) continue;
     points.push({ x: (mirrorDisplay ? 1 - x : x) * shownW + offsetX, y: y * shownH + offsetY });
   }
   return points;

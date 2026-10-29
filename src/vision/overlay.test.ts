@@ -31,6 +31,14 @@ describe('toOverlayPoints', () => {
   it('sin persona no dibuja nada', () => {
     expect(toOverlayPoints(undefined, 400, 800, false)).toEqual([]);
   });
+
+  it('no dibuja orejas ni los puntos de la mano, que Pose solo aproxima', () => {
+    // Medido en el S26 Ultra con lite y full: 17-22 caen en la palma y las orejas a la altura de los ojos.
+    for (const hidden of [7, 8, 17, 18, 19, 20, 21, 22]) {
+      expect(toOverlayPoints(flatWith(hidden, 0.25, 0.5, 0.9), 400, 800, false)).toEqual([]);
+    }
+    expect(toOverlayPoints(flatWith(15, 0.25, 0.5, 0.9), 400, 800, false)).toEqual([{ x: 100, y: 400 }]);
+  });
 });
 
 describe('toOverlayBones', () => {
