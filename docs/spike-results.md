@@ -38,6 +38,40 @@ cercana a 56 ms frente a < 33 ms. La térmica sí cumple (estado 0 en todo momen
 `detect()`, que incluye la conversión `ImageProxy.toBitmap()` (YUV → RGB y un Bitmap nuevo por cuadro)
 además de la inferencia. Siguiente paso: Paso C (delegado GPU/CPU y conversión de imagen).
 
+### Paso C: dónde se iba el tiempo (2026-10-29, 14:25 → 14:50)
+
+Plan: `docs/superpowers/plans/2026-10-29-rendimiento-parte-1.md`. Tiempos nativos por etapa con
+`adb logcat -s FitposeNative` (ventanas de 150 cuadros, ~5 s cada una); "intervalo" es el tiempo entre cuadros
+procesados según las marcas de tiempo de la cámara (33 ms = 30 FPS). Persona sentada a ~1 m, luz de interior.
+
+| Configuración | `toBitmap` p50 | Inferencia p50 / p95 | Intervalo p50 / p95 | Lectura |
+|---|---|---|---|---|
+| Delegado **GPU** (original) | 0,2–0,3 ms | 34–46 / 55–64 ms | — | La inferencia es todo el coste |
+| Delegado **CPU** | 0,2 ms | 23–25 / 30–32 ms | — | La CPU gana a la GPU con el modelo lite |
+| CPU, cámara sin inferencia | — | — | 33 / 33,3 ms | La cámara entrega 30 FPS exactos |
+| CPU, `onFrame` completo vs `detect()` | — | +~15 ms en p95 fuera de `detect()` | — | Las métricas del worklet costaban ~7 FPS |
+| CPU, worklet sin métricas | 0,2 ms | 24–28 / 47–58 ms | 33 / 34 ms | 30 FPS: el búfer de 1 cuadro absorbe los picos |
+| CPU, métricas fuera del camino (`bf4b7b8`) | 0,2 ms | 24–27 / 33–40 ms | 33 / 34 ms | **30 FPS, 3 descartes, detección 99 %** (HUD) |
+| Resolución pedida 360×480 | — | sin cambio | — | CameraX entrega 640×480 igualmente (mínimo) |
+| Giro dentro de MediaPipe vs sin giro | — | diferencia ~1–2 ms | — | No compensa tocarlo |
+| Bitmap girado a mano (Matrix) | 3,2–3,9 ms | 23–25 / 32–35 ms | 33 / 34 ms | Más lento en total; descartado |
+
+- La inferencia en CPU varía entre ejecuciones (p50 de 24 a 31 ms con el mismo código) sin que cambie el estado
+  térmico (0); probablemente por el reparto de núcleos de la CPU.
+- La inferencia p95 nativa queda en **33–41 ms**: por encima del criterio propuesto de 33 ms. Como la cámara
+  guarda un cuadro pendiente, los picos aislados no hacen perder ritmo: lo que cuenta para los 30 FPS es la
+  media, que está en ~25–28 ms.
+
+### Conclusión tras el Paso C (S26 Ultra, pruebas cortas)
+
+- **30 FPS:** cumple (intervalo p50 33 ms, p95 34 ms en casi todas las ventanas).
+- **Descartes < 5 %:** cumple en las pruebas cortas (3 en el HUD tras ~20 s). Falta confirmarlo en 10 min.
+- **Inferencia p95 < 33 ms:** **no cumple** (33–41 ms). Es el propio MediaPipe lite en CPU; no hay más
+  margen en la conversión ni en el giro. El criterio está marcado como "propuesto, ajustable" en
+  `pose-spike-research.md` §6; `requirements.md` pide 30 FPS y contrapresión verificada, que sí se cumplen.
+- **Térmica:** 0 en todas las pruebas.
+- Pendiente: prueba de 10 min con lecturas a 0/5/10 min y Pixel 7 Pro.
+
 ## Pixel 7 Pro
 
 Pendiente: aún no se ha conectado.
