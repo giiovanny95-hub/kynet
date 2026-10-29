@@ -17,6 +17,17 @@ describe('toOverlayPoints', () => {
     expect(toOverlayPoints(flatWith(0, 0.25, 0.5, 0.9), 400, 800, true)).toEqual([{ x: 300, y: 400 }]);
   });
 
+  it('con un cuadro 3:4 en una vista más alta descuenta el recorte lateral de la vista previa', () => {
+    // Vista 400×800, cuadro 3:4: se muestra a 600×800 y se recortan 100 px por lado.
+    expect(toOverlayPoints(flatWith(0, 0.25, 0.5, 0.9), 400, 800, false, 3 / 4)).toEqual([{ x: 50, y: 400 }]);
+    expect(toOverlayPoints(flatWith(0, 0.25, 0.5, 0.9), 400, 800, true, 3 / 4)).toEqual([{ x: 350, y: 400 }]);
+  });
+
+  it('con un cuadro más alto que la vista recorta arriba y abajo', () => {
+    // Vista 400×400, cuadro 1:2: se muestra a 400×800 y se recortan 200 px arriba y abajo.
+    expect(toOverlayPoints(flatWith(0, 0.5, 0.25, 0.9), 400, 400, false, 1 / 2)).toEqual([{ x: 200, y: 0 }]);
+  });
+
   it('sin persona no dibuja nada', () => {
     expect(toOverlayPoints(undefined, 400, 800, false)).toEqual([]);
   });

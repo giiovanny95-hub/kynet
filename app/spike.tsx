@@ -14,10 +14,10 @@ const MIRROR_PREVIEW = true;
 /** Pantalla de prueba de la parte 1 (solo desarrollo): cámara, pose de MediaPipe y métricas. */
 export default function SpikeScreen() {
   const { hasPermission, canRequestPermission, requestPermission } = useCameraPermission();
-  const { frameOutput, stats, landmarks } = useSpikeCamera();
+  const { frameOutput, stats, landmarks, frameAspect } = useSpikeCamera();
   const [size, setSize] = useState({ width: 0, height: 0 });
   const points = useDerivedValue(() =>
-    toOverlayPoints(landmarks.value, size.width, size.height, MIRROR_PREVIEW).map((p) => vec(p.x, p.y)),
+    toOverlayPoints(landmarks.value, size.width, size.height, MIRROR_PREVIEW, frameAspect.value).map((p) => vec(p.x, p.y)),
   );
 
   if (!__DEV__) return <Redirect href="/" />;

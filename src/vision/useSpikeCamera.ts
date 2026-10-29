@@ -26,6 +26,8 @@ export function useSpikeCamera() {
   const boxed = useMemo(() => NitroModules.box(landmarker), [landmarker]);
   const metrics = useSharedValue<FrameMetrics>(createMetrics());
   const landmarks = useSharedValue<Float32Array | undefined>(undefined);
+  // Ancho / alto del cuadro ya en vertical (la app está fijada en vertical: el lado corto es el ancho).
+  const frameAspect = useSharedValue(3 / 4);
   const counts = useSharedValue({ processed: 0, detected: 0, inferMs: 0 });
   const [stats, setStats] = useState<SpikeStats>({ metrics: createMetrics(), detectionRate: 0, inferMs: 0, thermalStatus: -1 });
 
@@ -40,6 +42,7 @@ export function useSpikeCamera() {
       try {
         // En Android `timestamp` es `ImageInfo.timestamp` de CameraX (nanosegundos); se pasa a ms.
         metrics.value = metricsStep(metrics.value, frame.timestamp / 1e6, false);
+        frameAspect.value = Math.min(frame.width, frame.height) / Math.max(frame.width, frame.height);
         const t0 = performance.now();
         const buffer = boxed.unbox().detect(frame);
         const inferMs = performance.now() - t0;
@@ -68,5 +71,5 @@ export function useSpikeCamera() {
     return () => clearInterval(id);
   }, [metrics, counts, landmarker]);
 
-  return { frameOutput, stats, landmarks };
+  return { frameOutput, stats, landmarks, frameAspect };
 }
