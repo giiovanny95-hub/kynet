@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useDerivedValue } from 'react-native-reanimated';
 import { Camera, useCameraPermission } from 'react-native-vision-camera';
 
+import { droppedFrames } from '@/vision/metrics';
 import { toOverlayPoints } from '@/vision/overlay';
 import { useSpikeCamera } from '@/vision/useSpikeCamera';
 
@@ -46,7 +47,7 @@ export default function SpikeScreen() {
       </Canvas>
       <View style={styles.hud}>
         <Text style={styles.hudText}>FPS {metrics.fps.toFixed(1)}</Text>
-        <Text style={styles.hudText}>Descartes {metrics.dropped}</Text>
+        <Text style={styles.hudText}>Descartes {droppedFrames(metrics)}</Text>
         <Text style={styles.hudText}>p95 {metrics.p95IntervalMs.toFixed(1)} ms</Text>
         <Text style={styles.hudText}>Inferencia {stats.inferMs.toFixed(1)} ms</Text>
         <Text style={styles.hudText}>Detección {(stats.detectionRate * 100).toFixed(0)} %</Text>
