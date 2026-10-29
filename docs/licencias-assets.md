@@ -75,3 +75,6 @@ Fecha de verificación: 2026-10-28. Solo investigación; no se descargó ningún
 - https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/LICENSE.md
 - https://github.com/wrkout/exercises.json
 - Búsqueda web sobre licencias wger (fuentes secundarias: https://pypi.org/project/wger/1.4/ , https://github.com/exercemus/exercises)
+
+## Audio
+Los tonos de `assets/audio/` son arte propio: senos generados por `scripts/gen-tones.ts` a partir de `src/audio/tones.ts`. Sin licencias de terceros.
