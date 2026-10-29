@@ -92,7 +92,7 @@ function filterStep(s: OneEuroState | null, tSec: number, x: number, p: OneEuroP
 ### 3.3 Parámetros iniciales [V en simulación a 30 FPS, ruido σ=0.004 alto de cuadro]
 | Parámetro | Informes | Propuesta | Razón |
 |---|---|---|---|
-| `fcMin` | 1.0 Hz | **1.5 Hz** | ruido en reposo 0.004 a 0.0013 (x0.33) |
+| `fcMin` | 1.0 Hz | **1.5 Hz** | ruido en reposo 0.004 a ~0.0016 (x0.40 medido; ver nota) |
 | `beta` (unidades de alto por segundo) | 0.007 | **8** | a 3 u/s de muñeca en jumping jack sube fc a ~25 Hz |
 | `dCutoff` | 1.0 | 1.0 | sin cambio |
 
@@ -102,6 +102,8 @@ Resultados comparados (retardo / amplitud pico a pico / jitter en reposo):
 |---|---|---|
 | Informes (1.0, 0.007) | 133 ms / 0.96 / 0.0013 | 100 ms / **0.65** / 0.0013 |
 | Propuesta (1.5, 8) | 67 ms / 1.02 / 0.0013 | **33 ms** / 0.99 / 0.0014 |
+
+**Nota (implementación, 2026-10-29):** con `fcMin` 1,5 Hz a 30 FPS una EMA pura deja √(α/(2−α)) = 0,368·σ (α = 0,239) y el término `beta` sube `fc` a ~1,8 Hz con el ruido de la derivada: medido 0,40·σ en 3 semillas. La cifra 0,0013 (x0,33) y la restricción "jitter <= 0.35·σ" no son alcanzables con estos parámetros; la prueba usa <= 0,45·σ y la rejilla debe usar ese límite o bajar `fcMin`.
 
 Ajuste: **búsqueda en rejilla** offline sobre los fixtures (`fcMin ∈ {1,1.5,2,3}`, `beta ∈ {2,4,8,12}`) con restricciones: jitter en reposo <= 0.35·σ_crudo, retardo <= 70 ms, razón de amplitud ∈ [0.97, 1.07]; entre las que cumplen, minimizar RMSE. Sube `fcMin` si se nota lentitud; sube `beta` si hay retardo en movimientos rápidos; baja `fcMin` si el esqueleto/ángulos tiemblan en reposo. Por ejercicio se permite un override (`jumpingJack.beta`). El retardo medio (~50 ms) se asume en todos los umbrales de tiempo.
 
