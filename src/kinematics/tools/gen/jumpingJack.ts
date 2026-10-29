@@ -10,6 +10,8 @@ export interface GenJumpingJackOptions {
   readonly mode?: 'full' | 'armsOnly' | 'feetOnly';
   /** Grados que le faltan al brazo derecho en el pico (asimetría). */
   readonly asymDeg?: number;
+  /** Fracción del movimiento completo (1 = brazos arriba y pies abiertos del todo). */
+  readonly amplitude?: number;
 }
 
 const W = 720;
@@ -62,7 +64,7 @@ export function genJumpingJack(o: GenJumpingJackOptions): PoseFrame[] {
     const tMs = (i / o.fps) * 1000;
     const rel = tMs / 1000 - STAND_S;
     const inReps = rel >= 0 && rel < o.reps * o.periodS;
-    const open = inReps ? 0.5 - 0.5 * Math.cos((2 * Math.PI * rel) / o.periodS) : 0;
+    const open = (inReps ? 0.5 - 0.5 * Math.cos((2 * Math.PI * rel) / o.periodS) : 0) * (o.amplitude ?? 1);
     const alpha = 20 + (mode === 'feetOnly' ? 0 : open * 158);
     const rho = 0.5 + (mode === 'armsOnly' ? 0 : open * 1.6);
     const sk = skeleton(alpha, rho, (o.asymDeg ?? 0) * open);

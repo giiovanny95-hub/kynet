@@ -3,16 +3,17 @@ import { arbiterStep, createArbiter, type ArbiterState } from './feedback/arbite
 import type { FeedbackCode, FeedbackEvent } from './feedback/codes';
 import { createFilterBank, filterPose, type FilterBank } from './filter/landmarkFilter';
 import { DEFAULT_ONE_EURO, type OneEuroParams } from './filter/oneEuro';
-import { JJ_SPEC, jjStep } from './fsm/exercises/jumpingJack';
+import { applyProfile, type CalibrationProfile } from './calibration/profile';
+import { JJ_SPEC, JJ_ZONES, jjStep, type JJZones } from './fsm/exercises/jumpingJack';
 import { SQUAT_SPEC } from './fsm/exercises/squat';
-import { createFsm, fsmStep, toIdle, type FsmState, type RepEvent } from './fsm/machine';
+import { createFsm, fsmStep, toIdle, type ExerciseSpec, type FsmState, type RepEvent } from './fsm/machine';
 import { toPose } from './landmarks/adapter';
 import { createGuard, guardStep, type GuardState } from './quality/subjectGuard';
 import { classifyView } from './quality/viewClassifier';
 import { createVisState, visibilityStep, type VisState } from './quality/visibility';
 import { comboStep } from './scoring/combo';
 import { formScore, pForm, quality, repQ, type Quality } from './scoring/quality';
-import { qRomJJ, qRomSquat } from './scoring/rom';
+import { DEFAULT_T, DEFAULT_TTOP, qRomJJ, qRomSquat } from './scoring/rom';
 import { qTempo, tempoPlateau } from './scoring/tempo';
 import { jjSignals } from './signals/jumpingJack';
 import { squatSignals } from './signals/squat';
@@ -27,10 +28,26 @@ export interface EngineConfig {
   readonly oneEuro?: OneEuroParams;
   /** Vista exigida; por defecto frontal en jumping jack y lateral en el resto. */
   readonly view?: 'lateral' | 'frontal';
+  /** Calibración en curso: umbrales permisivos (spec §5.2). */
+  readonly calibrating?: boolean;
+  /** Umbrales personalizados; la app comprueba antes `isProfileValid`. */
+  readonly profile?: CalibrationProfile | null;
+}
+
+interface ResolvedConfig {
+  readonly exercise: EngineExercise;
+  readonly model: ModelSpec;
+  readonly side: 'l' | 'r' | null;
+  readonly oneEuro: OneEuroParams;
+  readonly view: 'lateral' | 'frontal';
+  readonly profile: CalibrationProfile | null;
+  /** Tabla efectiva de la FSM (con calibración o perfil aplicados) y zonas de jumping jack. */
+  readonly spec: ExerciseSpec;
+  readonly zones: JJZones;
 }
 
 export interface EngineState {
-  readonly cfg: Required<Omit<EngineConfig, 'side'>> & { readonly side: 'l' | 'r' | null };
+  readonly cfg: ResolvedConfig;
   /** Encuadre: vista incorrecta (desde cuándo), cuadros con una articulación al borde y cuadros correctos seguidos. */
   readonly frameCheck: FrameCheck;
   readonly side: 'l' | 'r';
@@ -79,6 +96,8 @@ export type ScoredRep = RepEvent & {
   readonly mult?: number;
   /** Faltas suaves o causa de la incompleta. */
   readonly faults: readonly FeedbackCode[];
+  /** Sentadilla: inclinación del tronco en el fondo (para `τ_cal`). */
+  readonly tau?: number | null;
 };
 export type EngineEvent =
   | ScoredRep
@@ -97,10 +116,7 @@ const ABANDON_AFTER_MS = 3000;
 export function createEngine(cfg: EngineConfig): EngineState {
   'worklet';
   return {
-    cfg: {
-      exercise: cfg.exercise, model: cfg.model, side: cfg.side ?? null, oneEuro: cfg.oneEuro ?? DEFAULT_ONE_EURO,
-      view: cfg.view ?? (cfg.exercise === 'jumpingJack' ? 'frontal' : 'lateral'),
-    },
+    cfg: resolveConfig(cfg),
     frameCheck: FRAME_OK,
     side: cfg.side ?? 'l',
     bank: createFilterBank(),
@@ -114,6 +130,29 @@ export function createEngine(cfg: EngineConfig): EngineState {
     arbiter: createArbiter(),
     attempts: 0,
     acc: EMPTY_ACC,
+  };
+}
+
+const CAL_EXTREME_THR = 115;
+const CAL_JJ_ALPHA = 110;
+const CAL_JJ_RHO = 1.2;
+
+function resolveConfig(cfg: EngineConfig): ResolvedConfig {
+  'worklet';
+  const profile = cfg.calibrating ? null : (cfg.profile ?? null);
+  const baseSpec = cfg.exercise === 'jumpingJack' ? JJ_SPEC : SQUAT_SPEC;
+  let spec = baseSpec;
+  let zones: JJZones = JJ_ZONES;
+  if (cfg.calibrating) {
+    spec = { ...baseSpec, extremeThr: CAL_EXTREME_THR };
+    zones = { ...JJ_ZONES, openAlpha: CAL_JJ_ALPHA, openRho: CAL_JJ_RHO };
+  } else if (profile !== null) {
+    if (cfg.exercise === 'jumpingJack') zones = { ...JJ_ZONES, openAlpha: profile.alphaU ?? JJ_ZONES.openAlpha, openRho: profile.rhoU ?? JJ_ZONES.openRho };
+    else spec = applyProfile(baseSpec, profile);
+  }
+  return {
+    exercise: cfg.exercise, model: cfg.model, side: cfg.side ?? profile?.side ?? null, oneEuro: cfg.oneEuro ?? DEFAULT_ONE_EURO,
+    view: cfg.view ?? (cfg.exercise === 'jumpingJack' ? 'frontal' : 'lateral'), profile, spec, zones,
   };
 }
 
@@ -141,14 +180,17 @@ function chooseSide(s: EngineState, pose: Pose): 'l' | 'r' {
   return r > l + 0.15 ? 'r' : l > r + 0.15 ? 'l' : s.side;
 }
 
-function score(exercise: EngineExercise, rep: RepEvent, pf: number): number {
+function score(cfg: ResolvedConfig, rep: RepEvent, pf: number): number {
   'worklet';
   const downS = (rep.downMs ?? 0) / 1000;
   const upS = (rep.upMs ?? 0) / 1000;
-  if (exercise === 'jumpingJack') {
+  if (cfg.exercise === 'jumpingJack') {
     return repQ(qRomJJ(rep.extreme, rep.extreme2 ?? 0), qTempo('jumpingJack', downS, upS), pf);
   }
-  return repQ(qRomSquat(rep.extreme, rep.top ?? rep.extreme), qTempo('squat', downS, upS), pf);
+  // Con perfil, T = fondo calibrado y Ttop = inicio calibrado (spec §6.1).
+  const T = cfg.profile ? cfg.profile.extremeThr - 10 : DEFAULT_T;
+  const Ttop = cfg.profile ? cfg.profile.startThr + 10 : DEFAULT_TTOP;
+  return repQ(qRomSquat(rep.extreme, rep.top ?? rep.extreme, T, Ttop), qTempo('squat', downS, upS), pf);
 }
 
 const TRUNK_LEAN_MIN_DEG = 55;
@@ -277,7 +319,7 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   if (s.cfg.exercise === 'jumpingJack') {
     const sig = jjSignals(filtered.pose);
     value = sig.alpha;
-    r = jjStep(s.fsm, { tMs, alpha: sig.alpha, rhoF: sig.rhoF, paused }, JJ_SPEC);
+    r = jjStep(s.fsm, { tMs, alpha: sig.alpha, rhoF: sig.rhoF, paused }, s.cfg.spec, s.cfg.zones);
     if (prevPhase === 'IDLE') acc = EMPTY_ACC;
     if (!paused && sig.asym !== null && (r.s.phase === 'INFLECTION' || r.s.phase === 'ASCENDING' && prevPhase === 'INFLECTION')) {
       acc = { ...acc, asymMax: Math.max(acc.asymMax ?? 0, sig.asym) };
@@ -285,7 +327,7 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   } else {
     const sig = squatSignals(filtered.pose, side);
     value = sig.thetaK;
-    r = fsmStep(s.fsm, { tMs, value, paused }, SQUAT_SPEC);
+    r = fsmStep(s.fsm, { tMs, value, paused }, s.cfg.spec);
     if (prevPhase === 'IDLE') acc = EMPTY_ACC;
     // τ en el cuadro del extremo: se actualiza cada vez que la FSM registra un mínimo nuevo.
     const descending = r.s.phase === 'DESCENDING' || r.s.phase === 'INFLECTION';
@@ -301,13 +343,13 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
       s = { ...s, combo: 0 };
       events.push({ ...rep, quality: 'Miss', mult: 1, faults });
     } else {
-      const soft = softFaults(s.cfg.exercise, rep, s.acc, 0);
+      const soft = softFaults(s.cfg.exercise, rep, s.acc, s.cfg.profile?.tauCal ?? 0);
       faults = soft.faults;
-      const q = score(s.cfg.exercise, rep, pForm(soft.penalties));
+      const q = score(s.cfg, rep, pForm(soft.penalties));
       const qual = quality(q, faults.length);
       const c = comboStep({ combo: s.combo }, qual);
       s = { ...s, combo: c.combo, reps: s.reps + 1 };
-      events.push({ ...rep, q, quality: qual, formScore: formScore(q), mult: c.mult, faults });
+      events.push({ ...rep, q, quality: qual, formScore: formScore(q), mult: c.mult, faults, tau: s.acc.tauBottom });
     }
     const fb = arbiterStep(s.arbiter, faults, rep.tEndMs, s.attempts + 1);
     s = { ...s, arbiter: fb.a, attempts: s.attempts + 1 };
