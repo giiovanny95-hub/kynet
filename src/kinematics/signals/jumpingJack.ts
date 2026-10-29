@@ -1,11 +1,11 @@
+import { JOINT_MIN_V } from '../config/visibility';
 import { angle2D } from '../math/angle';
 import type { Landmark, Pose } from '../types';
 
-const MIN_V = 0.3;
 
 function usable(lm: Landmark | undefined): lm is Landmark {
   'worklet';
-  return lm !== undefined && lm.v >= MIN_V;
+  return lm !== undefined && lm.v >= JOINT_MIN_V;
 }
 
 /**

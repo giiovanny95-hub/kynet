@@ -1,3 +1,4 @@
+import { JOINT_MIN_V } from './config/visibility';
 import { createFilterBank, filterPose, type FilterBank } from './filter/landmarkFilter';
 import { DEFAULT_ONE_EURO, type OneEuroParams } from './filter/oneEuro';
 import { JJ_SPEC, jjStep } from './fsm/exercises/jumpingJack';
@@ -46,7 +47,6 @@ export interface Hud {
   readonly paused: boolean;
 }
 
-const JOINT_MIN_V = 0.3;
 const ABANDON_AFTER_MS = 3000;
 
 export function createEngine(cfg: EngineConfig): EngineState {
@@ -107,7 +107,8 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   'worklet';
   const hudOf = (st: EngineState, value: number | null): Hud => ({ phase: st.fsm.phase, value, reps: st.reps, paused: st.vis.paused });
   const tMs = frame.meta.tMs;
-  if (s0.lastTMs !== null && !(tMs > s0.lastTMs)) return { s: s0, events: [], hud: hudOf(s0, null) };
+  // Marca de tiempo no finita, repetida o que retrocede: el cuadro se ignora (un NaN no debe congelar el motor).
+  if (!Number.isFinite(tMs) || (s0.lastTMs !== null && !(tMs > s0.lastTMs))) return { s: s0, events: [], hud: hudOf(s0, null) };
 
   const events: EngineEvent[] = [];
   let s: EngineState = { ...s0, lastTMs: tMs };
@@ -117,6 +118,8 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   s = { ...s, guard: guarded.g };
   if (!guarded.accept) return { s, events, hud: hudOf(s, null) };
   if (guarded.event === 'SUBJECT_CHANGED') {
+    // Si estaba en pausa, la visibilidad se reinicia sin pausa: se avisa con RESUME para que la UI no quede bloqueada.
+    if (s.vis.paused) events.push({ type: 'RESUME', tMs });
     s = { ...s, bank: createFilterBank(), vis: createVisState(), fsm: createFsm(), pausedSinceMs: null };
     events.push({ type: 'SUBJECT_CHANGED', tMs });
   }

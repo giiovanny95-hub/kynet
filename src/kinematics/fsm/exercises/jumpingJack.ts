@@ -29,6 +29,14 @@ export interface JJSample {
   readonly paused: boolean;
 }
 
+/** Picos de brazos y pies; el instante del extremo es el del pico de los brazos (para medir ida y vuelta). */
+function trackPeak(s: FsmState, alpha: number, rhoF: number, tMs: number, tEff: number): FsmState {
+  'worklet';
+  const extreme2 = Math.max(s.extreme2 ?? 0, rhoF);
+  if (alpha > s.extreme) return { ...s, extreme: alpha, extreme2, tExtremeMs: tMs, tExtremeEff: tEff };
+  return { ...s, extreme2 };
+}
+
 /** Máquina de jumping jack: dos señales que **suben** hacia el abierto; reutiliza reloj, faltas y eventos de la máquina genérica. */
 export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec = JJ_SPEC): { s: FsmState; events: RepEvent[] } {
   'worklet';
@@ -55,10 +63,10 @@ export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec = JJ_S
       return { s: s.phase === 'DESCENDING' ? { ...s, extreme2: rhoF } : s, events: [] };
     }
     case 'DESCENDING': {
-      s = { ...s, extreme: Math.max(s.extreme, alpha), extreme2: Math.max(s.extreme2 ?? 0, rhoF) };
+      s = trackPeak(s, alpha, rhoF, sample.tMs, t);
       // Los picos de brazos y pies pueden llegar en cuadros distintos: se acumulan dentro de la fase.
       if (s.extreme >= z.openAlpha && (s.extreme2 ?? 0) >= z.openRho) {
-        return { s: { ...enterPhase(s, 'INFLECTION', t), tExtremeMs: sample.tMs, tExtremeEff: t }, events: [] };
+        return { s: enterPhase(s, 'INFLECTION', t), events: [] };
       }
       if (closed) {
         const armsUp = s.extreme >= z.openAlpha;
@@ -71,7 +79,7 @@ export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec = JJ_S
       return { s, events: [] };
     }
     case 'INFLECTION': {
-      s = { ...s, extreme: Math.max(s.extreme, alpha), extreme2: Math.max(s.extreme2 ?? 0, rhoF) };
+      s = trackPeak(s, alpha, rhoF, sample.tMs, t);
       if (alpha < z.closingAlpha || rhoF < z.closingRho) {
         s = { ...enterPhase(s, 'ASCENDING', t), tBottomMs: s.tExtremeMs, tBottomEff: s.tExtremeEff, top: alpha };
       }

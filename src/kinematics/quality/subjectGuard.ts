@@ -1,3 +1,4 @@
+import { JOINT_MIN_V } from '../config/visibility';
 import { dist, mid } from '../math/vec';
 import type { Pose, Vec2 } from '../types';
 
@@ -16,8 +17,6 @@ export function createGuard(): GuardState {
   return { torso: null, hip: null, rejects: 0 };
 }
 
-/** Visibilidad mínima de hombros y caderas para que la guarda compare el cuadro. */
-const GUARD_MIN_V = 0.3;
 
 function hipCenter(pose: Pose): Vec2 | null {
   'worklet';
@@ -28,7 +27,7 @@ function hipCenter(pose: Pose): Vec2 | null {
 function torsoVisible(pose: Pose): boolean {
   'worklet';
   const { lShoulder, rShoulder, lHip, rHip } = pose.joints;
-  return [lShoulder, rShoulder, lHip, rHip].every((j) => j !== undefined && j.v >= GUARD_MIN_V);
+  return [lShoulder, rShoulder, lHip, rHip].every((j) => j !== undefined && j.v >= JOINT_MIN_V);
 }
 
 /**
@@ -38,10 +37,11 @@ function torsoVisible(pose: Pose): boolean {
 export function guardStep(g: GuardState, pose: Pose): { g: GuardState; accept: boolean; event: 'SUBJECT_CHANGED' | null } {
   'worklet';
   // Con el torso poco visible (fuera de cuadro, pose fantasma) la guarda no decide: lo resuelve la visibilidad.
-  if (!torsoVisible(pose)) return { g, accept: true, event: null };
+  // Un cuadro que no se puede comparar corta la racha de rechazos: "3 seguidos" significa 3 cuadros comparables.
+  if (!torsoVisible(pose)) return { g: { ...g, rejects: 0 }, accept: true, event: null };
   const hip = hipCenter(pose);
   const torso = pose.torso;
-  if (torso === null || hip === null) return { g, accept: true, event: null };
+  if (torso === null || hip === null) return { g: { ...g, rejects: 0 }, accept: true, event: null };
   const accepted: GuardState = { torso, hip, rejects: 0 };
   if (g.torso === null || g.hip === null) return { g: accepted, accept: true, event: null };
 
