@@ -13,6 +13,8 @@ export interface GenSquatOptions {
   readonly standS?: number;
   /** Inclinación extra del tronco (grados) en el fondo, proporcional a la profundidad. */
   readonly trunkLeanDeg?: number;
+  /** Guiñada del cuerpo respecto a la cámara: 90 = de perfil (por defecto), 0 = de frente. */
+  readonly yawDeg?: number;
 }
 
 const W = 720;
@@ -28,7 +30,7 @@ type P = { x: number; y: number };
 /** Esqueleto lateral 2D en unidades de alto de cuadro para un ángulo de rodilla dado. */
 function skeleton(kneeDeg: number, extraLeanRad = 0): Record<string, P> {
   const s = ((180 - kneeDeg) / 2) * DEG;
-  const ankle = { x: 0.3, y: 0.9 };
+  const ankle = { x: 0.25, y: 0.9 };
   const knee = { x: ankle.x + SHANK * Math.sin(s), y: ankle.y - SHANK * Math.cos(s) };
   const hip = { x: knee.x - THIGH * Math.sin(s), y: knee.y - THIGH * Math.cos(s) };
   const lean = s * 0.6 + extraLeanRad;
@@ -79,7 +81,9 @@ export function genSquat(o: GenSquatOptions): PoseFrame[] {
     for (const [part, idx, dx] of PARTS) {
       const p = sk[part];
       if (!p) continue;
-      const xu = p.x + dx + o.sigma * gaussian(rng);
+      // De frente, los lados se separan un ancho de hombros (0,24) en total.
+      const spread = (dx < 0 ? -0.12 : 0.12) * Math.cos((o.yawDeg ?? 90) * DEG);
+      const xu = p.x + dx + spread + o.sigma * gaussian(rng);
       const yu = p.y + o.sigma * gaussian(rng);
       raw[idx] = { x: xu / (W / H), y: yu, z: 0, v: 0.95 };
     }

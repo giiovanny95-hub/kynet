@@ -19,6 +19,8 @@ const CX = 0.28;
 const SHOULDER_HALF = 0.1;
 const ARM = 0.25;
 const STAND_S = 1;
+/** Escala del cuerpo alrededor del centro para que los brazos abiertos quepan en el ancho del cuadro (0,5625). */
+const SCALE = 0.75;
 
 type P = { x: number; y: number };
 
@@ -66,8 +68,8 @@ export function genJumpingJack(o: GenJumpingJackOptions): PoseFrame[] {
     const sk = skeleton(alpha, rho, (o.asymDeg ?? 0) * open);
     const raw: Landmark[] = Array.from({ length: 33 }, () => ({ x: 0, y: 0, z: 0, v: 0 }));
     for (const [k, p] of Object.entries(sk)) {
-      const xu = p.x + o.sigma * gaussian(rng);
-      const yu = p.y + o.sigma * gaussian(rng);
+      const xu = CX + (p.x - CX) * SCALE + o.sigma * gaussian(rng);
+      const yu = 0.5 + (p.y - 0.5) * SCALE + o.sigma * gaussian(rng);
       raw[Number(k)] = { x: xu / (W / H), y: yu, z: 0, v: 0.95 };
     }
     const meta: FrameMeta = { tMs, width: W, height: H, rotation: 0, mirrored: false };

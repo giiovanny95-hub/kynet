@@ -8,6 +8,7 @@ import { SQUAT_SPEC } from './fsm/exercises/squat';
 import { createFsm, fsmStep, toIdle, type FsmState, type RepEvent } from './fsm/machine';
 import { toPose } from './landmarks/adapter';
 import { createGuard, guardStep, type GuardState } from './quality/subjectGuard';
+import { classifyView } from './quality/viewClassifier';
 import { createVisState, visibilityStep, type VisState } from './quality/visibility';
 import { comboStep } from './scoring/combo';
 import { formScore, pForm, quality, repQ, type Quality } from './scoring/quality';
@@ -24,10 +25,14 @@ export interface EngineConfig {
   readonly model: ModelSpec;
   readonly side?: 'l' | 'r';
   readonly oneEuro?: OneEuroParams;
+  /** Vista exigida; por defecto frontal en jumping jack y lateral en el resto. */
+  readonly view?: 'lateral' | 'frontal';
 }
 
 export interface EngineState {
   readonly cfg: Required<Omit<EngineConfig, 'side'>> & { readonly side: 'l' | 'r' | null };
+  /** Encuadre: vista incorrecta (desde cuándo), cuadros con una articulación al borde y cuadros correctos seguidos. */
+  readonly frameCheck: FrameCheck;
   readonly side: 'l' | 'r';
   readonly bank: FilterBank;
   readonly vis: VisState;
@@ -43,6 +48,22 @@ export interface EngineState {
   /** Señales secundarias de la repetición en curso: `τ` en el extremo (sentadilla) y asimetría máxima en el pico (jumping jack). */
   readonly acc: RepAcc;
 }
+
+type PauseCause = 'VIS_LOW' | 'VIEW' | 'OUT_OF_FRAME';
+
+interface FrameCheck {
+  readonly viewBadSinceMs: number | null;
+  readonly edgeRun: number;
+  readonly okRun: number;
+  /** Causa de encuadre que mantiene la pausa (la visibilidad va aparte en `vis`). */
+  readonly issue: 'VIEW' | 'OUT_OF_FRAME' | null;
+}
+
+const FRAME_OK: FrameCheck = { viewBadSinceMs: null, edgeRun: 0, okRun: 0, issue: null };
+const VIEW_BAD_MS = 1000;
+const EDGE_FRAMES = 3;
+const RESUME_FRAMES = 5;
+const EDGE_MARGIN = 0.02;
 
 interface RepAcc {
   readonly tauBottom: number | null;
@@ -76,7 +97,11 @@ const ABANDON_AFTER_MS = 3000;
 export function createEngine(cfg: EngineConfig): EngineState {
   'worklet';
   return {
-    cfg: { exercise: cfg.exercise, model: cfg.model, side: cfg.side ?? null, oneEuro: cfg.oneEuro ?? DEFAULT_ONE_EURO },
+    cfg: {
+      exercise: cfg.exercise, model: cfg.model, side: cfg.side ?? null, oneEuro: cfg.oneEuro ?? DEFAULT_ONE_EURO,
+      view: cfg.view ?? (cfg.exercise === 'jumpingJack' ? 'frontal' : 'lateral'),
+    },
+    frameCheck: FRAME_OK,
     side: cfg.side ?? 'l',
     bank: createFilterBank(),
     vis: createVisState(),
@@ -158,13 +183,48 @@ function incompleteCode(exercise: EngineExercise, code: string | null): Feedback
   return code === 'JJ_FEET_NARROW' ? 'JJ_FEET_NARROW' : 'JJ_ARMS_LOW';
 }
 
+/** Alguna articulación requerida y visible a menos del 2 % del borde (coordenadas normalizadas del cuadro). */
+function nearEdge(pose: Pose, joints: readonly JointId[], aspect: number): boolean {
+  'worklet';
+  for (const id of joints) {
+    const lm = pose.joints[id];
+    if (!lm || lm.v < JOINT_MIN_V) continue;
+    const xn = lm.x / aspect;
+    if (xn < EDGE_MARGIN || xn > 1 - EDGE_MARGIN || lm.y < EDGE_MARGIN || lm.y > 1 - EDGE_MARGIN) return true;
+  }
+  return false;
+}
+
+/** Vista incorrecta más de 1 s o articulación al borde 3 cuadros: pausa; 5 cuadros correctos la levantan. */
+function frameCheckStep(f: FrameCheck, pose: Pose, joints: readonly JointId[], want: 'lateral' | 'frontal', aspect: number, tMs: number): FrameCheck {
+  'worklet';
+  const v = classifyView(pose);
+  const wrongView = v !== null && v !== 'ambiguous' && v !== want;
+  const viewBadSinceMs = wrongView ? (f.viewBadSinceMs ?? tMs) : null;
+  const edgeRun = nearEdge(pose, joints, aspect) ? f.edgeRun + 1 : 0;
+  const now = viewBadSinceMs !== null && tMs - viewBadSinceMs > VIEW_BAD_MS ? 'VIEW' : edgeRun >= EDGE_FRAMES ? 'OUT_OF_FRAME' : null;
+  if (now !== null) return { viewBadSinceMs, edgeRun, okRun: 0, issue: now };
+  if (f.issue === null) return { viewBadSinceMs, edgeRun, okRun: 0, issue: null };
+  const bad = wrongView || edgeRun > 0;
+  const okRun = bad ? 0 : f.okRun + 1;
+  return { viewBadSinceMs, edgeRun, okRun, issue: okRun >= RESUME_FRAMES ? null : f.issue };
+}
+
+function pauseCode(cause: PauseCause, exercise: EngineExercise, want: 'lateral' | 'frontal'): FeedbackCode {
+  'worklet';
+  if (cause !== 'VIEW') return cause;
+  if (exercise === 'jumpingJack') return 'JJ_FACE_CAMERA';
+  return want === 'lateral' ? 'VIEW_WRONG_SIDE' : 'VIEW_WRONG_FRONT';
+}
+
 /**
  * Un cuadro: guarda de sujeto → adaptador → filtro → visibilidad → señales → FSM → puntuación.
  * Puro y serializable: el estado devuelto se puede guardar y reanudar.
  */
 export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; events: EngineEvent[]; hud: Hud } {
   'worklet';
-  const hudOf = (st: EngineState, value: number | null): Hud => ({ phase: st.fsm.phase, value, reps: st.reps, paused: st.vis.paused });
+  const isPaused = (st: EngineState): boolean => st.vis.paused || st.frameCheck.issue !== null;
+  const hudOf = (st: EngineState, value: number | null): Hud => ({ phase: st.fsm.phase, value, reps: st.reps, paused: isPaused(st) });
   const tMs = frame.meta.tMs;
   // Marca de tiempo no finita, repetida o que retrocede: el cuadro se ignora (un NaN no debe congelar el motor).
   if (!Number.isFinite(tMs) || (s0.lastTMs !== null && !(tMs > s0.lastTMs))) return { s: s0, events: [], hud: hudOf(s0, null) };
@@ -178,8 +238,8 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   if (!guarded.accept) return { s, events, hud: hudOf(s, null) };
   if (guarded.event === 'SUBJECT_CHANGED') {
     // Si estaba en pausa, la visibilidad se reinicia sin pausa: se avisa con RESUME para que la UI no quede bloqueada.
-    if (s.vis.paused) events.push({ type: 'RESUME', tMs });
-    s = { ...s, bank: createFilterBank(), vis: createVisState(), fsm: createFsm(), pausedSinceMs: null };
+    if (isPaused(s)) events.push({ type: 'RESUME', tMs });
+    s = { ...s, bank: createFilterBank(), vis: createVisState(), frameCheck: FRAME_OK, fsm: createFsm(), pausedSinceMs: null };
     events.push({ type: 'SUBJECT_CHANGED', tMs });
   }
 
@@ -187,12 +247,25 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   const filtered = filterPose(s.bank, rawPose, s.cfg.oneEuro, JOINT_MIN_V);
   s = { ...s, side, bank: filtered.bank };
 
-  const vis = visibilityStep(s.vis, meanVisibility(rawPose, requiredJoints(s.cfg.exercise, side)), tMs);
-  s = { ...s, vis: vis.s, pausedSinceMs: vis.paused ? (s.pausedSinceMs ?? tMs) : null };
-  if (vis.event) events.push({ type: vis.event, tMs });
+  const joints = requiredJoints(s.cfg.exercise, side);
+  const wasPaused = isPaused(s);
+  const prevCause: PauseCause | null = s.vis.paused ? 'VIS_LOW' : s.frameCheck.issue;
+  const vis = visibilityStep(s.vis, meanVisibility(rawPose, joints), tMs);
+  const aspect = frame.meta.height > 0 ? frame.meta.width / frame.meta.height : 1;
+  const frameCheck = frameCheckStep(s.frameCheck, rawPose, joints, s.cfg.view, aspect, tMs);
+  s = { ...s, vis: vis.s, frameCheck };
+  const paused = isPaused(s);
+  const cause: PauseCause | null = vis.paused ? 'VIS_LOW' : frameCheck.issue;
+  s = { ...s, pausedSinceMs: paused ? (s.pausedSinceMs ?? tMs) : null };
+  if (paused !== wasPaused) events.push({ type: paused ? 'PAUSE' : 'RESUME', tMs });
+  if (cause !== null && cause !== prevCause) {
+    const fb = arbiterStep(s.arbiter, [pauseCode(cause, s.cfg.exercise, s.cfg.view)], tMs, null);
+    s = { ...s, arbiter: fb.a };
+    if (fb.event) events.push(fb.event);
+  }
 
   const inRep = s.fsm.phase !== 'IDLE' && s.fsm.phase !== 'FAULT' && s.fsm.phase !== 'COMPLETED';
-  if (vis.paused && inRep && s.pausedSinceMs !== null && tMs - s.pausedSinceMs > ABANDON_AFTER_MS) {
+  if (paused && inRep && s.pausedSinceMs !== null && tMs - s.pausedSinceMs > ABANDON_AFTER_MS) {
     s = { ...s, fsm: toIdle(s.fsm, tMs - s.fsm.pausedMs, false) };
     events.push({ type: 'REP_ABANDONED', tMs });
   }
@@ -204,15 +277,15 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   if (s.cfg.exercise === 'jumpingJack') {
     const sig = jjSignals(filtered.pose);
     value = sig.alpha;
-    r = jjStep(s.fsm, { tMs, alpha: sig.alpha, rhoF: sig.rhoF, paused: vis.paused }, JJ_SPEC);
+    r = jjStep(s.fsm, { tMs, alpha: sig.alpha, rhoF: sig.rhoF, paused }, JJ_SPEC);
     if (prevPhase === 'IDLE') acc = EMPTY_ACC;
-    if (!vis.paused && sig.asym !== null && (r.s.phase === 'INFLECTION' || r.s.phase === 'ASCENDING' && prevPhase === 'INFLECTION')) {
+    if (!paused && sig.asym !== null && (r.s.phase === 'INFLECTION' || r.s.phase === 'ASCENDING' && prevPhase === 'INFLECTION')) {
       acc = { ...acc, asymMax: Math.max(acc.asymMax ?? 0, sig.asym) };
     }
   } else {
     const sig = squatSignals(filtered.pose, side);
     value = sig.thetaK;
-    r = fsmStep(s.fsm, { tMs, value, paused: vis.paused }, SQUAT_SPEC);
+    r = fsmStep(s.fsm, { tMs, value, paused }, SQUAT_SPEC);
     if (prevPhase === 'IDLE') acc = EMPTY_ACC;
     // τ en el cuadro del extremo: se actualiza cada vez que la FSM registra un mínimo nuevo.
     const descending = r.s.phase === 'DESCENDING' || r.s.phase === 'INFLECTION';
