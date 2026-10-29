@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { createPoseLandmarker } from 'fitpose-native';
+import { useEffect, useMemo, useState } from 'react';
+import { NitroModules } from 'react-native-nitro-modules';
 import { useSharedValue } from 'react-native-reanimated';
 import { CommonResolutions, useFrameOutput } from 'react-native-vision-camera';
 
@@ -6,13 +8,26 @@ import { createMetrics, metricsDrop, metricsStep, type FrameMetrics } from './me
 
 const HUD_REFRESH_MS = 250;
 
+export interface SpikeStats {
+  readonly metrics: FrameMetrics;
+  /** Cuadros con persona detectada sobre el total procesado. */
+  readonly detectionRate: number;
+  /** Último tiempo de `detect()` en ms. */
+  readonly inferMs: number;
+  readonly thermalStatus: number;
+}
+
 /**
- * Salida de cuadros para la pantalla de prueba: mide FPS, descartes y p95
- * en el hilo de cámara y los expone a React 4 veces por segundo.
+ * Salida de cuadros para la pantalla de prueba de la parte 1: corre MediaPipe PoseLandmarker en el hilo de
+ * cámara, mide FPS, descartes, p95 y tiempo de inferencia, y deja los landmarks en un SharedValue para Skia.
  */
 export function useSpikeCamera() {
+  const landmarker = useMemo(() => createPoseLandmarker(), []);
+  const boxed = useMemo(() => NitroModules.box(landmarker), [landmarker]);
   const metrics = useSharedValue<FrameMetrics>(createMetrics());
-  const [snapshot, setSnapshot] = useState<FrameMetrics>(createMetrics());
+  const landmarks = useSharedValue<Float32Array | undefined>(undefined);
+  const counts = useSharedValue({ processed: 0, detected: 0, inferMs: 0 });
+  const [stats, setStats] = useState<SpikeStats>({ metrics: createMetrics(), detectionRate: 0, inferMs: 0, thermalStatus: -1 });
 
   const frameOutput = useFrameOutput({
     targetResolution: CommonResolutions.VGA_4_3,
@@ -22,6 +37,12 @@ export function useSpikeCamera() {
       try {
         // En Android `timestamp` es `ImageInfo.timestamp` de CameraX (nanosegundos); se pasa a ms.
         metrics.value = metricsStep(metrics.value, frame.timestamp / 1e6, false);
+        const t0 = performance.now();
+        const buffer = boxed.unbox().detect(frame);
+        const inferMs = performance.now() - t0;
+        landmarks.value = buffer === undefined ? undefined : new Float32Array(buffer);
+        const c = counts.value;
+        counts.value = { processed: c.processed + 1, detected: c.detected + (buffer === undefined ? 0 : 1), inferMs };
       } finally {
         frame.dispose();
       }
@@ -32,9 +53,17 @@ export function useSpikeCamera() {
   });
 
   useEffect(() => {
-    const id = setInterval(() => setSnapshot(metrics.value), HUD_REFRESH_MS);
+    const id = setInterval(() => {
+      const c = counts.value;
+      setStats({
+        metrics: metrics.value,
+        detectionRate: c.processed > 0 ? c.detected / c.processed : 0,
+        inferMs: c.inferMs,
+        thermalStatus: landmarker.thermalStatus,
+      });
+    }, HUD_REFRESH_MS);
     return () => clearInterval(id);
-  }, [metrics]);
+  }, [metrics, counts, landmarker]);
 
-  return { frameOutput, metrics: snapshot };
+  return { frameOutput, stats, landmarks };
 }

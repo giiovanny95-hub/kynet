@@ -1,13 +1,24 @@
+import { Canvas, Points, vec } from '@shopify/react-native-skia';
 import { Redirect } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useDerivedValue } from 'react-native-reanimated';
 import { Camera, useCameraPermission } from 'react-native-vision-camera';
 
+import { toOverlayPoints } from '@/vision/overlay';
 import { useSpikeCamera } from '@/vision/useSpikeCamera';
 
-/** Pantalla de prueba de la parte 1 (solo desarrollo): cámara y métricas de cuadros. */
+/** La vista previa de la cámara frontal se muestra espejada; el dibujo debe coincidir. */
+const MIRROR_PREVIEW = true;
+
+/** Pantalla de prueba de la parte 1 (solo desarrollo): cámara, pose de MediaPipe y métricas. */
 export default function SpikeScreen() {
   const { hasPermission, canRequestPermission, requestPermission } = useCameraPermission();
-  const { frameOutput, metrics } = useSpikeCamera();
+  const { frameOutput, stats, landmarks } = useSpikeCamera();
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const points = useDerivedValue(() =>
+    toOverlayPoints(landmarks.value, size.width, size.height, MIRROR_PREVIEW).map((p) => vec(p.x, p.y)),
+  );
 
   if (!__DEV__) return <Redirect href="/" />;
 
@@ -26,13 +37,20 @@ export default function SpikeScreen() {
     );
   }
 
+  const { metrics } = stats;
   return (
-    <View style={styles.fill}>
+    <View style={styles.fill} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
       <Camera style={styles.fill} device="front" isActive outputs={[frameOutput]} />
+      <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Points points={points} mode="points" color="#3ddc84" strokeWidth={10} strokeCap="round" />
+      </Canvas>
       <View style={styles.hud}>
         <Text style={styles.hudText}>FPS {metrics.fps.toFixed(1)}</Text>
         <Text style={styles.hudText}>Descartes {metrics.dropped}</Text>
         <Text style={styles.hudText}>p95 {metrics.p95IntervalMs.toFixed(1)} ms</Text>
+        <Text style={styles.hudText}>Inferencia {stats.inferMs.toFixed(1)} ms</Text>
+        <Text style={styles.hudText}>Detección {(stats.detectionRate * 100).toFixed(0)} %</Text>
+        <Text style={styles.hudText}>Térmico {stats.thermalStatus}</Text>
       </View>
     </View>
   );
