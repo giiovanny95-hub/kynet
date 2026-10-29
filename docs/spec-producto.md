@@ -317,6 +317,13 @@ Instrumentación mínima: eventos locales anonimizados (`onboarding_step`, `cali
 7. **iOS** y Apple Sign-In (en paralelo cuando haya dispositivo y cuenta de desarrollador).
 8. **Carril premium de pago:** análisis detallado de forma, planes, historial extendido, temas. Nunca el conteo básico, la racha ni el protector. Sin anuncios.
 
+### 8.1 Sugerencia de monetización (no decidida; benchmark de 10 apps, 2026-10-29)
+Propuesta a validar cuando se diseñe el carril premium; las cifras del benchmark son afirmaciones de un informe externo sin verificar.
+- **Gratis e ilimitado:** conteo manos libres por cámara, diario de entrenamiento, racha y misiones. Según el informe, cobrar por el conteo básico provoca desinstalaciones inmediatas.
+- **De pago (valor alto):** coaching de voz con corrección postural en vivo, análisis a largo plazo de forma y desequilibrios, y retos o clasificaciones con repeticiones validadas por cámara (anti-trampas).
+- **Momento del muro de pago:** después de que el usuario haya comprobado que el conteo funciona (no en la primera sesión ni antes de entrenar).
+- **Referencias de precio del informe:** suscripciones de 4 a 15 USD al mes o 23 a 80 USD al año; Form Coach y SmartSight venden pagos únicos de 5 a 15 USD.
+
 ## 9. Riesgos y decisiones abiertas
 
 **Riesgos**
