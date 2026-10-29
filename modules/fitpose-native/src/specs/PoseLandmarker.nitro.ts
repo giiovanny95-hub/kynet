@@ -11,6 +11,6 @@ export interface PoseLandmarker extends HybridObject<{ android: 'kotlin' }> {
    * en coordenadas normalizadas del cuadro, o `undefined` si no hay persona.
    */
   detect(frame: Frame): ArrayBuffer | undefined;
-  /** `PowerManager.getCurrentThermalStatus()` (0 = NONE … 6 = SHUTDOWN). */
+  /** `PowerManager.getCurrentThermalStatus()` (0 = NONE … 6 = SHUTDOWN); -1 si Android < 10 (API 29). */
   readonly thermalStatus: number;
 }

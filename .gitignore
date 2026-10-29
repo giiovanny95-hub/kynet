@@ -1,8 +1,8 @@
 .superpowers/
 node_modules/
 .expo/
-android/
-ios/
+/android/
+/ios/
 .env*
 !.env.example
 assets/models/*.task
