@@ -8,6 +8,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: variant.name,
     slug: 'fitpose',
+    owner: 'geovanniavs-team',
+    extra: { ...config.extra, eas: { projectId: 'a8c82199-7010-4761-8c2b-912312b38027' } },
     version: '0.1.0',
     scheme: variant.scheme,
     orientation: 'portrait',
