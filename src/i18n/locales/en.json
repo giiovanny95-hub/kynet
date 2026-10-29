@@ -3,7 +3,8 @@
     "appName": "FitPose"
   },
   "home": {
-    "openSpike": "Open camera test"
+    "openSpike": "Open camera test",
+    "train": "Train"
   },
   "spike": {
     "permissionNeeded": "The camera is needed for the test.",
@@ -18,5 +19,94 @@
       "detection": "Detection {{value}} %",
       "thermal": "Thermal {{value}}"
     }
+  },
+  "exercise": {
+    "squat": "Squat",
+    "jumpingJack": "Jumping jack",
+    "pushUp": "Push-up",
+    "position": {
+      "squat": "Phone to your side, 2-3 m away",
+      "jumpingJack": "Phone facing you, 2-3 m away",
+      "pushUp": "Phone upright on the floor, to your side, 2-3 m away"
+    },
+    "sideTag": "Side view",
+    "impact": "Impact: only if your knees and ankles feel fine",
+    "plan": "{{sets}} sets of {{reps}}",
+    "choose": "Choose an exercise"
+  },
+  "camera": {
+    "permissionNeeded": "We need the camera to count your reps. Video never leaves your phone.",
+    "grant": "Allow",
+    "openSettings": "Open Settings",
+    "busy": "Another app is using the camera. Close it and try again.",
+    "back": "Back"
+  },
+  "setup": {
+    "placing": "Step back so your whole body is visible",
+    "placed": "Great. We can see you",
+    "calibrate": "Do 3 slow reps to calibrate",
+    "calibrateRep": "Rep {{n}} of 3",
+    "calibrateExtra": "One more, closer to the previous ones",
+    "calibrationFailed": "We couldn't calibrate. You can train with standard values.",
+    "skip": "Skip (use standard values)",
+    "useStandard": "Use standard values",
+    "retry": "Retry",
+    "start": "Start"
+  },
+  "workout": {
+    "set": "Set {{set}}/{{sets}}",
+    "reps": "{{reps}} / {{target}}",
+    "clean": "Clean {{n}}",
+    "form": "Form",
+    "pause": "Pause",
+    "resume": "Resume",
+    "finish": "Finish",
+    "paused": "Paused",
+    "rest": "Rest: {{s}} s",
+    "restTip": "Breathe and relax your shoulders",
+    "skipRest": "Skip rest",
+    "warn15": "15 min in; consider a break",
+    "warn25": "25 min in. We recommend stopping for today",
+    "hot": "Your phone is warm; we're lowering the load",
+    "fatigue": {
+      "title": "Your form is dropping",
+      "body": "Rest 30-60 s or stop here.",
+      "rest": "Rest",
+      "endSet": "End set",
+      "continue": "Keep going"
+    }
+  },
+  "feedback": {
+    "SQ_DEPTH_SHALLOW": "Go a bit lower",
+    "SQ_TRUNK_LEAN": "Chest up",
+    "SQ_TOO_FAST": "Rise without bouncing",
+    "SQ_TOO_SLOW": "Keep a steady pace",
+    "JJ_ARMS_LOW": "Raise your arms higher",
+    "JJ_FEET_NARROW": "Jump your feet wider",
+    "JJ_ASYMMETRY": "Raise both arms evenly",
+    "JJ_FACE_CAMERA": "Face the phone",
+    "PU_POSITION": "Get into a plank, side-on",
+    "PU_DEPTH_SHALLOW": "Go lower",
+    "PU_HIPS_SAG": "Straight body: lift your hips",
+    "PU_HIPS_PIKE": "Straight body: lower your hips",
+    "PU_TOO_FAST": "Slow down",
+    "PU_TOO_SLOW": "Keep a steady pace",
+    "VIS_LOW": "Can't see you. Step into the frame",
+    "OUT_OF_FRAME": "Step back",
+    "VIEW_WRONG_FRONT": "Face the phone",
+    "VIEW_WRONG_SIDE": "Turn sideways",
+    "SUBJECT_CHANGED": "Only one person in the frame",
+    "CAL_ROM_TOO_SMALL": "Use a bigger range of motion",
+    "CAL_INCONSISTENT": "Try to make the reps similar"
+  },
+  "summary": {
+    "title": "Great job!",
+    "reps": "Reps {{n}}",
+    "clean": "Clean {{n}} ({{pct}}%)",
+    "form": "Average form {{pct}}%",
+    "tip": "Tip: {{tip}}",
+    "noTip": "Keep it up",
+    "short": "It counts as an active day at 20 reps",
+    "done": "Done"
   }
 }

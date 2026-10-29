@@ -3,7 +3,8 @@
     "appName": "FitPose"
   },
   "home": {
-    "openSpike": "Abrir prueba de cámara"
+    "openSpike": "Abrir prueba de cámara",
+    "train": "Entrenar"
   },
   "spike": {
     "permissionNeeded": "Se necesita la cámara para la prueba.",
@@ -18,5 +19,94 @@
       "detection": "Detección {{value}} %",
       "thermal": "Térmico {{value}}"
     }
+  },
+  "exercise": {
+    "squat": "Sentadilla",
+    "jumpingJack": "Jumping jack",
+    "pushUp": "Flexión",
+    "position": {
+      "squat": "Móvil de lado, a 2-3 m",
+      "jumpingJack": "Móvil de frente, a 2-3 m",
+      "pushUp": "Móvil en vertical en el suelo, de lado, a 2-3 m"
+    },
+    "sideTag": "De lado",
+    "impact": "Impacto: apto solo si no tienes molestias en rodillas o tobillos",
+    "plan": "{{sets}} series de {{reps}}",
+    "choose": "Elige ejercicio"
+  },
+  "camera": {
+    "permissionNeeded": "Necesitamos la cámara para contar tus repeticiones. El vídeo nunca sale del teléfono.",
+    "grant": "Dar permiso",
+    "openSettings": "Abrir Ajustes",
+    "busy": "La cámara la está usando otra app. Ciérrala e inténtalo de nuevo.",
+    "back": "Volver"
+  },
+  "setup": {
+    "placing": "Colócate para que se vea todo tu cuerpo",
+    "placed": "Perfecto. Te vemos bien",
+    "calibrate": "Haz 3 repeticiones despacio para calibrar",
+    "calibrateRep": "Repetición {{n}} de 3",
+    "calibrateExtra": "Haz una más, un poco más parecida a las anteriores",
+    "calibrationFailed": "No pudimos calibrar. Puedes entrenar con los valores estándar.",
+    "skip": "Omitir (usar valores estándar)",
+    "useStandard": "Usar valores estándar",
+    "retry": "Reintentar",
+    "start": "Empezar"
+  },
+  "workout": {
+    "set": "Serie {{set}}/{{sets}}",
+    "reps": "{{reps}} / {{target}}",
+    "clean": "Limpias {{n}}",
+    "form": "Forma",
+    "pause": "Pausa",
+    "resume": "Seguir",
+    "finish": "Terminar",
+    "paused": "En pausa",
+    "rest": "Descanso: {{s}} s",
+    "restTip": "Respira y suelta los hombros",
+    "skipRest": "Saltar descanso",
+    "warn15": "Llevas 15 min; considera descansar",
+    "warn25": "Llevas 25 min. Te recomendamos terminar por hoy",
+    "hot": "Tu móvil está caliente; bajamos la carga",
+    "fatigue": {
+      "title": "Tu forma está bajando",
+      "body": "Descansa 30-60 s o termina aquí.",
+      "rest": "Descansar",
+      "endSet": "Terminar serie",
+      "continue": "Seguir"
+    }
+  },
+  "feedback": {
+    "SQ_DEPTH_SHALLOW": "Baja un poco más",
+    "SQ_TRUNK_LEAN": "Pecho arriba",
+    "SQ_TOO_FAST": "Sube sin impulso",
+    "SQ_TOO_SLOW": "Mantén un ritmo constante",
+    "JJ_ARMS_LOW": "Abre más los brazos",
+    "JJ_FEET_NARROW": "Abre más los pies",
+    "JJ_ASYMMETRY": "Sube los dos brazos por igual",
+    "JJ_FACE_CAMERA": "Ponte de frente al móvil",
+    "PU_POSITION": "Colócate de lado, en plancha",
+    "PU_DEPTH_SHALLOW": "Baja más",
+    "PU_HIPS_SAG": "Cuerpo recto: sube la cadera",
+    "PU_HIPS_PIKE": "Cuerpo recto: baja la cadera",
+    "PU_TOO_FAST": "Más despacio",
+    "PU_TOO_SLOW": "Mantén un ritmo constante",
+    "VIS_LOW": "No te veo. Colócate en el encuadre",
+    "OUT_OF_FRAME": "Aléjate un paso",
+    "VIEW_WRONG_FRONT": "Ponte de frente al móvil",
+    "VIEW_WRONG_SIDE": "Gírate de lado",
+    "SUBJECT_CHANGED": "Solo una persona en el encuadre",
+    "CAL_ROM_TOO_SMALL": "Haz el movimiento más amplio",
+    "CAL_INCONSISTENT": "Intenta que las repeticiones sean parecidas"
+  },
+  "summary": {
+    "title": "¡Buen trabajo!",
+    "reps": "Repeticiones {{n}}",
+    "clean": "Limpias {{n}} ({{pct}} %)",
+    "form": "Forma media {{pct}} %",
+    "tip": "Consejo: {{tip}}",
+    "noTip": "Sigue así",
+    "short": "Cuenta como día activo si haces 20 repeticiones",
+    "done": "Listo"
   }
 }
