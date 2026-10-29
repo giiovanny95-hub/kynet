@@ -1,0 +1,7 @@
+.superpowers/
+node_modules/
+.expo/
+android/
+ios/
+.env*
+!.env.example
