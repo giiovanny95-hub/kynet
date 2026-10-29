@@ -26,13 +26,13 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
   private val context: Context
     get() = NitroModules.applicationContext ?: throw IllegalStateException("Sin contexto de aplicación")
 
-  private var landmarkerOrNull: PoseLandmarker? = null
-  // CPU primero: con el modelo lite en el S26 Ultra la inferencia en CPU tarda ~25 ms (p50) y con el delegado
-  // GPU ~46 ms (Paso C, 2026-10-29). La GPU queda solo como alternativa si la CPU no arranca.
-  private val landmarker: PoseLandmarker
-    get() = landmarkerOrNull
-      ?: (create(Delegate.CPU) ?: create(Delegate.GPU) ?: throw IllegalStateException("No se pudo crear PoseLandmarker"))
-        .also { landmarkerOrNull = it }
+  private val delegates: DelegateSelector by lazy {
+    DelegateSelector(
+      prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE),
+      key = "delegado:${Build.MANUFACTURER}/${Build.MODEL}:$MODEL_ASSET",
+      create = ::create,
+    )
+  }
 
   private var lastTimestampMs = -1L
   private var lastWidth = 0
@@ -78,8 +78,9 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
       .setRotationDegrees(rotation)
       .build()
     val t2 = System.nanoTime()
-    val result = landmarker.detectForVideo(mpImage, processing, tMs)
+    val result = delegates.current().detectForVideo(mpImage, processing, tMs)
     val t3 = System.nanoTime()
+    delegates.record(t3 - t2)
     val pose = result.landmarks().firstOrNull()
     if (pose == null || pose.size != LANDMARKS) {
       timings.add(t1 - t0, t2 - t1, t3 - t2, 0L, t3 - t0, intervalNs)
@@ -106,8 +107,7 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
   }
 
   override fun dispose() {
-    landmarkerOrNull?.close()
-    landmarkerOrNull = null
+    delegates.close()
     super.dispose()
   }
 
@@ -131,6 +131,7 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
 
     private const val TAG = "FitposeNative"
     private const val MODEL_ASSET = "pose_landmarker_lite.task"
+    private const val PREFS = "fitpose_native"
     private const val LANDMARKS = 33
   }
 }

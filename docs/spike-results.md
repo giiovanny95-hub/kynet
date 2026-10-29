@@ -110,3 +110,36 @@ Código `1b2fee4` más un selector temporal de delegado (no subido). Lite, perso
   En el S26 la restricción no cambia nada (sigue en 33 / 34 ms).
 - Con GPU y 30 FPS de cámara la app procesa ~25 FPS: la inferencia ronda el periodo de 33 ms y los picos
   (p95 ~55 ms) hacen perder cuadros. **No cumple** aún los 30 FPS.
+
+### Prueba de 10 min (2026-10-29, 16:13 → 16:23)
+
+Código `a3d31c3` con delegado **GPU** (el que elige la selección automática en este teléfono), cámara a 30 FPS,
+persona de pie a ~2 m moviéndose con naturalidad, Pixel conectado por USB. Lecturas automáticas
+(`prueba-10min.sh`); los descartes del HUD son acumulados desde que se abrió la pantalla.
+
+| Momento | FPS (HUD, último s) | Descartes | Inferencia p50 / p95 (nativo) | Intervalo p50 / p95 | Detección | Térmico | PSS |
+|---|---|---|---|---|---|---|---|
+| 0 min | 28 | 672 | 29,7 / 38,2 ms | 33 / 67 ms | 85 % (incluye la colocación) | 1 (LIGHT) | 801 MB |
+| 5 min | — | — | 29,0 / 36,5 ms | 33 / 67 ms | — | 1 | 843 MB |
+| 10 min | 29 | 3564 | 31,9 / 39,7 ms | 33 / 67 ms | 96 % | 1 | 786 MB |
+
+- **Descartes:** 2892 en los 603 s entre el minuto 0 y el 10, sobre ~18 090 cuadros de la cámara: **~16 %**,
+  es decir **~25 FPS procesados** de media. No cumple el < 5 %.
+- **Inferencia p95:** 36–40 ms. No cumple el < 33 ms.
+- **Térmica:** LIGHT (1) estable durante los 10 min, sin SEVERE: cumple.
+- **Memoria:** estable entre 786 y 843 MB, sin tendencia a crecer; sin cierres en logcat.
+- Visualmente: esqueleto alineado; pies descalzos bien detectados (talón y punta en su sitio).
+
+### Conclusión provisional (Pixel 7 Pro)
+
+Con su mejor delegado (GPU) el Pixel se queda en ~25 FPS con ~16 % de descartes: la inferencia media (~30 ms)
+está justo en el límite del periodo de cámara. El S26 Ultra cumple 30 FPS. Opciones para el Pixel, a decidir:
+inferir en modo asíncrono (`LIVE_STREAM`) para no bloquear la cámara, aceptar ~25 FPS en teléfonos de su gama
+(la parte 3 pide "no caer de 25 FPS"), o el plan B MoveNet.
+
+### Selección automática del delegado
+
+`DelegateSelector`: la primera vez en cada teléfono mide 30 cuadros con CPU y 30 con GPU (tras 5 de
+calentamiento cada uno) y guarda el ganador. Verificado: S26 Ultra elige **CPU** (mediana 23,7 ms frente a
+32,5 ms en GPU) y Pixel 7 Pro elige **GPU** (28,9 ms frente a 62,7 ms); en la segunda apertura cada uno usa el
+delegado guardado sin volver a medir.
