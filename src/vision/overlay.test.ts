@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toOverlayPoints } from './overlay';
+import { toOverlayBones, toOverlayPoints } from './overlay';
 
 function flatWith(index: number, x: number, y: number, v: number): Float32Array {
   const f = new Float32Array(132);
@@ -30,5 +30,18 @@ describe('toOverlayPoints', () => {
 
   it('sin persona no dibuja nada', () => {
     expect(toOverlayPoints(undefined, 400, 800, false)).toEqual([]);
+  });
+});
+
+describe('toOverlayBones', () => {
+  it('devuelve los extremos de cada hueso visible, en pares', () => {
+    const f = flatWith(11, 0.25, 0.25, 0.9);
+    f.set([0.25, 0.5, 0, 0.9], 13 * 4);
+    f.set([0.5, 0.5, 0, 0.2], 15 * 4); // muñeca poco visible: el antebrazo no se dibuja
+    expect(toOverlayBones(f, 400, 800, false, 0.5, [[11, 13], [13, 15]])).toEqual([{ x: 100, y: 200 }, { x: 100, y: 400 }]);
+  });
+
+  it('sin landmarks no hay huesos', () => {
+    expect(toOverlayBones(undefined, 400, 800, false, 0.5, [[11, 13]])).toEqual([]);
   });
 });

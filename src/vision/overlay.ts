@@ -31,3 +31,41 @@ export function toOverlayPoints(
   }
   return points;
 }
+
+/** Huesos de BlazePose33 que dibuja el esqueleto (hombros, brazos, tronco y piernas). */
+export const BLAZEPOSE_BONES: readonly (readonly [number, number])[] = [
+  [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24],
+  [23, 25], [25, 27], [24, 26], [26, 28], [27, 31], [28, 32],
+];
+
+/**
+ * Como `toOverlayPoints`, pero devuelve los dos extremos de cada hueso con ambos puntos visibles,
+ * en pares consecutivos (para `Points` de Skia en modo `lines`).
+ */
+export function toOverlayBones(
+  flat: Float32Array | undefined,
+  width: number,
+  height: number,
+  mirrorDisplay: boolean,
+  frameAspect: number,
+  bones: readonly (readonly [number, number])[] = BLAZEPOSE_BONES,
+): { x: number; y: number }[] {
+  'worklet';
+  if (flat === undefined || width <= 0 || height <= 0 || frameAspect <= 0) return [];
+  const shownH = Math.max(width / frameAspect, height);
+  const shownW = frameAspect * shownH;
+  const offsetX = (width - shownW) / 2;
+  const offsetY = (height - shownH) / 2;
+  const at = (i: number): { x: number; y: number } | null => {
+    if ((flat[i * 4 + 3] ?? 0) < OVERLAY_MIN_V) return null;
+    const x = flat[i * 4] ?? 0;
+    return { x: (mirrorDisplay ? 1 - x : x) * shownW + offsetX, y: (flat[i * 4 + 1] ?? 0) * shownH + offsetY };
+  };
+  const out: { x: number; y: number }[] = [];
+  for (const [a, b] of bones) {
+    const pa = at(a);
+    const pb = at(b);
+    if (pa && pb) out.push(pa, pb);
+  }
+  return out;
+}

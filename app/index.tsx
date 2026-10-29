@@ -9,6 +9,9 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <Text>{t('common.appName')}</Text>
+      <Link href="/exercises" style={styles.link}>
+        {t('home.train')}
+      </Link>
       {__DEV__ ? (
         <Link href="/spike" style={styles.link}>
           {t('home.openSpike')}

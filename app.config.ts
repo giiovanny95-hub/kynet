@@ -26,7 +26,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       predictiveBackGestureEnabled: false,
       permissions: ['android.permission.CAMERA'],
     },
-    plugins: ['expo-router', 'expo-localization'],
+    // Solo reproducción de tonos: sin permiso de micrófono ni servicio en segundo plano.
+    plugins: ['expo-router', 'expo-localization', ['expo-audio', { recordAudioAndroid: false, enableBackgroundPlayback: false }]],
     experiments: { typedRoutes: true },
   };
 };
