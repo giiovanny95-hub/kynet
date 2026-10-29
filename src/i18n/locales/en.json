@@ -77,8 +77,11 @@
     },
     "dev": {
       "record": "Record landmarks",
-      "stopRecording": "Stop and share"
-    }
+      "stopRecording": "Stop and share",
+      "saved": "Saved {{name}} ({{kb}} KB). Pull it with adb (see docs/fixtures.md).",
+      "saveFailed": "Could not save: {{error}}"
+    },
+    "critical": "Your phone is very hot. Rest for a few minutes"
   },
   "feedback": {
     "SQ_DEPTH_SHALLOW": "Go a bit lower",

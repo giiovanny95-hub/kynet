@@ -1,3 +1,4 @@
+import { useKeepAwake } from 'expo-keep-awake';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +16,8 @@ import { Skeleton } from '@/ui/Skeleton';
 import { tokens } from '@/ui/tokens';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
-const PLACED_AFTER_MS = 1000;
+// Más que el segundo que el motor tarda en pausar por vista incorrecta: así la vista también se comprueba.
+const PLACED_AFTER_MS = 1500;
 const POLL_MS = 200;
 const MAX_FAILS = 2;
 const MIRROR_PREVIEW = true;
@@ -43,6 +45,7 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
   const cal = useRef<CalibratorState>(createCalibrator(exercise));
   const fails = useRef(0);
   const cues = useFeedbackCues();
+  useKeepAwake();
 
   const goLive = useCallback(() => router.replace({ pathname: '/workout/[exercise]/live', params: { exercise } }), [router, exercise]);
 

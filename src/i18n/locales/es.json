@@ -77,8 +77,11 @@
     },
     "dev": {
       "record": "Grabar landmarks",
-      "stopRecording": "Detener y compartir"
-    }
+      "stopRecording": "Detener y compartir",
+      "saved": "Guardado {{name}} ({{kb}} KB). Sácalo con adb (ver docs/fixtures.md).",
+      "saveFailed": "No se pudo guardar: {{error}}"
+    },
+    "critical": "Tu móvil está muy caliente. Descansa unos minutos"
   },
   "feedback": {
     "SQ_DEPTH_SHALLOW": "Baja un poco más",

@@ -57,12 +57,13 @@ describe('árbitro de feedback (spec §7)', () => {
     expect(evs[2]).toMatchObject({ severity: 'pause', escalated: false });
   });
 
-  it('los códigos de pausa no tienen enfriamiento', () => {
+  it('los códigos de pausa también se enfrían 4 s (una visibilidad que parpadea no inunda el audio)', () => {
     const evs = run([
       { codes: ['VIS_LOW'], tMs: 0, rep: null },
       { codes: ['VIS_LOW'], tMs: 500, rep: null },
+      { codes: ['VIS_LOW'], tMs: 4100, rep: null },
     ]);
-    expect(evs.map((e) => e?.code ?? null)).toEqual(['VIS_LOW', 'VIS_LOW']);
+    expect(evs.map((e) => e?.code ?? null)).toEqual(['VIS_LOW', null, 'VIS_LOW']);
   });
 
   it('un 10 seguidas del mismo error no inunda: como mucho uno cada 4 s', () => {

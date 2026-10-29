@@ -117,6 +117,8 @@ export interface Hud {
   readonly value: number | null;
   readonly reps: number;
   readonly paused: boolean;
+  /** Causa de la pausa en curso, para mostrarla mientras dure (producto §3.4). */
+  readonly pauseCode: FeedbackCode | null;
 }
 
 const ABANDON_AFTER_MS = 3000;
@@ -301,7 +303,13 @@ function pauseCode(cause: PauseCause, exercise: EngineExercise, want: 'lateral' 
 export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; events: EngineEvent[]; hud: Hud } {
   'worklet';
   const isPaused = (st: EngineState): boolean => st.vis.paused || st.frameCheck.issue !== null;
-  const hudOf = (st: EngineState, value: number | null): Hud => ({ phase: st.fsm.phase, value, reps: st.reps, paused: isPaused(st) });
+  const hudOf = (st: EngineState, value: number | null): Hud => {
+    const cause: PauseCause | null = st.vis.paused ? 'VIS_LOW' : st.frameCheck.issue;
+    return {
+      phase: st.fsm.phase, value, reps: st.reps, paused: cause !== null,
+      pauseCode: cause === null ? null : pauseCode(cause, st.cfg.exercise, st.cfg.view),
+    };
+  };
   const tMs = frame.meta.tMs;
   // Marca de tiempo no finita, repetida o que retrocede: el cuadro se ignora (un NaN no debe congelar el motor).
   if (!Number.isFinite(tMs) || (s0.lastTMs !== null && !(tMs > s0.lastTMs))) return { s: s0, events: [], hud: hudOf(s0, null) };

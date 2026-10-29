@@ -1,7 +1,9 @@
+import { File, Paths } from 'expo-file-system';
+import { useKeepAwake } from 'expo-keep-awake';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 
 import { useFeedbackCues } from '@/audio/useFeedbackCues';
@@ -16,6 +18,7 @@ import { tokens } from '@/ui/tokens';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
 const MESSAGE_MS = 3000;
+const HUD_POLL_MS = 250;
 const MIRROR_PREVIEW = true;
 
 function clock(ms: number): string {
@@ -38,9 +41,12 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   const [message, setMessage] = useState<FeedbackCode | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [now, setNow] = useState(Date.now());
+  const [pauseCode, setPauseCode] = useState<FeedbackCode | null>(null);
   const phaseRef = useRef(session.phase);
   phaseRef.current = session.phase;
   const cues = useFeedbackCues();
+  // La pantalla no debe apagarse durante el entrenamiento: apagarla manda la app a segundo plano y pausa la sesión.
+  useKeepAwake();
 
   useEffect(() => {
     const plan = DEFAULT_PLAN[exercise];
@@ -65,19 +71,33 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
 
   const onEvent = useCallback(
     (events: EngineEvent[]) => {
-      // Solo en 'active' cuentan (el modelo de sesión también lo comprueba): sin sonidos fantasma en pausa o descanso.
-      if (phaseRef.current !== 'active') return;
+      // El modelo de sesión decide qué cuenta en cada fase (PAUSE/RESUME siempre, repeticiones solo en 'active');
+      // sonido y avisos solo en 'active', sin señales fantasma en pausa o descanso.
       const nowMs = Date.now();
-      for (const e of events) {
-        dispatch({ type: 'engine', event: e, nowMs });
-        if (e.type === 'FEEDBACK') setMessage(e.code);
-      }
+      for (const e of events) dispatch({ type: 'engine', event: e, nowMs });
+      if (phaseRef.current !== 'active') return;
+      for (const e of events) if (e.type === 'FEEDBACK') setMessage(e.code);
       cues(events);
     },
     [cues, dispatch],
   );
 
-  const onRecording = useCallback((json: string) => void Share.share({ message: json }).catch(() => undefined), []);
+  // Solo desarrollo: el JSON se guarda en los documentos de la app y se saca con adb (ver docs/fixtures.md); nunca se sube.
+  const onRecording = useCallback(
+    (json: string) => {
+      const file = new File(Paths.document, `fixture-${exercise}-${Date.now()}.json`);
+      try {
+        file.create();
+        file
+          .write(json)
+          .then(() => Alert.alert(t('workout.dev.saved', { name: file.name, kb: Math.round(json.length / 1024) })))
+          .catch((e: unknown) => Alert.alert(t('workout.dev.saveFailed', { error: String(e) })));
+      } catch (e) {
+        Alert.alert(t('workout.dev.saveFailed', { error: String(e) }));
+      }
+    },
+    [exercise, t],
+  );
   const pipeline = useWorkoutPipeline({ exercise, profile, calibrating: false, onEvent, onRecording: __DEV__ ? onRecording : undefined });
   const [recording, setRecording] = useState(false);
   const toggleRecording = () => {
@@ -85,11 +105,24 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
     setRecording(!recording);
   };
   const cameraOn = session.phase === 'active' || session.phase === 'rest' || session.phase === 'fatigue';
+  const critical = pipeline.stats.targetFps === 0;
+
+  // Térmica CRITICAL (arquitectura §7): se pausa la sesión y se sugiere descansar.
+  useEffect(() => {
+    if (critical && session.phase === 'active') dispatch({ type: 'pause', nowMs: Date.now() });
+  }, [critical, session.phase, dispatch]);
+
+  // La causa de la pausa del motor se muestra mientras dura (el HUD del worklet solo cambia cuando cambia algo).
+  const { hud } = pipeline;
+  useEffect(() => {
+    const id = setInterval(() => setPauseCode(hud.value.pauseCode), HUD_POLL_MS);
+    return () => clearInterval(id);
+  }, [hud]);
   const last = session.reps[session.reps.length - 1];
   const warning = session.warnings[session.warnings.length - 1];
 
   return (
-    <CameraGate busy={session.phase === 'error' && session.error === 'busy'} onBack={() => router.back()}>
+    <CameraGate onBack={() => router.back()}>
       <View style={styles.fill} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
         <Camera
           style={styles.fill}
@@ -101,7 +134,7 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
         <Skeleton landmarks={pipeline.landmarks} frameAspect={pipeline.frameAspect} width={size.width} height={size.height} mirror={MIRROR_PREVIEW} />
 
         <View style={styles.top}>
-          <Pressable style={styles.chip} onPress={() => dispatch({ type: 'appState', active: false, nowMs: Date.now() })}>
+          <Pressable style={styles.chip} onPress={() => dispatch({ type: 'pause', nowMs: Date.now() })}>
             <Text style={styles.chipText}>{t('workout.pause')}</Text>
           </Pressable>
           <Text style={styles.topText}>{t(`exercise.${exercise}`)}</Text>
@@ -118,7 +151,11 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
         {warning ? <Text style={styles.banner}>{t(warning === '15min' ? 'workout.warn15' : 'workout.warn25')}</Text> : null}
 
         <View style={styles.bottom}>
-          {message !== null ? <Text style={styles.message}>{t(`feedback.${message}`)}</Text> : null}
+          {pauseCode !== null && session.phase === 'active' ? (
+            <Text style={styles.message}>{t(`feedback.${pauseCode}`)}</Text>
+          ) : message !== null ? (
+            <Text style={styles.message}>{t(`feedback.${message}`)}</Text>
+          ) : null}
           <Text style={styles.count}>{t('workout.reps', { reps: session.repsInSet, target: session.repsPerSet })}</Text>
           <View style={styles.row}>
             <Text style={styles.small}>{t('workout.form')}</Text>
@@ -153,9 +190,21 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
 
         {session.phase === 'paused' ? (
           <View style={styles.cover}>
-            <Text style={styles.coverTitle}>{t('workout.paused')}</Text>
-            <Pressable style={styles.button} onPress={() => dispatch({ type: 'appState', active: true, nowMs: Date.now() })}>
+            <Text style={styles.coverTitle}>{critical ? t('workout.critical') : t('workout.paused')}</Text>
+            <Pressable style={styles.button} disabled={critical} onPress={() => dispatch({ type: 'resume', nowMs: Date.now() })}>
               <Text style={styles.buttonText}>{t('workout.resume')}</Text>
+            </Pressable>
+            <Pressable onPress={() => dispatch({ type: 'finish', nowMs: Date.now() })}>
+              <Text style={styles.link}>{t('workout.finish')}</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {session.phase === 'error' ? (
+          <View style={styles.cover}>
+            <Text style={styles.coverTitle}>{t('camera.busy')}</Text>
+            <Pressable style={styles.button} onPress={() => dispatch({ type: 'retryCamera', nowMs: Date.now() })}>
+              <Text style={styles.buttonText}>{t('setup.retry')}</Text>
             </Pressable>
             <Pressable onPress={() => dispatch({ type: 'finish', nowMs: Date.now() })}>
               <Text style={styles.link}>{t('workout.finish')}</Text>

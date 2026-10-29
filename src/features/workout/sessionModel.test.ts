@@ -115,3 +115,32 @@ describe('modelo de sesión', () => {
     expect(s.topFault).toBe('SQ_TRUNK_LEAN');
   });
 });
+
+describe('correcciones de la revisión final', () => {
+  it('PAUSE del motor durante el descanso: al terminar el descanso no cuenta tiempo activo hasta RESUME', () => {
+    const s = reduce([
+      start(1, 2),
+      eng(rep(1000, 85), 1000), // descanso hasta 31 s
+      eng({ type: 'PAUSE', tMs: 5000 }, 5000),
+      { type: 'tick', nowMs: 31_000 },
+      { type: 'tick', nowMs: 60_000 },
+    ]);
+    expect(s.phase).toBe('active');
+    expect(s.activeMs).toBe(1000);
+    expect(reduce([eng({ type: 'RESUME', tMs: 60_000 }, 60_000), { type: 'tick', nowMs: 65_000 }], s).activeMs).toBe(6000);
+  });
+
+  it('la pausa manual no la levanta volver a la app, ni caduca a los 30 min', () => {
+    const p = reduce([start(), { type: 'pause', nowMs: 1000 }, { type: 'appState', active: false, nowMs: 2000 }, { type: 'appState', active: true, nowMs: 3000 }]);
+    expect(p.phase).toBe('paused');
+    expect(reduce([{ type: 'resume', nowMs: 1000 + 40 * MIN }], p).phase).toBe('active');
+  });
+
+  it('cámara ocupada: error recuperable, Reintentar vuelve a la fase anterior; en pausa se ignora', () => {
+    const e = reduce([start(), eng(rep(1000, 85), 1000), { type: 'cameraError', reason: 'busy' }]);
+    expect(e).toMatchObject({ phase: 'error', error: 'busy', validReps: 1 });
+    expect(reduce([{ type: 'retryCamera', nowMs: 5000 }], e)).toMatchObject({ phase: 'active', error: null });
+    const paused = reduce([start(), { type: 'pause', nowMs: 1 }, { type: 'cameraError', reason: 'busy' }]);
+    expect(paused.phase).toBe('paused');
+  });
+});
