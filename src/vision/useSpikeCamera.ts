@@ -31,6 +31,9 @@ export function useSpikeCamera() {
 
   const frameOutput = useFrameOutput({
     targetResolution: CommonResolutions.VGA_4_3,
+    // 'native' (PRIVATE, GPU) no sirve: el S26 Ultra rechaza PRIVATE a 640x480 en ImageAnalysis y,
+    // además, ImageProxy.toBitmap() en HybridPoseLandmarker solo acepta YUV_420_888 o RGBA_8888.
+    pixelFormat: 'yuv',
     dropFramesWhileBusy: true,
     onFrame(frame) {
       'worklet';
