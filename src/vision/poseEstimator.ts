@@ -1,4 +1,4 @@
-import { fromFlat } from '@/kinematics/landmarks/adapter';
+import { emptyPoseFrame, fromFlat } from '@/kinematics/landmarks/adapter';
 import { BLAZEPOSE33 } from '@/kinematics/landmarks/models/blazepose33';
 import type { FrameMeta, PoseFrame } from '@/kinematics/types';
 
@@ -8,9 +8,13 @@ export interface PoseEstimator {
   estimate(frame: unknown, meta: FrameMeta): PoseFrame | null;
 }
 
-/** Convierte la salida del módulo nativo (33 × x, y, z, visibilidad) en un `PoseFrame`. */
-export function toPoseFrame(flat: Float32Array, meta: FrameMeta): PoseFrame {
+/**
+ * Convierte la salida del módulo nativo (33 × x, y, z, visibilidad) en un `PoseFrame`.
+ * `undefined` (no hay persona) produce un cuadro vacío, que el motor trata como visibilidad nula.
+ */
+export function toPoseFrame(flat: Float32Array | undefined, meta: FrameMeta): PoseFrame {
   'worklet';
+  if (flat === undefined) return emptyPoseFrame(meta, BLAZEPOSE33);
   if (flat.length !== 132) {
     throw new RangeError(`El módulo nativo debe devolver 132 valores y devolvió ${flat.length}`);
   }

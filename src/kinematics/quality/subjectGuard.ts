@@ -16,10 +16,19 @@ export function createGuard(): GuardState {
   return { torso: null, hip: null, rejects: 0 };
 }
 
+/** Visibilidad mínima de hombros y caderas para que la guarda compare el cuadro. */
+const GUARD_MIN_V = 0.3;
+
 function hipCenter(pose: Pose): Vec2 | null {
   'worklet';
   const { lHip, rHip } = pose.joints;
   return lHip && rHip ? mid(lHip, rHip) : null;
+}
+
+function torsoVisible(pose: Pose): boolean {
+  'worklet';
+  const { lShoulder, rShoulder, lHip, rHip } = pose.joints;
+  return [lShoulder, rShoulder, lHip, rHip].every((j) => j !== undefined && j.v >= GUARD_MIN_V);
 }
 
 /**
@@ -28,6 +37,8 @@ function hipCenter(pose: Pose): Vec2 | null {
  */
 export function guardStep(g: GuardState, pose: Pose): { g: GuardState; accept: boolean; event: 'SUBJECT_CHANGED' | null } {
   'worklet';
+  // Con el torso poco visible (fuera de cuadro, pose fantasma) la guarda no decide: lo resuelve la visibilidad.
+  if (!torsoVisible(pose)) return { g, accept: true, event: null };
   const hip = hipCenter(pose);
   const torso = pose.torso;
   if (torso === null || hip === null) return { g, accept: true, event: null };

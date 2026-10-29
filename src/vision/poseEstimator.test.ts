@@ -18,4 +18,10 @@ describe('toPoseFrame', () => {
   it('rechaza un tamaño distinto de 132', () => {
     expect(() => toPoseFrame(new Float32Array(131), META)).toThrow(RangeError);
   });
+
+  it('sin persona (undefined) devuelve un cuadro vacío con visibilidad 0', () => {
+    const frame = toPoseFrame(undefined, META);
+    expect(frame.raw).toHaveLength(33);
+    expect(frame.raw.every((lm) => lm.v === 0)).toBe(true);
+  });
 });

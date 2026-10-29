@@ -149,8 +149,9 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
 
   for (const rep of r.events) {
     if (rep.outcome !== 'valid') {
-      if (rep.outcome === 'fault') s = { ...s, combo: 0 };
-      events.push(rep);
+      // Spec §6.3: una repetición no contada (incompleta o falta) es Miss y reinicia el combo.
+      s = { ...s, combo: 0 };
+      events.push({ ...rep, quality: 'Miss', mult: 1 });
       continue;
     }
     const q = score(s.cfg.exercise, rep);

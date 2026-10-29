@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createEngine, step, type EngineEvent, type EngineState } from '../engine';
+import { emptyPoseFrame } from '../landmarks/adapter';
 import { BLAZEPOSE33 } from '../landmarks/models/blazepose33';
 import { genJumpingJack } from '../tools/gen/jumpingJack';
 import { genSquat } from '../tools/gen/squat';
@@ -81,5 +82,41 @@ describe('motor de cinemática', () => {
       expect(r.top).toBeGreaterThan(168);
       expect(r.quality).toBe('Perfect');
     }
+  });
+
+  it('sin persona detectada (cuadros vacíos) 3,5 s a mitad de repetición: PAUSE y REP_ABANDONED, sin fault', () => {
+    const frames = genSquat({ reps: 1, bottomsDeg: 88, periodS: 6, sigma: 0, seed: 3, fps: 30 }).map((f) =>
+      f.meta.tMs >= 2500 && f.meta.tMs < 6000 ? emptyPoseFrame(f.meta, BLAZEPOSE33) : f,
+    );
+    const { events } = runAll(frames, createEngine({ exercise: 'squat', model: BLAZEPOSE33 }));
+    const types = events.map((e) => (e.type === 'REP' ? e.outcome : e.type));
+    expect(types).toContain('PAUSE');
+    expect(types).toContain('REP_ABANDONED');
+    expect(types).not.toContain('fault');
+    expect(types).not.toContain('valid');
+  });
+
+  it('una pose fantasma poco visible en otro sitio no se toma como sujeto nuevo', () => {
+    const frames = genSquat({ reps: 1, bottomsDeg: 88, periodS: 6, sigma: 0, seed: 3, fps: 30 }).map((f) =>
+      f.meta.tMs >= 2500 && f.meta.tMs < 6000
+        ? { ...f, raw: f.raw.map((lm) => ({ ...lm, x: lm.x + 0.3, v: 0.1 })) }
+        : f,
+    );
+    const { events } = runAll(frames, createEngine({ exercise: 'squat', model: BLAZEPOSE33 }));
+    const types = events.map((e) => e.type);
+    expect(types).not.toContain('SUBJECT_CHANGED');
+    expect(types).toContain('REP_ABANDONED');
+  });
+
+  it('una repetición incompleta es Miss y reinicia el combo', () => {
+    const { events } = runAll(
+      genSquat({ reps: 7, bottomsDeg: [88, 88, 88, 88, 88, 120, 88], periodS: 3, sigma: 0, seed: 1, fps: 30 }),
+      createEngine({ exercise: 'squat', model: BLAZEPOSE33 }),
+    );
+    const reps = events.filter((e) => e.type === 'REP');
+    const incomplete = reps.find((e) => e.type === 'REP' && e.outcome === 'incomplete');
+    expect(incomplete && incomplete.type === 'REP' ? incomplete.quality : undefined).toBe('Miss');
+    const last = reps[reps.length - 1];
+    expect(last && last.type === 'REP' ? last.mult : undefined).toBe(1);
   });
 });

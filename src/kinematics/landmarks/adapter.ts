@@ -80,3 +80,14 @@ export function toPose(frame: PoseFrame, spec: ModelSpec): Pose {
   const torso = shoulders && hips ? Math.hypot(shoulders.x - hips.x, shoulders.y - hips.y) : null;
   return { tMs: frame.meta.tMs, joints, torso };
 }
+
+/**
+ * Cuadro sin persona detectada (el modelo no devolvió pose). Todas las articulaciones con v = 0:
+ * el motor lo trata como visibilidad nula (PAUSE y, si dura, REP_ABANDONED).
+ */
+export function emptyPoseFrame(meta: PoseFrame['meta'], spec: ModelSpec): PoseFrame {
+  'worklet';
+  const raw: Landmark[] = [];
+  for (let i = 0; i < spec.count; i++) raw.push({ x: 0, y: 0, z: 0, v: 0 });
+  return { meta, model: spec.id, raw };
+}
