@@ -192,3 +192,23 @@ Verificación corta tras el arreglo (~60 s, persona sentada en cuadro):
 | Pixel 7 Pro (GPU) | 2 (~0,1 %) | 30 | 34 ms |
 
 Pendiente: repetir la prueba de 10 min con la cola para cerrar la parte 1 con cifras de sesión completa.
+
+## Prueba final de 10 min con la cola de resultados (2026-10-29, 17:45 → 17:55)
+
+Código `34b8fb5`, los dos teléfonos juntos, persona sentada en cuadro. Descartes del HUD entre el minuto 0 y el 10
+(600 s, ~18 000 cuadros de cámara):
+
+| | Pixel 7 Pro (GPU) | S26 Ultra (CPU) |
+|---|---|---|
+| Descartes | 37 → 90 = 53 (**~0,3 %**) | 0 → 1903 = 1903 (**~10,5 %**) |
+| Intervalo p95 (min 0 / 5 / 10, nativo) | 34 / 34 / 34 ms | 34 / 67 / 67 ms |
+| Latencia p50 (min 0 / 5 / 10, nativo) | 35 / 38 / 35 ms | 28 / 56 / 60 ms |
+| Detección | 99–100 % | 100 % |
+| Térmico | 1 (LIGHT) estable | 0 |
+| PSS | 825–852 MB | 749–816 MB |
+| Cierres | 0 | 0 |
+
+- **Pixel 7 Pro: cumple** 30 FPS, < 5 % de descartes y sin térmica SEVERE en 10 min.
+- **S26 Ultra: no cumple** los descartes. A partir de ~5 min la inferencia en CPU tarda el doble sin que Android
+  reporte estado térmico: bajada de frecuencia por carga sostenida. La elección de delegado se hace en los primeros
+  ~2 s con el teléfono en frío, cuando la CPU gana. Siguiente: 10 min del S26 con GPU forzada.
