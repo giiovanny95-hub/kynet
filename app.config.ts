@@ -22,6 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         monochromeImage: './assets/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
+      permissions: ['android.permission.CAMERA'],
     },
     plugins: ['expo-router', 'expo-localization'],
     experiments: { typedRoutes: true },

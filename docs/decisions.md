@@ -15,3 +15,8 @@ Cada dependencia nueva se anota con versión y razón.
 | 2026-10-29 | expo-localization | versión de SDK 58 | Idioma inicial del dispositivo |
 | 2026-10-29 | i18next, react-i18next | 26.5.11, 17.1.9 | i18n con español base (`spec-arquitectura.md` §6) |
 | 2026-10-29 | Scripts en TypeScript con `node` (type stripping de Node 22) | — | Sin dependencia extra como tsx |
+| 2026-10-29 | react-native-vision-camera, react-native-vision-camera-worklets | 5.2.4 (exacta) | Cámara y frame processors (parte 1) |
+| 2026-10-29 | react-native-nitro-modules, react-native-nitro-image | 0.37.0, 0.15.2 (exactas) | Peers de VisionCamera 5; mismas versiones que usa VisionCamera en su desarrollo |
+| 2026-10-29 | react-native-worklets, react-native-reanimated, @shopify/react-native-skia | 0.13.0, 4.7.1, 2.14.0 (exactas, las del SDK 58) | Worklets, valores compartidos y dibujo del esqueleto |
+| 2026-10-29 | Sin `babel.config.js` | — | `babel-preset-expo` del SDK 58 añade solo el plugin de `react-native-worklets` |
+| 2026-10-29 | Riesgo abierto | — | VisionCamera 5.2.4 se desarrolla con RN 0.85.3; con RN 0.88.1 solo se sabrá al compilar en EAS. Si falla, retroceder a SDK 57 |
