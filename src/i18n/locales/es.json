@@ -4,5 +4,19 @@
   },
   "home": {
     "openSpike": "Abrir prueba de cámara"
+  },
+  "spike": {
+    "permissionNeeded": "Se necesita la cámara para la prueba.",
+    "grantPermission": "Dar permiso",
+    "enableInSettings": "Actívala en Ajustes.",
+    "hud": {
+      "fps": "FPS {{value}}",
+      "dropped": "Descartes {{value}}",
+      "inferP95": "Inferencia p95 {{value}} ms",
+      "inferLast": "Inferencia {{value}} ms",
+      "intervalP95": "Intervalo p95 {{value}} ms",
+      "detection": "Detección {{value}} %",
+      "thermal": "Térmico {{value}}"
+    }
   }
 }

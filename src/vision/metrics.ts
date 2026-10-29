@@ -7,18 +7,35 @@ export interface FrameMetrics {
    * `onFrameDropped` (CameraX no lo expone), así que `dropped` se queda en 0 aunque se pierdan cuadros.
    */
   readonly inferredDropped: number;
+  /**
+   * p95 del intervalo entre cuadros **procesados**. A 30 FPS está cuantizado (33,3, 66,7, 100 ms…): con
+   * más de un 5 % de descartes sale 66,7 ms aunque la inferencia sea rápida. No es la latencia.
+   */
   readonly p95IntervalMs: number;
+  /** p95 de la duración de `detect()` en ms: la cifra del criterio "p95 < 33 ms" de la parte 1. */
+  readonly p95InferMs: number;
   readonly lastTMs: number;
-  /** Últimos intervalos entre cuadros, como máximo `MAX_INTERVALS`. */
+  /** Últimos intervalos entre cuadros, como máximo `MAX_SAMPLES`. */
   readonly intervals: readonly number[];
+  /** Últimas duraciones de `detect()` en ms, como máximo `MAX_SAMPLES`. */
+  readonly inferSamples: readonly number[];
 }
 
-const MAX_INTERVALS = 300;
+const MAX_SAMPLES = 300;
 const FPS_WINDOW_MS = 1000;
 
 export function createMetrics(): FrameMetrics {
   'worklet';
-  return { fps: 0, dropped: 0, inferredDropped: 0, p95IntervalMs: 0, lastTMs: Number.NEGATIVE_INFINITY, intervals: [] };
+  return {
+    fps: 0,
+    dropped: 0,
+    inferredDropped: 0,
+    p95IntervalMs: 0,
+    p95InferMs: 0,
+    lastTMs: Number.NEGATIVE_INFINITY,
+    intervals: [],
+    inferSamples: [],
+  };
 }
 
 /** Descartes del mejor contador disponible: el explícito (iOS) o el deducido de los huecos (Android). */
@@ -63,8 +80,9 @@ export function metricsStep(m: FrameMetrics, tMs: number, dropped: boolean): Fra
   const droppedCount = m.dropped + (dropped ? 1 : 0);
   if (!Number.isFinite(m.lastTMs)) return { ...m, lastTMs: tMs, dropped: droppedCount };
   const interval = tMs - m.lastTMs;
-  const intervals = [...m.intervals, interval].slice(-MAX_INTERVALS);
+  const intervals = [...m.intervals, interval].slice(-MAX_SAMPLES);
   return {
+    ...m,
     fps: fpsFromIntervals(intervals),
     dropped: droppedCount,
     inferredDropped: m.inferredDropped + missingFrames(interval, m.intervals),
@@ -72,6 +90,14 @@ export function metricsStep(m: FrameMetrics, tMs: number, dropped: boolean): Fra
     lastTMs: tMs,
     intervals,
   };
+}
+
+/** Registra la duración de una llamada a `detect()` y recalcula su p95. */
+export function metricsInference(m: FrameMetrics, ms: number): FrameMetrics {
+  'worklet';
+  if (!Number.isFinite(ms) || ms < 0) return m;
+  const inferSamples = [...m.inferSamples, ms].slice(-MAX_SAMPLES);
+  return { ...m, inferSamples, p95InferMs: percentile95(inferSamples) };
 }
 
 /** Cuadro descartado por la cámara (`onFrameDropped`): no hay timestamp, solo se cuenta. */

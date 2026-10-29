@@ -1,6 +1,7 @@
 import { Canvas, Points, vec } from '@shopify/react-native-skia';
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useDerivedValue } from 'react-native-reanimated';
 import { Camera, useCameraPermission } from 'react-native-vision-camera';
@@ -14,6 +15,7 @@ const MIRROR_PREVIEW = true;
 
 /** Pantalla de prueba de la parte 1 (solo desarrollo): cámara, pose de MediaPipe y métricas. */
 export default function SpikeScreen() {
+  const { t } = useTranslation();
   const { hasPermission, canRequestPermission, requestPermission } = useCameraPermission();
   const { frameOutput, stats, landmarks, frameAspect } = useSpikeCamera();
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -26,13 +28,13 @@ export default function SpikeScreen() {
   if (!hasPermission) {
     return (
       <View style={styles.center}>
-        <Text>Se necesita la cámara para la prueba.</Text>
+        <Text>{t('spike.permissionNeeded')}</Text>
         {canRequestPermission ? (
           <Pressable onPress={() => void requestPermission()}>
-            <Text style={styles.link}>Dar permiso</Text>
+            <Text style={styles.link}>{t('spike.grantPermission')}</Text>
           </Pressable>
         ) : (
-          <Text>Actívala en Ajustes.</Text>
+          <Text>{t('spike.enableInSettings')}</Text>
         )}
       </View>
     );
@@ -46,12 +48,13 @@ export default function SpikeScreen() {
         <Points points={points} mode="points" color="#3ddc84" strokeWidth={10} strokeCap="round" />
       </Canvas>
       <View style={styles.hud}>
-        <Text style={styles.hudText}>FPS {metrics.fps.toFixed(1)}</Text>
-        <Text style={styles.hudText}>Descartes {droppedFrames(metrics)}</Text>
-        <Text style={styles.hudText}>p95 {metrics.p95IntervalMs.toFixed(1)} ms</Text>
-        <Text style={styles.hudText}>Inferencia {stats.inferMs.toFixed(1)} ms</Text>
-        <Text style={styles.hudText}>Detección {(stats.detectionRate * 100).toFixed(0)} %</Text>
-        <Text style={styles.hudText}>Térmico {stats.thermalStatus}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.fps', { value: metrics.fps.toFixed(1) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.dropped', { value: droppedFrames(metrics) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.inferP95', { value: metrics.p95InferMs.toFixed(1) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.inferLast', { value: stats.inferMs.toFixed(1) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.intervalP95', { value: metrics.p95IntervalMs.toFixed(1) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.detection', { value: (stats.detectionRate * 100).toFixed(0) })}</Text>
+        <Text style={styles.hudText}>{t('spike.hud.thermal', { value: stats.thermalStatus })}</Text>
       </View>
     </View>
   );

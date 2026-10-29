@@ -4,7 +4,7 @@ import { NitroModules } from 'react-native-nitro-modules';
 import { useSharedValue } from 'react-native-reanimated';
 import { CommonResolutions, useFrameOutput } from 'react-native-vision-camera';
 
-import { createMetrics, metricsDrop, metricsStep, type FrameMetrics } from './metrics';
+import { createMetrics, metricsDrop, metricsInference, metricsStep, type FrameMetrics } from './metrics';
 
 const HUD_REFRESH_MS = 250;
 
@@ -46,6 +46,7 @@ export function useSpikeCamera() {
         const t0 = performance.now();
         const buffer = boxed.unbox().detect(frame);
         const inferMs = performance.now() - t0;
+        metrics.value = metricsInference(metrics.value, inferMs);
         landmarks.value = buffer === undefined ? undefined : new Float32Array(buffer);
         const c = counts.value;
         counts.value = { processed: c.processed + 1, detected: c.detected + (buffer === undefined ? 0 : 1), inferMs };

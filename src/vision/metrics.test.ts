@@ -1,5 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { createMetrics, droppedFrames, metricsDrop, metricsStep, type FrameMetrics } from './metrics';
+import { createMetrics, droppedFrames, metricsDrop, metricsInference, metricsStep, type FrameMetrics } from './metrics';
+
+function feedInference(samples: readonly number[]): FrameMetrics {
+  return samples.reduce((m, ms) => metricsInference(m, ms), createMetrics());
+}
+
+const repeat = (n: number, ms: number): number[] => Array.from({ length: n }, () => ms);
+
+describe('metricsInference', () => {
+  it('95 muestras de 20 ms y 5 de 50 ms dan un p95 de 20 ms', () => {
+    expect(feedInference([...repeat(95, 20), ...repeat(5, 50)]).p95InferMs).toBe(20);
+  });
+
+  it('90 muestras de 20 ms y 10 de 50 ms dan un p95 de 50 ms', () => {
+    expect(feedInference([...repeat(90, 20), ...repeat(10, 50)]).p95InferMs).toBe(50);
+  });
+
+  it('solo usa las últimas 300 muestras', () => {
+    const m = feedInference([...repeat(100, 1000), ...repeat(300, 20)]);
+    expect(m.inferSamples).toHaveLength(300);
+    expect(m.p95InferMs).toBe(20);
+  });
+
+  it('no toca los intervalos ni los descartes', () => {
+    const base = feed(repeat(30, 33.333));
+    const m = metricsInference(base, 25);
+    expect(m.intervals).toEqual(base.intervals);
+    expect(m.p95IntervalMs).toBe(base.p95IntervalMs);
+    expect(droppedFrames(m)).toBe(droppedFrames(base));
+  });
+});
 
 function feed(intervals: readonly number[], droppedAt: ReadonlySet<number> = new Set()): FrameMetrics {
   let m = createMetrics();

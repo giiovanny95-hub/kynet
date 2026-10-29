@@ -4,5 +4,19 @@
   },
   "home": {
     "openSpike": "Open camera test"
+  },
+  "spike": {
+    "permissionNeeded": "The camera is needed for the test.",
+    "grantPermission": "Grant permission",
+    "enableInSettings": "Enable it in Settings.",
+    "hud": {
+      "fps": "FPS {{value}}",
+      "dropped": "Dropped {{value}}",
+      "inferP95": "Inference p95 {{value}} ms",
+      "inferLast": "Inference {{value}} ms",
+      "intervalP95": "Interval p95 {{value}} ms",
+      "detection": "Detection {{value}} %",
+      "thermal": "Thermal {{value}}"
+    }
   }
 }
