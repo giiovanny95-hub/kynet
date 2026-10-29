@@ -1,6 +1,6 @@
 /** Máquina de estados genérica de repeticiones (spec-cinematica §4.2). */
 
-export type Phase = 'IDLE' | 'DESCENDING' | 'INFLECTION' | 'ASCENDING' | 'FAULT';
+export type Phase = 'IDLE' | 'DESCENDING' | 'INFLECTION' | 'ASCENDING' | 'COMPLETED' | 'FAULT';
 
 export interface ExerciseSpec {
   readonly startThr: number;
@@ -59,6 +59,9 @@ export interface FsmState {
   readonly pausedMs: number;
   readonly lastTMs: number | null;
   readonly frozen: boolean;
+  /** Instante (real y efectivo) en que la repetición volvió a la zona de inicio; `COMPLETED` sigue midiendo `top`. */
+  readonly completedTMs: number;
+  readonly completedTEff: number;
 }
 
 export interface Sample {
@@ -69,6 +72,8 @@ export interface Sample {
 
 const FAULT_RECOVER_MS = 300;
 const FAULT_TIMEOUT_MS = 5000;
+/** Tras volver a la zona de inicio se sigue midiendo el máximo (bloqueo final) hasta 300 ms. */
+const LOCKOUT_WINDOW_MS = 300;
 
 export function createFsm(): FsmState {
   'worklet';
@@ -76,6 +81,7 @@ export function createFsm(): FsmState {
     phase: 'IDLE', armed: false, armSinceMs: null, crossCount: 0, crossTMs: 0, crossTEff: 0, phaseSinceMs: 0,
     tStartMs: 0, tStartEff: 0, extreme: 0, extreme2: null, tExtremeMs: 0, tExtremeEff: 0,
     tBottomMs: null, tBottomEff: null, top: 0, pausedMs: 0, lastTMs: null, frozen: false,
+    completedTMs: 0, completedTEff: 0,
   };
 }
 
@@ -138,7 +144,7 @@ export function stallCode(s: FsmState, tEff: number, spec: ExerciseSpec): string
   if (s.phase === 'DESCENDING' && inPhase > spec.stallMs.desc) return 'STALL_DESC';
   if (s.phase === 'INFLECTION' && inPhase > spec.stallMs.infl) return 'STALL_INFL';
   if (s.phase === 'ASCENDING' && inPhase > spec.stallMs.asc) return 'STALL_ASC';
-  if (s.phase !== 'IDLE' && s.phase !== 'FAULT' && tEff - s.tStartEff > spec.tMaxMs) return 'TOO_LONG';
+  if (s.phase !== 'IDLE' && s.phase !== 'FAULT' && s.phase !== 'COMPLETED' && tEff - s.tStartEff > spec.tMaxMs) return 'TOO_LONG';
   return null;
 }
 
@@ -170,7 +176,10 @@ export function fsmStep(s0: FsmState, sample: Sample, spec: ExerciseSpec): { s: 
   let s = clock.s;
   const t = clock.tEff;
   const v = sample.value;
-  if (sample.paused || v === null) return { s, events: [] };
+  if (sample.paused || v === null) {
+    // Una repetición ya completada no se pierde por una pausa: se emite con el máximo medido hasta ahora.
+    return s.phase === 'COMPLETED' ? finishCompleted(s, spec) : { s, events: [] };
+  }
 
   const inStart = v >= spec.startThr;
   const code = stallCode(s, t, spec);
@@ -205,8 +214,7 @@ export function fsmStep(s0: FsmState, sample: Sample, spec: ExerciseSpec): { s: 
       const top = Math.max(s.top, v);
       s = { ...s, top };
       if (inStart) {
-        const events = t - s.tStartEff >= spec.tNoiseMs ? [repEvent(s, 'valid', sample.tMs, t, null)] : [];
-        return { s: toIdle(s, t, true), events };
+        return { s: { ...enterPhase(s, 'COMPLETED', t), completedTMs: sample.tMs, completedTEff: t }, events: [] };
       }
       if (v < top - spec.revDeg) {
         // Rebote: vuelve a bajar en la misma repetición.
@@ -214,7 +222,20 @@ export function fsmStep(s0: FsmState, sample: Sample, spec: ExerciseSpec): { s: 
       }
       return { s, events: [] };
     }
+    case 'COMPLETED': {
+      const top = Math.max(s.top, v);
+      s = { ...s, top };
+      if (t - s.completedTEff >= LOCKOUT_WINDOW_MS || v < top - spec.revDeg || v < spec.exitThr) return finishCompleted(s, spec);
+      return { s, events: [] };
+    }
     case 'FAULT':
       return { s: faultStep(s, inStart, t), events: [] };
   }
+}
+
+/** Cierra una repetición en `COMPLETED`: duración y tiempos al volver a la zona de inicio, `top` con el bloqueo final. */
+function finishCompleted(s: FsmState, spec: ExerciseSpec): { s: FsmState; events: RepEvent[] } {
+  'worklet';
+  const events = s.completedTEff - s.tStartEff >= spec.tNoiseMs ? [repEvent(s, 'valid', s.completedTMs, s.completedTEff, null)] : [];
+  return { s: toIdle(s, s.completedTEff, true), events };
 }

@@ -71,4 +71,15 @@ describe('motor de cinemática', () => {
     });
     expect(eb).toEqual(ea);
   });
+
+  it('una sentadilla limpia (fondo 88°, arriba 172°, 3 s) puede puntuar Perfect', () => {
+    const { events } = runAll(genSquat({ reps: 4, bottomsDeg: 88, periodS: 3, sigma: 0, seed: 1, fps: 30 }), createEngine({ exercise: 'squat', model: BLAZEPOSE33 }));
+    const reps = validReps(events);
+    expect(reps).toHaveLength(4);
+    for (const r of reps) {
+      if (r.type !== 'REP') continue;
+      expect(r.top).toBeGreaterThan(168);
+      expect(r.quality).toBe('Perfect');
+    }
+  });
 });

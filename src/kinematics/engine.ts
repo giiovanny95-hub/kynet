@@ -129,7 +129,7 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   s = { ...s, vis: vis.s, pausedSinceMs: vis.paused ? (s.pausedSinceMs ?? tMs) : null };
   if (vis.event) events.push({ type: vis.event, tMs });
 
-  const inRep = s.fsm.phase !== 'IDLE' && s.fsm.phase !== 'FAULT';
+  const inRep = s.fsm.phase !== 'IDLE' && s.fsm.phase !== 'FAULT' && s.fsm.phase !== 'COMPLETED';
   if (vis.paused && inRep && s.pausedSinceMs !== null && tMs - s.pausedSinceMs > ABANDON_AFTER_MS) {
     s = { ...s, fsm: toIdle(s.fsm, tMs - s.fsm.pausedMs, false) };
     events.push({ type: 'REP_ABANDONED', tMs });
