@@ -84,6 +84,9 @@ export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec = JJ_S
       }
       return { s, events: [] };
     }
+    case 'COMPLETED':
+      // El jumping jack no usa la ventana de bloqueo final: emite al cerrar.
+      return { s: toIdle(s, t, true), events: [] };
     case 'FAULT':
       return { s: faultStep(s, closed, t), events: [] };
   }
