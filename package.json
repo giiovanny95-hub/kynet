@@ -42,9 +42,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:kinematics": "vitest run src/kinematics",
+    "test:kinematics": "vitest run src/kinematics --exclude '**/benchmark.test.ts'",
     "i18n:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/i18n-check.ts",
-    "postinstall": "bash scripts/fetch-pose-model.sh"
+    "postinstall": "bash scripts/fetch-pose-model.sh",
+    "test:benchmark": "vitest run src/kinematics/__tests__/benchmark.test.ts"
   },
   "private": true
 }
