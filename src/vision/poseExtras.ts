@@ -17,9 +17,12 @@ export interface PoseExtras {
  */
 export function readPoseExtras(flat: Float32Array, frameTMs: number): PoseExtras {
   'worklet';
-  const rawAge = flat.length > POSE_FLOATS ? flat[POSE_FLOATS] : undefined;
+  if (flat.length <= POSE_FLOATS) return { resultTMs: frameTMs, ageMs: 0, inferMs: null };
+  const rawAge = flat[POSE_FLOATS];
   const ageMs = rawAge !== undefined && Number.isFinite(rawAge) && rawAge > 0 ? rawAge : 0;
   const rawInfer = flat.length > POSE_FLOATS + 1 ? flat[POSE_FLOATS + 1] : undefined;
   const inferMs = rawInfer !== undefined && Number.isFinite(rawInfer) ? rawInfer : null;
-  return { resultTMs: frameTMs - ageMs, ageMs, inferMs };
+  // Kotlin calcula la antigüedad con la marca truncada a ms enteros (`timestamp / 1_000_000L`): hay que truncar
+  // igual o un resultado repetido parece nuevo en cada cuadro por los decimales.
+  return { resultTMs: Math.floor(frameTMs) - ageMs, ageMs, inferMs };
 }

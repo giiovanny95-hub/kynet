@@ -16,6 +16,15 @@ describe('readPoseExtras', () => {
     expect(readPoseExtras(new Float32Array(POSE_FLOATS), 1000)).toEqual({ resultTMs: 1000, ageMs: 0, inferMs: null });
   });
 
+  it('el mismo resultado visto en dos cuadros da la misma marca aunque el cuadro tenga decimales', () => {
+    // Kotlin trunca la marca a ms enteros; frame.timestamp / 1e6 trae decimales. Medido en el S26 Ultra: sin
+    // truncar, cada repetición parecía un resultado nuevo y los descartes deducidos llegaban a millones.
+    const a = readPoseExtras(buffer([33, 28]), 1000.7);
+    const b = readPoseExtras(buffer([66, 28]), 1033.2);
+    expect(a.resultTMs).toBe(967);
+    expect(b.resultTMs).toBe(967);
+  });
+
   it('una antigüedad no válida se trata como 0', () => {
     expect(readPoseExtras(buffer([Number.NaN, 20]), 500)).toEqual({ resultTMs: 500, ageMs: 0, inferMs: 20 });
     expect(readPoseExtras(buffer([-5, 20]), 500)).toEqual({ resultTMs: 500, ageMs: 0, inferMs: 20 });
