@@ -15,8 +15,18 @@ describe('toPoseFrame', () => {
     expect(frame.meta).toBe(META);
   });
 
-  it('rechaza un tamaño distinto de 132', () => {
+  it('rechaza un tamaño que no sea 132 ni 134', () => {
     expect(() => toPoseFrame(new Float32Array(131), META)).toThrow(RangeError);
+    expect(() => toPoseFrame(new Float32Array(133), META)).toThrow(RangeError);
+  });
+
+  it('con LIVE_STREAM ignora los 2 valores extra (antigüedad e inferencia) tras los landmarks', () => {
+    const flat = new Float32Array(134);
+    flat.set([0.25, 0.75, -0.5, 0.5], 32 * 4);
+    flat.set([33, 28], 132);
+    const frame = toPoseFrame(flat, META);
+    expect(frame.raw).toHaveLength(33);
+    expect(frame.raw[32]).toEqual({ x: 0.25, y: 0.75, z: -0.5, v: 0.5 });
   });
 
   it('sin persona (undefined) devuelve un cuadro vacío con visibilidad 0', () => {

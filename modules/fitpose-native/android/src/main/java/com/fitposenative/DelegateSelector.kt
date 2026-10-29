@@ -12,6 +12,9 @@ import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
  *
  * La primera vez en cada teléfono se infieren unos cuadros con cada delegado (sin dejar de detectar), se queda con
  * el de menor mediana y guarda la elección; las siguientes veces arranca directamente con ella.
+ *
+ * En modo `LIVE_STREAM` los tiempos llegan en el hilo de MediaPipe y `current()` se llama en el de la cámara: todo
+ * está sincronizado, y los landmarkers que sobran se cierran desde `current()`, nunca desde su propio callback.
  */
 internal class DelegateSelector(
   private val prefs: SharedPreferences,
@@ -22,32 +25,38 @@ internal class DelegateSelector(
 
   private var phase = Phase.DONE
   private var active: PoseLandmarker? = null
+  private var activeDelegate: Delegate? = null
   private var cpu: PoseLandmarker? = null
+  private val pendingClose = ArrayList<PoseLandmarker>()
   private val cpuSamples = ArrayList<Long>(SAMPLES)
   private val gpuSamples = ArrayList<Long>(SAMPLES)
   private var seen = 0
 
   /** El landmarker para el cuadro actual. */
+  @Synchronized
   fun current(): PoseLandmarker {
+    closePending()
     active?.let { return it }
     val saved = prefs.getString(key, null)?.let { runCatching { Delegate.valueOf(it) }.getOrNull() }
     if (saved != null) {
-      val other = if (saved == Delegate.CPU) Delegate.GPU else Delegate.CPU
       Log.i(TAG, "delegado guardado para este teléfono: $saved")
-      return (create(saved) ?: create(other) ?: noLandmarker()).also { active = it; phase = Phase.DONE }
+      val other = if (saved == Delegate.CPU) Delegate.GPU else Delegate.CPU
+      create(saved)?.let { return use(it, saved, Phase.DONE) }
+      return use(create(other) ?: noLandmarker(), other, Phase.DONE)
     }
-    val first = create(Delegate.CPU)
-    if (first != null) {
-      cpu = first
-      phase = Phase.BENCH_CPU
-      return first.also { active = it }
+    create(Delegate.CPU)?.let {
+      cpu = it
+      return use(it, Delegate.CPU, Phase.BENCH_CPU)
     }
     // Sin CPU no hay nada que comparar.
-    return (create(Delegate.GPU) ?: noLandmarker()).also { active = it; phase = Phase.DONE }
+    return use(create(Delegate.GPU) ?: noLandmarker(), Delegate.GPU, Phase.DONE)
   }
 
-  /** Registra la duración de la inferencia del cuadro actual y avanza la medición si está en curso. */
-  fun record(inferNanos: Long) {
+  /** Registra la duración de una inferencia hecha con `delegate` y avanza la medición si está en curso. */
+  @Synchronized
+  fun record(delegate: Delegate, inferNanos: Long) {
+    // Tras cambiar de delegado aún pueden llegar resultados del anterior: no cuentan.
+    if (delegate != activeDelegate) return
     when (phase) {
       Phase.DONE -> return
       Phase.BENCH_CPU -> if (collect(cpuSamples, inferNanos)) startGpu()
@@ -55,11 +64,26 @@ internal class DelegateSelector(
     }
   }
 
+  @Synchronized
   fun close() {
-    if (cpu !== active) cpu?.close()
-    active?.close()
+    if (cpu !== active) cpu?.let { pendingClose.add(it) }
+    active?.let { pendingClose.add(it) }
     active = null
+    activeDelegate = null
     cpu = null
+    closePending()
+  }
+
+  private fun use(landmarker: PoseLandmarker, delegate: Delegate, next: Phase): PoseLandmarker {
+    active = landmarker
+    activeDelegate = delegate
+    phase = next
+    return landmarker
+  }
+
+  private fun closePending() {
+    for (l in pendingClose) runCatching { l.close() }
+    pendingClose.clear()
   }
 
   private fun collect(samples: MutableList<Long>, nanos: Long): Boolean {
@@ -75,8 +99,7 @@ internal class DelegateSelector(
       choose(Delegate.CPU, "la GPU no arranca")
       return
     }
-    active = gpu
-    phase = Phase.BENCH_GPU
+    use(gpu, Delegate.GPU, Phase.BENCH_GPU)
   }
 
   private fun decide() {
@@ -84,10 +107,10 @@ internal class DelegateSelector(
     val gpuMs = median(gpuSamples) / 1e6
     val winner = if (gpuMs < cpuMs) Delegate.GPU else Delegate.CPU
     if (winner == Delegate.CPU) {
-      active?.close()
-      active = cpu
+      active?.let { pendingClose.add(it) }
+      cpu?.let { use(it, Delegate.CPU, Phase.DONE) }
     } else {
-      cpu?.close()
+      cpu?.let { pendingClose.add(it) }
     }
     cpu = null
     choose(winner, "mediana CPU %.1f ms, GPU %.1f ms".format(cpuMs, gpuMs))

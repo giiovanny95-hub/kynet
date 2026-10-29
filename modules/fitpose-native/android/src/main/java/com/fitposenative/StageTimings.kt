@@ -5,8 +5,9 @@ import android.util.Log
 /**
  * Tiempos por etapa de `detect()` para el Paso C del plan de rendimiento: cada `WINDOW` cuadros escribe en logcat
  * (`adb logcat -s FitposeNative`) el p50 y el p95 de cada etapa en ms y vacía la ventana.
+ * Cada instancia se usa desde un solo hilo.
  */
-internal class StageTimings(private val names: List<String>) {
+internal class StageTimings(private val label: String, private val names: List<String>) {
   private val samples = names.map { LongArray(WINDOW) }
   private var count = 0
 
@@ -21,7 +22,7 @@ internal class StageTimings(private val names: List<String>) {
       val sorted = samples[i].copyOf(count).also { it.sort() }
       "${names[i]} p50 ${ms(sorted[count / 2])} p95 ${ms(sorted[(count * 95 / 100).coerceAtMost(count - 1)])}"
     }
-    Log.i(TAG, "tiempos ($count cuadros): $line")
+    Log.i(TAG, "tiempos $label ($count): $line")
     count = 0
   }
 

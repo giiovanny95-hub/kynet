@@ -5,6 +5,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import { CommonResolutions, useFrameOutput } from 'react-native-vision-camera';
 
 import { createMetrics, metricsInference, metricsStep, summarizeMetrics, type FrameMetrics, type MetricsSummary } from './metrics';
+import { readPoseExtras } from './poseExtras';
 
 const HUD_REFRESH_MS = 250;
 
@@ -17,6 +18,10 @@ interface CameraThreadState {
   readonly session: number;
   metrics: FrameMetrics;
   lastPublishMs: number;
+  /** Marca de tiempo del último resultado procesado: con `LIVE_STREAM` uno puede repetirse varios cuadros. */
+  lastResultTMs: number;
+  frames: number;
+  framesWithPerson: number;
 }
 
 const EMPTY_SUMMARY: MetricsSummary = summarizeMetrics(createMetrics());
@@ -53,23 +58,36 @@ export function useSpikeCamera() {
         const g = globalThis as unknown as { __fitposeSpike?: CameraThreadState };
         let st = g.__fitposeSpike;
         if (st === undefined || st.session !== session) {
-          st = { session, metrics: createMetrics(), lastPublishMs: 0 };
+          st = { session, metrics: createMetrics(), lastPublishMs: 0, lastResultTMs: Number.NEGATIVE_INFINITY, frames: 0, framesWithPerson: 0 };
           g.__fitposeSpike = st;
         }
-        // En Android `timestamp` es `ImageInfo.timestamp` de CameraX (nanosegundos); se pasa a ms.
-        st.metrics = metricsStep(st.metrics, frame.timestamp / 1e6, false);
         const aspect = Math.min(frame.width, frame.height) / Math.max(frame.width, frame.height);
         if (aspect !== frameAspect.value) frameAspect.value = aspect;
 
-        const t0 = performance.now();
+        // En Android `timestamp` es `ImageInfo.timestamp` de CameraX (nanosegundos); se pasa a ms.
+        const frameTMs = frame.timestamp / 1e6;
         const buffer = boxed.unbox().detect(frame);
-        const now = performance.now();
-        st.metrics = metricsInference(st.metrics, now - t0, buffer !== undefined);
-        landmarks.value = buffer === undefined ? undefined : new Float32Array(buffer);
+        st.frames += 1;
+        if (buffer === undefined) {
+          if (landmarks.value !== undefined) landmarks.value = undefined;
+        } else {
+          st.framesWithPerson += 1;
+          const flat = new Float32Array(buffer);
+          const extras = readPoseExtras(flat, frameTMs);
+          // Las métricas siguen a los resultados, no a los cuadros: FPS = poses por segundo y los descartes son
+          // los cuadros de cámara que se quedaron sin resultado.
+          if (extras.resultTMs > st.lastResultTMs) {
+            st.lastResultTMs = extras.resultTMs;
+            st.metrics = metricsStep(st.metrics, extras.resultTMs, false);
+            if (extras.inferMs !== null) st.metrics = metricsInference(st.metrics, extras.inferMs, true);
+            landmarks.value = flat;
+          }
+        }
 
+        const now = performance.now();
         if (now - st.lastPublishMs >= HUD_REFRESH_MS) {
           st.lastPublishMs = now;
-          summary.value = summarizeMetrics(st.metrics);
+          summary.value = { ...summarizeMetrics(st.metrics), detectionRate: st.frames > 0 ? st.framesWithPerson / st.frames : 0 };
         }
       } finally {
         frame.dispose();

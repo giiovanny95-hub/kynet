@@ -13,6 +13,7 @@ import { appendFrame, createRecording, toFixtureJson, type Recording } from './f
 import { modelSawMirroredPixels } from './frameContract';
 import { createMetrics, metricsInference, metricsStep, summarizeMetrics, type FrameMetrics, type MetricsSummary } from './metrics';
 import { toPoseFrame } from './poseEstimator';
+import { readPoseExtras } from './poseExtras';
 import { createThermal, frameGate, thermalStep, type TargetFps } from './thermalPolicy';
 
 const STATS_REFRESH_MS = 1000;
@@ -42,6 +43,8 @@ interface CameraThreadState {
   lastPublishMs: number;
   lastHud: Hud | null;
   rec: Recording | null;
+  /** Marca de tiempo del último resultado procesado: con `LIVE_STREAM` uno puede repetirse varios cuadros. */
+  lastResultTMs: number;
 }
 
 const EMPTY_SUMMARY = summarizeMetrics(createMetrics());
@@ -90,7 +93,16 @@ export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
         const g = globalThis as unknown as { __fitposeWorkout?: CameraThreadState };
         let st = g.__fitposeWorkout;
         if (st === undefined || st.session !== session) {
-          st = { session, engine: createEngine(engineCfg), nextDueMs: 0, metrics: createMetrics(), lastPublishMs: 0, lastHud: null, rec: null };
+          st = {
+            session,
+            engine: createEngine(engineCfg),
+            nextDueMs: 0,
+            metrics: createMetrics(),
+            lastPublishMs: 0,
+            lastHud: null,
+            rec: null,
+            lastResultTMs: Number.NEGATIVE_INFINITY,
+          };
           g.__fitposeWorkout = st;
         }
         const tMs = frame.timestamp / 1e6;
@@ -101,23 +113,33 @@ export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
           if (targetFps.value === 0 && landmarks.value !== undefined) landmarks.value = undefined;
           return;
         }
-        st.metrics = metricsStep(st.metrics, tMs, false);
-
         // Kotlin ya entrega los puntos en vertical (rotation = 0); la app está fijada en vertical.
         const width = Math.min(frame.width, frame.height);
         const height = Math.max(frame.width, frame.height);
         if (width / height !== frameAspect.value) frameAspect.value = width / height;
 
-        const t0 = performance.now();
+        // LIVE_STREAM: `detect` devuelve el último resultado disponible, que puede ser de un cuadro anterior y
+        // repetirse. Cada resultado entra una sola vez al motor, con la marca de tiempo de su propio cuadro.
         const buffer = boxed.unbox().detect(frame);
+        let flat: Float32Array | undefined;
+        let poseTMs = tMs;
+        if (buffer === undefined) {
+          if (landmarks.value !== undefined) landmarks.value = undefined;
+        } else {
+          flat = new Float32Array(buffer);
+          const extras = readPoseExtras(flat, tMs);
+          if (extras.resultTMs <= st.lastResultTMs) return;
+          st.lastResultTMs = extras.resultTMs;
+          poseTMs = extras.resultTMs;
+          st.metrics = metricsStep(st.metrics, poseTMs, false);
+          if (extras.inferMs !== null) st.metrics = metricsInference(st.metrics, extras.inferMs, true);
+          landmarks.value = flat;
+        }
         const now = performance.now();
-        st.metrics = metricsInference(st.metrics, now - t0, buffer !== undefined);
-        const flat = buffer === undefined ? undefined : new Float32Array(buffer);
-        landmarks.value = flat;
 
         const mirrored = modelSawMirroredPixels({ outputMirrored: false, frameIsMirrored: frame.isMirrored });
         // Sin persona se manda un cuadro vacío (nunca se salta): el motor lo trata como visibilidad nula.
-        const poseFrame = toPoseFrame(flat, { tMs, width, height, rotation: 0, mirrored });
+        const poseFrame = toPoseFrame(flat, { tMs: poseTMs, width, height, rotation: 0, mirrored });
         if (recording.value) {
           st.rec = appendFrame(st.rec ?? createRecording(), poseFrame);
         } else if (st.rec !== null) {

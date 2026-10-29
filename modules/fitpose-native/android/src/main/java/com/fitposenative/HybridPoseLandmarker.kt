@@ -10,6 +10,7 @@ import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.ImageProcessingOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.margelo.nitro.NitroModules
 import com.margelo.nitro.camera.HybridFrameSpec
 import com.margelo.nitro.camera.public.NativeFrame
@@ -17,10 +18,16 @@ import com.margelo.nitro.core.ArrayBuffer
 import com.margelo.nitro.fitposenative.HybridPoseLandmarkerSpec
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.ConcurrentHashMap
 
 /**
- * MediaPipe PoseLandmarker en modo VIDEO (síncrono): VisionCamera ya descarta cuadros
- * mientras `detect` está ocupado, así que no hace falta cola propia.
+ * MediaPipe PoseLandmarker en modo `LIVE_STREAM` (asíncrono): `detect` prepara el cuadro, lo envía y devuelve el
+ * último resultado disponible, sin esperar a la inferencia. Así la cámara no se bloquea: en modo VIDEO (síncrono)
+ * el Pixel 7 Pro, con ~30 ms de inferencia, perdía ~16 % de los cuadros (2026-10-29). MediaPipe descarta él mismo
+ * las entradas que llegan mientras está ocupado.
+ *
+ * El resultado devuelto puede ser de un cuadro anterior y repetirse en varios cuadros: tras los 33 landmarks van
+ * su antigüedad y su tiempo de inferencia (ver docs/contrato-nativo-cinematica.md).
  */
 class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
   private val context: Context
@@ -29,23 +36,40 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
   private val delegates: DelegateSelector by lazy {
     DelegateSelector(
       prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE),
-      key = "delegado:${Build.MANUFACTURER}/${Build.MODEL}:$MODEL_ASSET",
+      key = "delegado:${Build.MANUFACTURER}/${Build.MODEL}:$MODEL_ASSET:live",
       create = ::create,
     )
   }
 
+  /** Último resultado de MediaPipe: lo escribe el hilo de MediaPipe y lo lee el de la cámara. */
+  private class Latest(val tMs: Long, val landmarks: FloatArray?, val inferMs: Float)
+
+  @Volatile private var latest: Latest? = null
+
+  /** Cuadros enviados y aún sin resultado: cuándo se enviaron y con qué giro. */
+  private class Pending(val sentNanos: Long, val rotation: Int)
+
+  private val pending = ConcurrentHashMap<Long, Pending>()
+
+  // Solo hilo de la cámara.
   private var lastTimestampMs = -1L
   private var lastWidth = 0
   private var lastHeight = 0
-  private val timings = StageTimings(listOf("imagen", "mpimage", "inferencia", "empaquetado", "total", "intervalo"))
+  private val cameraTimings = StageTimings("cámara", listOf("preparar", "envío", "intervalo"))
+
+  // Solo hilo de MediaPipe.
+  private var lastResultMs = -1L
+  private val resultTimings = StageTimings("resultados", listOf("inferencia", "intervalo"))
 
   private fun create(delegate: Delegate): PoseLandmarker? =
     try {
       val base = BaseOptions.builder().setModelAssetPath(MODEL_ASSET).setDelegate(delegate).build()
       val options = PoseLandmarker.PoseLandmarkerOptions.builder()
         .setBaseOptions(base)
-        .setRunningMode(RunningMode.VIDEO)
+        .setRunningMode(RunningMode.LIVE_STREAM)
         .setNumPoses(1)
+        .setResultListener { result, _ -> onResult(delegate, result) }
+        .setErrorListener { e -> Log.w(TAG, "MediaPipe ($delegate): ${e.message}") }
         .build()
       PoseLandmarker.createFromOptions(context, options).also { Log.i(TAG, "PoseLandmarker creado con delegado $delegate") }
     } catch (e: Throwable) {
@@ -55,7 +79,7 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
 
   override fun detect(frame: HybridFrameSpec): ArrayBuffer? {
     val image = (frame as? NativeFrame)?.image ?: return null
-    // MediaPipe exige marcas de tiempo estrictamente crecientes en modo VIDEO.
+    // MediaPipe exige marcas de tiempo estrictamente crecientes.
     val tMs = image.imageInfo.timestamp / 1_000_000L
     if (tMs <= lastTimestampMs) return null
     val intervalNs = if (lastTimestampMs < 0) 0L else (tMs - lastTimestampMs) * 1_000_000L
@@ -68,46 +92,65 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
     }
 
     val t0 = System.nanoTime()
-    // toBitmap() cuesta ~0,3 ms y girar dentro de MediaPipe ~1 ms (medido en el S26 Ultra): no compensa
-    // optimizarlos. El coste está en la inferencia.
+    // toBitmap() cuesta ~0,3-0,7 ms y girar dentro de MediaPipe ~1 ms: el coste está en la inferencia. El Bitmap
+    // es una copia, así que sigue siendo válido después de que VisionCamera cierre el cuadro.
     val bitmap = image.toBitmap()
-    val t1 = System.nanoTime()
     val mpImage = BitmapImageBuilder(bitmap).build()
     val rotation = image.imageInfo.rotationDegrees
-    val processing = ImageProcessingOptions.builder()
-      .setRotationDegrees(rotation)
-      .build()
+    val processing = ImageProcessingOptions.builder().setRotationDegrees(rotation).build()
+    val t1 = System.nanoTime()
+    pending[tMs] = Pending(t1, rotation)
+    try {
+      delegates.current().detectAsync(mpImage, processing, tMs)
+    } catch (e: Throwable) {
+      pending.remove(tMs)
+      Log.w(TAG, "detectAsync falló: ${e.message}")
+    }
     val t2 = System.nanoTime()
-    val result = delegates.current().detectForVideo(mpImage, processing, tMs)
-    val t3 = System.nanoTime()
-    delegates.record(t3 - t2)
-    val pose = result.landmarks().firstOrNull()
-    if (pose == null || pose.size != LANDMARKS) {
-      timings.add(t1 - t0, t2 - t1, t3 - t2, 0L, t3 - t0, intervalNs)
-      return null
-    }
+    cameraTimings.add(t1 - t0, t2 - t1, intervalNs)
 
-    val buffer = ByteBuffer.allocateDirect(LANDMARKS * 4 * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
-    for (lm in pose) {
-      // MediaPipe devuelve las coordenadas en el marco del buffer sin girar (medido en el Galaxy S26 Ultra:
-      // el esqueleto salía acostado). Se giran aquí para que JS reciba la imagen ya en vertical (rotation = 0).
-      val (x, y) = toUpright(lm.x(), lm.y(), rotation)
-      buffer.putFloat(x)
-      buffer.putFloat(y)
-      buffer.putFloat(lm.z())
-      // `presence` es la probabilidad de que el punto esté dentro del cuadro. Con los pies fuera de cuadro
-      // MediaPipe los inventa con visibility ~0,7 y presence ~0,1 (medido en el S26 Ultra): sin esto se
-      // dibujaban y llegaban a la cinemática como válidos.
-      buffer.putFloat(minOf(lm.visibility().orElse(0f), lm.presence().orElse(0f)))
-    }
+    val last = latest ?: return null
+    val landmarks = last.landmarks ?: return null
+    val buffer = ByteBuffer.allocateDirect((landmarks.size + EXTRAS) * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
+    for (v in landmarks) buffer.putFloat(v)
+    buffer.putFloat((tMs - last.tMs).toFloat())
+    buffer.putFloat(last.inferMs)
     buffer.rewind()
-    val t4 = System.nanoTime()
-    timings.add(t1 - t0, t2 - t1, t3 - t2, t4 - t3, t4 - t0, intervalNs)
     return ArrayBuffer.wrap(buffer)
+  }
+
+  /** Hilo de MediaPipe. */
+  private fun onResult(delegate: Delegate, result: PoseLandmarkerResult) {
+    val tMs = result.timestampMs()
+    val sent = pending.remove(tMs) ?: return
+    // Las entradas que MediaPipe descartó por estar ocupado nunca tendrán resultado.
+    pending.keys.removeIf { it < tMs }
+    val inferNanos = System.nanoTime() - sent.sentNanos
+    delegates.record(delegate, inferNanos)
+    resultTimings.add(inferNanos, if (lastResultMs < 0) 0L else (tMs - lastResultMs) * 1_000_000L)
+    lastResultMs = tMs
+
+    val pose = result.landmarks().firstOrNull()
+    val packed = if (pose == null || pose.size != LANDMARKS) null else FloatArray(LANDMARKS * 4).also { out ->
+      pose.forEachIndexed { i, lm ->
+        // MediaPipe devuelve las coordenadas en el marco del buffer sin girar (medido en el Galaxy S26 Ultra: el
+        // esqueleto salía acostado). Se giran aquí para que JS reciba la imagen ya en vertical (rotation = 0).
+        val (x, y) = toUpright(lm.x(), lm.y(), sent.rotation)
+        out[i * 4] = x
+        out[i * 4 + 1] = y
+        out[i * 4 + 2] = lm.z()
+        // `presence` es la probabilidad de que el punto esté dentro del cuadro. Con los pies fuera de cuadro
+        // MediaPipe los inventa con visibility ~0,7 y presence ~0,1 (medido en el S26 Ultra).
+        out[i * 4 + 3] = minOf(lm.visibility().orElse(0f), lm.presence().orElse(0f))
+      }
+    }
+    latest = Latest(tMs, packed, (inferNanos / 1_000_000.0).toFloat())
   }
 
   override fun dispose() {
     delegates.close()
+    latest = null
+    pending.clear()
     super.dispose()
   }
 
@@ -133,5 +176,7 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
     private const val MODEL_ASSET = "pose_landmarker_lite.task"
     private const val PREFS = "fitpose_native"
     private const val LANDMARKS = 33
+    /** Tras los landmarks: antigüedad del resultado (ms) y su tiempo de inferencia (ms). */
+    private const val EXTRAS = 2
   }
 }
