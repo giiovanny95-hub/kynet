@@ -169,3 +169,26 @@ tomada en ese minuto, no la media de los 10 minutos.
 - Sin cierres en ningún teléfono; memoria estable (750–970 MB, sin tendencia a crecer). Detección 94 % en el S26.
 - La latencia en LIVE_STREAM incluye la espera en la cola de MediaPipe: no es comparable con la "inferencia" del
   modo síncrono.
+
+## Segunda prueba de 10 min en los dos teléfonos y cola de resultados (2026-10-29, 17:25 → 17:40)
+
+Con el HUD ya corregido (`42e53b8`), entre el minuto 0 y el 10 (601 s, ~18 030 cuadros de cámara):
+
+| Teléfono | Descartes 0 → 10 min | % | Detección | Térmico |
+|---|---|---|---|---|
+| S26 Ultra (CPU) | 486 → 3624 (3138) | ~17 % | 100 % | 0 |
+| Pixel 7 Pro (GPU) | 539 → 4014 (3475) | ~19 % | 98 % | 1 (LIGHT) |
+
+El log nativo, en cambio, daba intervalos entre resultados p95 de 34 ms (casi sin huecos): MediaPipe producía casi
+todas las poses, pero `detect()` devolvía solo **el último** resultado, y cuando dos llegaban entre dos cuadros el
+primero no llegaba nunca a JS ni al motor. Arreglo: cola de resultados en orden (`ConcurrentLinkedQueue`, como
+mucho 4); `detect()` entrega el siguiente sin entregar y, si no hay, repite el último (JS lo descarta por su marca).
+
+Verificación corta tras el arreglo (~60 s, persona sentada en cuadro):
+
+| Teléfono | Descartes en ~60 s | FPS (HUD) | Intervalo p95 |
+|---|---|---|---|
+| S26 Ultra (CPU) | 2 (~0,1 %) | 30 | 34 ms |
+| Pixel 7 Pro (GPU) | 2 (~0,1 %) | 30 | 34 ms |
+
+Pendiente: repetir la prueba de 10 min con la cola para cerrar la parte 1 con cifras de sesión completa.

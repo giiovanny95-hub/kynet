@@ -41,10 +41,18 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
     )
   }
 
-  /** Último resultado de MediaPipe: lo escribe el hilo de MediaPipe y lo lee el de la cámara. */
+  /** Un resultado de MediaPipe: lo crea el hilo de MediaPipe y lo consume el de la cámara. */
   private class Latest(val tMs: Long, val landmarks: FloatArray?, val inferMs: Float)
 
-  @Volatile private var latest: Latest? = null
+  /**
+   * Resultados aún no entregados a JS, en orden. Con solo "el último", si MediaPipe terminaba dos resultados entre
+   * dos cuadros el primero no llegaba nunca a JS: ~17-19 % de las poses perdidas en la prueba de 10 min del
+   * 2026-10-29 aunque MediaPipe las produjera. Como no puede haber más resultados que cuadros, la cola no crece.
+   */
+  private val results = java.util.concurrent.ConcurrentLinkedQueue<Latest>()
+
+  // Solo hilo de la cámara: el último entregado, que se repite si aún no hay uno nuevo.
+  private var delivered: Latest? = null
 
   /** Cuadros enviados y aún sin resultado: cuándo se enviaron y con qué giro. */
   private class Pending(val sentNanos: Long, val rotation: Int)
@@ -109,7 +117,9 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
     val t2 = System.nanoTime()
     cameraTimings.add(t1 - t0, t2 - t1, intervalNs)
 
-    val last = latest ?: return null
+    // El siguiente resultado sin entregar, en orden; si no hay ninguno, se repite el último entregado.
+    results.poll()?.let { delivered = it }
+    val last = delivered ?: return null
     val landmarks = last.landmarks ?: return null
     val buffer = ByteBuffer.allocateDirect((landmarks.size + EXTRAS) * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
     for (v in landmarks) buffer.putFloat(v)
@@ -144,12 +154,15 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
         out[i * 4 + 3] = minOf(lm.visibility().orElse(0f), lm.presence().orElse(0f))
       }
     }
-    latest = Latest(tMs, packed, (inferNanos / 1_000_000.0).toFloat())
+    results.add(Latest(tMs, packed, (inferNanos / 1_000_000.0).toFloat()))
+    // Salvaguarda: si JS dejara de pedir cuadros, no acumular sin límite.
+    while (results.size > MAX_QUEUED) results.poll()
   }
 
   override fun dispose() {
     delegates.close()
-    latest = null
+    results.clear()
+    delivered = null
     pending.clear()
     super.dispose()
   }
@@ -178,5 +191,6 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
     private const val LANDMARKS = 33
     /** Tras los landmarks: antigüedad del resultado (ms) y su tiempo de inferencia (ms). */
     private const val EXTRAS = 2
+    private const val MAX_QUEUED = 4
   }
 }
