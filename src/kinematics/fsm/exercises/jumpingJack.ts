@@ -22,6 +22,8 @@ export const JJ_ZONES = {
   attemptAlpha: 100, attemptRho: 1.15,
 } as const;
 
+export type JJZones = { readonly [K in keyof typeof JJ_ZONES]: number };
+
 export interface JJSample {
   readonly tMs: number;
   readonly alpha: number | null;
@@ -38,7 +40,7 @@ function trackPeak(s: FsmState, alpha: number, rhoF: number, tMs: number, tEff: 
 }
 
 /** Máquina de jumping jack: dos señales que **suben** hacia el abierto; reutiliza reloj, faltas y eventos de la máquina genérica. */
-export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec = JJ_SPEC): { s: FsmState; events: RepEvent[] } {
+export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec = JJ_SPEC, zones: JJZones = JJ_ZONES): { s: FsmState; events: RepEvent[] } {
   'worklet';
   const { alpha, rhoF } = sample;
   const clock = advanceClock(s0, { tMs: sample.tMs, paused: sample.paused, hasSignal: alpha !== null && rhoF !== null });
@@ -47,7 +49,7 @@ export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec = JJ_S
   const t = clock.tEff;
   if (sample.paused || alpha === null || rhoF === null) return { s, events: [] };
 
-  const z = JJ_ZONES;
+  const z = zones;
   const closed = alpha <= z.closedAlpha && rhoF <= z.closedRho;
   const code = stallCode(s, t, spec);
   if (code !== null) {

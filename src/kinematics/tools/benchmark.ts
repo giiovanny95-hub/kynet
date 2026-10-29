@@ -2,6 +2,7 @@ import { createEngine, step, type EngineExercise } from '../engine';
 import { BLAZEPOSE33 } from '../landmarks/models/blazepose33';
 import type { PoseFrame } from '../types';
 import { genJumpingJack } from './gen/jumpingJack';
+import { genPushUp } from './gen/pushUp';
 import { genSquat } from './gen/squat';
 
 export interface ExerciseReport {
@@ -15,6 +16,7 @@ export interface ExerciseReport {
 export interface BenchmarkReport {
   readonly squat: ExerciseReport;
   readonly jumpingJack: ExerciseReport;
+  readonly pushUp: ExerciseReport;
 }
 
 interface Scenario {
@@ -74,5 +76,17 @@ export function runBenchmark(): BenchmarkReport {
   jj.push({ frames: genJumpingJack({ reps: 20, periodS: 1, sigma: 0.004, seed: 5, fps: 30, mode: 'armsOnly' }), real: 0 });
   jj.push({ frames: genJumpingJack({ reps: 20, periodS: 1, sigma: 0.004, seed: 6, fps: 30, mode: 'feetOnly' }), real: 0 });
 
-  return { squat: evaluate('squat', squat), jumpingJack: evaluate('jumpingJack', jj) };
+  const pu: Scenario[] = [];
+  for (const sigma of [0, 0.004, 0.008]) {
+    for (const periodS of [1.6, 2.5, 3.5]) {
+      for (const seed of [1, 2]) {
+        pu.push({ frames: genPushUp({ reps: 8, bottomsDeg: 85, periodS, sigma, seed, fps: 30 }), real: 8 });
+      }
+    }
+  }
+  pu.push({ frames: genPushUp({ reps: 6, bottomsDeg: 85, periodS: 2.5, sigma: 0.004, seed: 7, fps: 30, hipDeviationDeg: -25 }), real: 6 });
+  pu.push({ frames: genPushUp({ reps: 12, bottomsDeg: 85, periodS: 2.5, sigma: 0.008, seed: 8, fps: 30, standing: true }), real: 0 });
+  pu.push({ frames: genPushUp({ reps: 6, bottomsDeg: 140, periodS: 2.5, sigma: 0.004, seed: 4, fps: 30 }), real: 0 });
+
+  return { squat: evaluate('squat', squat), jumpingJack: evaluate('jumpingJack', jj), pushUp: evaluate('pushUp', pu) };
 }
