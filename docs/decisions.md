@@ -12,3 +12,6 @@ Cada dependencia nueva se anota con versión y razón.
 | 2026-10-29 | vite | 8.3.5 | Peer de vitest; con `legacy-peer-deps` no se instala sola |
 | 2026-10-29 | eslint, @eslint/js, typescript-eslint | 10.13.0, 10.0.1, 8.72.1 | Lint y regla de límites de `kinematics` (typescript-eslint admite TS < 6.1; el SDK trae TS 6.0.3) |
 | 2026-10-29 | `.npmrc` con `legacy-peer-deps=true` | — | El SDK 58 fija react 19.3.0 y un react-dom transitivo pide 19.3.1; sin esto npm no instala nada |
+| 2026-10-29 | expo-localization | versión de SDK 58 | Idioma inicial del dispositivo |
+| 2026-10-29 | i18next, react-i18next | 26.5.11, 17.1.9 | i18n con español base (`spec-arquitectura.md` §6) |
+| 2026-10-29 | Scripts en TypeScript con `node` (type stripping de Node 22) | — | Sin dependencia extra como tsx |
