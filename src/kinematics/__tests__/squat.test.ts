@@ -87,6 +87,13 @@ describe('FSM sobre la señal', () => {
     return out;
   }
 
+  it('el inicio de la repetición es el primer cuadro que cruza el umbral, no el de confirmación', () => {
+    const samples = path([[1200, 88], [1200, 170]]);
+    const firstCross = samples.find(([t, v]) => t >= 1000 && v < 150)?.[0];
+    const rep = feed(samples).find((e) => e.outcome === 'valid');
+    expect(rep?.tStartMs).toBe(firstCross);
+  });
+
   it('una bajada sostenida de 7 s sin llegar al fondo produce 1 fault y ninguna válida', () => {
     const events = feed(path([[600, 130], [7000, 128], [600, 170]]));
     expect(count(events, 'fault')).toBe(1);

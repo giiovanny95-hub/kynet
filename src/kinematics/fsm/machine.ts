@@ -30,6 +30,8 @@ export interface RepEvent {
   readonly extreme: number;
   /** Máximo de la señal en la vuelta (para Q_top). */
   readonly top: number | null;
+  /** Pico de la señal secundaria (jumping jack: separación de pies `rhoF`); `null` si no aplica. */
+  readonly extreme2: number | null;
   readonly code: string | null;
 }
 
@@ -39,11 +41,15 @@ export interface FsmState {
   /** Tiempo efectivo (sin pausas) en que la señal entró a la zona de inicio. */
   readonly armSinceMs: number | null;
   readonly crossCount: number;
+  /** Tiempo real y efectivo del primer cuadro del cruce en curso (el inicio de la repetición). */
+  readonly crossTMs: number;
+  readonly crossTEff: number;
   /** Tiempo efectivo de entrada a la fase actual. */
   readonly phaseSinceMs: number;
   readonly tStartMs: number;
   readonly tStartEff: number;
   readonly extreme: number;
+  readonly extreme2: number | null;
   readonly tExtremeMs: number;
   readonly tExtremeEff: number;
   readonly tBottomMs: number | null;
@@ -67,8 +73,8 @@ const FAULT_TIMEOUT_MS = 5000;
 export function createFsm(): FsmState {
   'worklet';
   return {
-    phase: 'IDLE', armed: false, armSinceMs: null, crossCount: 0, phaseSinceMs: 0,
-    tStartMs: 0, tStartEff: 0, extreme: 0, tExtremeMs: 0, tExtremeEff: 0,
+    phase: 'IDLE', armed: false, armSinceMs: null, crossCount: 0, crossTMs: 0, crossTEff: 0, phaseSinceMs: 0,
+    tStartMs: 0, tStartEff: 0, extreme: 0, extreme2: null, tExtremeMs: 0, tExtremeEff: 0,
     tBottomMs: null, tBottomEff: null, top: 0, pausedMs: 0, lastTMs: null, frozen: false,
   };
 }
@@ -92,7 +98,7 @@ export function repEvent(s: FsmState, outcome: RepEvent['outcome'], tMs: number,
     durationMs: tEff - s.tStartEff,
     downMs: s.tBottomEff === null ? null : s.tBottomEff - s.tStartEff,
     upMs: s.tBottomEff === null ? null : tEff - s.tBottomEff,
-    extreme: s.extreme, top: s.tBottomEff === null ? null : s.top, code,
+    extreme: s.extreme, top: s.tBottomEff === null ? null : s.top, extreme2: s.extreme2, code,
   };
 }
 
@@ -105,6 +111,24 @@ export function enterPhase(s: FsmState, phase: Phase, tEff: number): FsmState {
 export function toIdle(s: FsmState, tEff: number, armed: boolean): FsmState {
   'worklet';
   return { ...enterPhase(s, 'IDLE', tEff), armed, armSinceMs: null, tBottomMs: null, tBottomEff: null };
+}
+
+/**
+ * Cuenta cuadros consecutivos que cruzan el umbral de salida. Al confirmar, la repetición empieza en el
+ * **primer** cuadro del cruce (no en el de confirmación), para no recortar la duración.
+ */
+export function crossStep(s: FsmState, crossing: boolean, tMs: number, tEff: number, spec: ExerciseSpec, firstValue: number): FsmState {
+  'worklet';
+  if (!crossing) return { ...s, crossCount: 0 };
+  const crossCount = s.crossCount + 1;
+  const crossTMs = crossCount === 1 ? tMs : s.crossTMs;
+  const crossTEff = crossCount === 1 ? tEff : s.crossTEff;
+  if (crossCount < spec.confirmFrames) return { ...s, crossCount, crossTMs, crossTEff };
+  return {
+    ...enterPhase(s, 'DESCENDING', tEff),
+    tStartMs: crossTMs, tStartEff: crossTEff,
+    extreme: firstValue, tExtremeMs: tMs, tExtremeEff: tEff,
+  };
 }
 
 /** Estancamiento por fase o duración máxima: devuelve el código de falta o `null`. */
@@ -159,13 +183,7 @@ export function fsmStep(s0: FsmState, sample: Sample, spec: ExerciseSpec): { s: 
     case 'IDLE': {
       s = armStep(s, inStart, t, spec);
       if (!s.armed) return { s, events: [] };
-      const crossCount = v < spec.exitThr ? s.crossCount + 1 : 0;
-      if (crossCount >= spec.confirmFrames) {
-        s = { ...enterPhase(s, 'DESCENDING', t), tStartMs: sample.tMs, tStartEff: t, extreme: v, tExtremeMs: sample.tMs, tExtremeEff: t };
-      } else {
-        s = { ...s, crossCount };
-      }
-      return { s, events: [] };
+      return { s: crossStep(s, v < spec.exitThr, sample.tMs, t, spec, v), events: [] };
     }
     case 'DESCENDING': {
       if (v < s.extreme) s = { ...s, extreme: v, tExtremeMs: sample.tMs, tExtremeEff: t };
