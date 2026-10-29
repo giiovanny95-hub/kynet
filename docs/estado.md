@@ -1,15 +1,17 @@
 # Estado del proyecto (traspaso entre sesiones)
 
 ## Última actualización
-2026-10-29, 14:55 (hora local de la PC). Sesión **local** (PC con Windows, S26 Ultra por USB).
+2026-10-29, 16:40 (hora local de la PC). Sesión **local** (PC con Windows, S26 Ultra y Pixel 7 Pro por USB).
 
 ## Estado
-- **Funciona en el S26 Ultra:** build de desarrollo, cámara frontal, MediaPipe en **CPU** detectando
-  (97–100 %), esqueleto Skia alineado con el cuerpo, mano izquierda correcta en espejo, sin cierres.
-- **Paso C hecho (pruebas cortas):** la tubería va a **30 FPS** (intervalo p95 34 ms) con pocos descartes.
-  La inferencia p95 nativa queda en 33–41 ms (criterio propuesto: < 33 ms): no cumple ese punto; el resto sí.
-  Detalle y tabla en `docs/spike-results.md`.
-- **No medido:** prueba de 10 min tras el Paso C (lecturas a 0/5/10 min); Pixel 7 Pro (sin conectar).
+- **Delegado automático (`17f2589`):** cada teléfono mide CPU y GPU la primera vez y guarda el ganador.
+  S26 Ultra → CPU; Pixel 7 Pro → GPU.
+- **S26 Ultra:** 30 FPS en pruebas cortas (intervalo p95 34 ms), detección 97–100 %, térmica 0. Inferencia
+  p95 33–41 ms. **Falta su prueba de 10 min con el código actual.**
+- **Pixel 7 Pro, prueba de 10 min (GPU):** ~25 FPS, ~16 % de descartes, inferencia p95 36–40 ms, térmica LIGHT
+  estable, memoria estable (786–843 MB), detección 96 %. No cumple 30 FPS ni < 5 % de descartes.
+- **Overlay:** sin orejas ni puntos de mano (decisión del usuario); landmarks con `v = min(visibility, presence)`.
+- **Cámara a 30 FPS** (`constraints={[{ fps: 30 }]}`) en la spike y en las pantallas de entrenamiento.
 - **Builds:** EAS en la nube no termina en 45 min (plan gratuito). Se compila en local: JDK 17 Temurin,
   SDK en `C:\Android\sdk`, CMake 3.31.6 en `android/local.properties` (`cmake.dir`).
 - **Coordinación:** buzón en la rama `coordinacion` (ver su `README.md`).
@@ -33,13 +35,15 @@
 - Criterio "inferencia p95 < 33 ms" (`pose-spike-research.md` §6, marcado como propuesto) frente a lo medido
   (33–41 ms con 30 FPS sostenidos). Opciones: ajustar el criterio a "30 FPS sostenidos con < 5 % de
   descartes", probar el modelo *full* o *heavy* no (son más lentos), o plan B MoveNet (requiere aprobación).
+- Pixel 7 Pro a ~25 FPS con su mejor delegado. Opciones: modo asíncrono `LIVE_STREAM` para no bloquear la
+  cámara, aceptar ≥ 25 FPS en esa gama (la parte 3 ya pide "no caer de 25 FPS"), o MoveNet.
 
 ## Siguiente paso
-Prueba de 10 min en el S26 Ultra con el código `e4bafd8` y lecturas automáticas a 0, 5 y 10 min.
+Decisión del usuario sobre el Pixel; después, prueba de 10 min en el S26 Ultra con `17f2589`.
 
 ## Pendiente que requiere la PC o un teléfono
-- Prueba de 10 min (necesita al usuario frente a la cámara).
-- Pixel 7 Pro: conectar por USB y repetir; comprobar allí también CPU frente a GPU.
+- Prueba de 10 min en el S26 Ultra con el código actual (necesita al usuario frente a la cámara).
+- Prueba de 15 min de la parte 3 y grabaciones reales (Task 12 del plan de partes 3 y 4).
 
 ## Pendiente que puede hacer la sesión remota
 - Bloques A y B del plan de las partes 3 y 4: **en espera de la decisión del usuario** sobre avanzar antes de
