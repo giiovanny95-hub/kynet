@@ -3,7 +3,7 @@ const js = require('@eslint/js');
 const tseslint = require('typescript-eslint');
 
 module.exports = tseslint.config(
-  { ignores: ['node_modules/**', '.expo/**', 'android/**', 'ios/**', '.superpowers/**', 'dist/**'] },
+  { ignores: ['node_modules/**', '.expo/**', 'android/**', 'ios/**', '.superpowers/**', 'dist/**', 'modules/*/nitrogen/**', 'modules/*/post-script.js'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
