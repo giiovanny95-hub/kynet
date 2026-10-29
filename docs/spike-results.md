@@ -143,3 +143,29 @@ inferir en modo asíncrono (`LIVE_STREAM`) para no bloquear la cámara, aceptar 
 calentamiento cada uno) y guarda el ganador. Verificado: S26 Ultra elige **CPU** (mediana 23,7 ms frente a
 32,5 ms en GPU) y Pixel 7 Pro elige **GPU** (28,9 ms frente a 62,7 ms); en la segunda apertura cada uno usa el
 delegado guardado sin volver a medir.
+
+## Prueba de 10 min en los dos teléfonos a la vez, modo LIVE_STREAM (2026-10-29, 17:07 → 17:17)
+
+Código `95f3bb6` (LIVE_STREAM, delegado automático: S26 → CPU, Pixel → GPU), cámara a 30 FPS, los dos teléfonos
+juntos frente a la persona a ~2 m. **El HUD de esta prueba no vale para FPS ni descartes**: tenía el fallo de
+redondeo que corrige `42e53b8` (cada repetición de un resultado contaba como nueva; el S26 llegó a 2,1 millones de
+"descartes"). Las cifras de abajo salen del log nativo: cada lectura es una ventana de 150 resultados (~5 s)
+tomada en ese minuto, no la media de los 10 minutos.
+
+| Teléfono | Minuto | Intervalo entre resultados p50 / p95 | Latencia (envío → resultado) p50 / p95 | Hilo de cámara | Térmico | PSS |
+|---|---|---|---|---|---|---|
+| S26 Ultra (CPU) | 0 | 33 / 34 ms | 33 / 47 ms | ~1 ms | 0 | 755 MB |
+| S26 Ultra (CPU) | 5 | 33 / 67 ms | 58 / 75 ms | ~1,5 ms | 0 | 817 MB |
+| S26 Ultra (CPU) | 10 | 33 / 66 ms | 54 / 73 ms | ~1,5 ms | 0 | 805 MB |
+| Pixel 7 Pro (GPU) | 0 | 33 / 34 ms | 36 / 58 ms | ~3 ms | 1 (LIGHT) | 878 MB |
+| Pixel 7 Pro (GPU) | 5 | 33 / 34 ms | 33 / 59 ms | ~3 ms | 1 | 970 MB |
+| Pixel 7 Pro (GPU) | 10 | 33 / 67 ms | 55 / 90 ms | ~3 ms | 1 | 854 MB |
+
+- **Mejora clara en el Pixel:** p50 de 33 ms en todas las ventanas (antes, en síncrono, 66–83 ms).
+- **Degradación con el tiempo:** a partir del minuto 5 (S26) o 10 (Pixel) aparecen huecos de 2 cuadros
+  (p95 66–67 ms) y la latencia sube a ~55 ms, sin que el estado térmico pase de 0–1. Probable bajada de frecuencia
+  de la CPU/GPU por carga sostenida que Android no reporta como térmica. Hay que medir la tasa de descartes real
+  de los 10 min con el HUD ya corregido.
+- Sin cierres en ningún teléfono; memoria estable (750–970 MB, sin tendencia a crecer). Detección 94 % en el S26.
+- La latencia en LIVE_STREAM incluye la espera en la cola de MediaPipe: no es comparable con la "inferencia" del
+  modo síncrono.
