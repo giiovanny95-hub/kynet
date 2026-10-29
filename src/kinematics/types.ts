@@ -33,7 +33,12 @@ export interface FrameMeta {
   /** Medidas del cuadro ya rotado a vertical. */
   readonly width: number;
   readonly height: number;
+  /** Giro que falta aplicar para llevar las coordenadas a vertical (ver docs/contrato-nativo-cinematica.md). */
   readonly rotation: 0 | 90 | 180 | 270;
+  /**
+   * `true` si los píxeles que vio el modelo eran un espejo de la escena (izquierda/derecha cambiadas).
+   * No es `Frame.isMirrored` de VisionCamera: usar `modelSawMirroredPixels` de `src/vision/frameContract.ts`.
+   */
   readonly mirrored: boolean;
 }
 
