@@ -53,8 +53,9 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
 
     val bitmap = image.toBitmap()
     val mpImage = BitmapImageBuilder(bitmap).build()
+    val rotation = image.imageInfo.rotationDegrees
     val processing = ImageProcessingOptions.builder()
-      .setRotationDegrees(image.imageInfo.rotationDegrees)
+      .setRotationDegrees(rotation)
       .build()
     val result = landmarker.detectForVideo(mpImage, processing, tMs)
     val pose = result.landmarks().firstOrNull() ?: return null
@@ -62,8 +63,11 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
 
     val buffer = ByteBuffer.allocateDirect(LANDMARKS * 4 * Float.SIZE_BYTES).order(ByteOrder.nativeOrder())
     for (lm in pose) {
-      buffer.putFloat(lm.x())
-      buffer.putFloat(lm.y())
+      // MediaPipe devuelve las coordenadas en el marco del buffer sin girar (medido en el Galaxy S26 Ultra:
+      // el esqueleto salía acostado). Se giran aquí para que JS reciba la imagen ya en vertical (rotation = 0).
+      val (x, y) = toUpright(lm.x(), lm.y(), rotation)
+      buffer.putFloat(x)
+      buffer.putFloat(y)
       buffer.putFloat(lm.z())
       buffer.putFloat(lm.visibility().orElse(0f))
     }
@@ -80,6 +84,15 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
     }
 
   companion object {
+    /** Gira un punto normalizado `rotationDegrees` en sentido horario (convención de `ImageInfo` de CameraX). */
+    private fun toUpright(x: Float, y: Float, rotationDegrees: Int): Pair<Float, Float> =
+      when (rotationDegrees) {
+        90 -> Pair(1f - y, x)
+        180 -> Pair(1f - x, 1f - y)
+        270 -> Pair(y, 1f - x)
+        else -> Pair(x, y)
+      }
+
     private const val TAG = "FitposeNative"
     private const val MODEL_ASSET = "pose_landmarker_lite.task"
     private const val LANDMARKS = 33
