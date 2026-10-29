@@ -1,3 +1,4 @@
+import { useKeepAwake } from 'expo-keep-awake';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +45,7 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
   const cal = useRef<CalibratorState>(createCalibrator(exercise));
   const fails = useRef(0);
   const cues = useFeedbackCues();
+  useKeepAwake();
 
   const goLive = useCallback(() => router.replace({ pathname: '/workout/[exercise]/live', params: { exercise } }), [router, exercise]);
 

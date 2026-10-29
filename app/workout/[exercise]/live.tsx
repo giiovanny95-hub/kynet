@@ -1,3 +1,5 @@
+import { File, Paths } from 'expo-file-system';
+import { useKeepAwake } from 'expo-keep-awake';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +45,8 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   const phaseRef = useRef(session.phase);
   phaseRef.current = session.phase;
   const cues = useFeedbackCues();
+  // La pantalla no debe apagarse durante el entrenamiento: apagarla manda la app a segundo plano y pausa la sesión.
+  useKeepAwake();
 
   useEffect(() => {
     const plan = DEFAULT_PLAN[exercise];
@@ -78,8 +82,22 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
     [cues, dispatch],
   );
 
-  // La grabación se guardará en el teléfono con expo-file-system (pendiente de aprobación); hasta entonces solo se informa.
-  const onRecording = useCallback((json: string) => Alert.alert(t('workout.dev.noFileSystem', { kb: Math.round(json.length / 1024) })), [t]);
+  // Solo desarrollo: el JSON se guarda en los documentos de la app y se saca con adb (ver docs/fixtures.md); nunca se sube.
+  const onRecording = useCallback(
+    (json: string) => {
+      const file = new File(Paths.document, `fixture-${exercise}-${Date.now()}.json`);
+      try {
+        file.create();
+        file
+          .write(json)
+          .then(() => Alert.alert(t('workout.dev.saved', { name: file.name, kb: Math.round(json.length / 1024) })))
+          .catch((e: unknown) => Alert.alert(t('workout.dev.saveFailed', { error: String(e) })));
+      } catch (e) {
+        Alert.alert(t('workout.dev.saveFailed', { error: String(e) }));
+      }
+    },
+    [exercise, t],
+  );
   const pipeline = useWorkoutPipeline({ exercise, profile, calibrating: false, onEvent, onRecording: __DEV__ ? onRecording : undefined });
   const [recording, setRecording] = useState(false);
   const toggleRecording = () => {

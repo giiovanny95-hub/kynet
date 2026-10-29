@@ -78,7 +78,8 @@
     "dev": {
       "record": "Record landmarks",
       "stopRecording": "Stop and share",
-      "noFileSystem": "Recording of {{kb}} KB ready, but it cannot be saved yet: expo-file-system needs approval."
+      "saved": "Saved {{name}} ({{kb}} KB). Pull it with adb (see docs/fixtures.md).",
+      "saveFailed": "Could not save: {{error}}"
     },
     "critical": "Your phone is very hot. Rest for a few minutes"
   },
