@@ -20,6 +20,8 @@ import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 const MESSAGE_MS = 3000;
 const HUD_POLL_MS = 250;
 const MIRROR_PREVIEW = true;
+/** Sin esto la cámara frontal del Pixel 7 Pro entrega 24 FPS con luz de interior (medido el 2026-10-29). */
+const CAMERA_CONSTRAINTS = [{ fps: 30 }];
 
 function clock(ms: number): string {
   const s = Math.floor(ms / 1000);
@@ -129,6 +131,7 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
           device="front"
           isActive={cameraOn}
           outputs={[pipeline.frameOutput]}
+          constraints={CAMERA_CONSTRAINTS}
           onError={() => dispatch({ type: 'cameraError', reason: 'busy' })}
         />
         <Skeleton landmarks={pipeline.landmarks} frameAspect={pipeline.frameAspect} width={size.width} height={size.height} mirror={MIRROR_PREVIEW} />

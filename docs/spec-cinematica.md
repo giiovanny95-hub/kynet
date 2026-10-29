@@ -275,7 +275,7 @@ El evento `FEEDBACK{code, severity, rep}` se emite como máximo **uno por repeti
 | `SQ_DEPTH_SHALLOW` | sentadilla | incompleta (mín. en (100,130]) | alta | |
 | `SQ_TRUNK_LEAN` | sentadilla | `τ` fondo `> max(55°, τ_cal+15°)` | media (p=0.10) | |
 | `SQ_KNEES_IN` | sentadilla | cociente rodillas/tobillos `< 0.85` en fondo | media | frontal |
-| `SQ_HEELS_LIFT` | sentadilla | talón sube respecto al tobillo (> 2 % alto de cuadro) | media | 33 puntos |
+| `SQ_HEELS_LIFT` | sentadilla | talón sube respecto al tobillo (> 2 % alto de cuadro); solo se evalúa si talón y tobillo del mismo lado tienen `v >= 0.8` durante la fase, si no queda desactivada en esa repetición sin aviso | media | 33 puntos |
 | `SQ_TOO_FAST` / `SQ_TOO_SLOW` | sentadilla | `D < Dlo` / `D > Dhi` | baja | |
 | `JJ_ARMS_LOW` | jumping jack | pies abiertos, `αpico < αU` | alta | |
 | `JJ_FEET_NARROW` | jumping jack | brazos arriba, `ρfpico < ρfU` | alta | |
@@ -285,6 +285,8 @@ El evento `FEEDBACK{code, severity, rep}` se emite como máximo **uno por repeti
 | `PU_DEPTH_SHALLOW` | flexión | incompleta (mín. en (100,130]) | alta | |
 | `PU_HIPS_SAG` / `PU_HIPS_PIKE` | flexión | `θb < 160°` con signo | media (p=0.25) | |
 | `PU_TOO_FAST` / `PU_TOO_SLOW` | flexión | `D < Dlo` / `D > Dhi` | baja | |
+
+Nota (decisión del usuario, 2026-10-29): se mantiene el modelo **lite** de MediaPipe; el full no cabe en 30 FPS. Con lite los talones dan `v` 0,71-0,78 de pie a 2 m (full 0,83-0,93), de ahí la condición de `v >= 0.8` de `SQ_HEELS_LIFT`. Medido por la sesión local en el S26 Ultra (docs/spike-results.md).
 
 ## 8. Estrategia de pruebas
 

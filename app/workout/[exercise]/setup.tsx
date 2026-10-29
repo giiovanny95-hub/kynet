@@ -21,6 +21,8 @@ const PLACED_AFTER_MS = 1500;
 const POLL_MS = 200;
 const MAX_FAILS = 2;
 const MIRROR_PREVIEW = true;
+/** Sin esto la cámara frontal del Pixel 7 Pro entrega 24 FPS con luz de interior (medido el 2026-10-29). */
+const CAMERA_CONSTRAINTS = [{ fps: 30 }];
 
 type Stage = 'placing' | 'calibrating' | 'ready' | 'failed';
 
@@ -100,7 +102,14 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
   return (
     <CameraGate busy={busy} onBack={() => router.back()}>
       <View style={styles.fill} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
-        <Camera style={styles.fill} device="front" isActive outputs={[pipeline.frameOutput]} onError={() => setBusy(true)} />
+        <Camera
+          style={styles.fill}
+          device="front"
+          isActive
+          outputs={[pipeline.frameOutput]}
+          constraints={CAMERA_CONSTRAINTS}
+          onError={() => setBusy(true)}
+        />
         <Skeleton
           landmarks={pipeline.landmarks}
           frameAspect={pipeline.frameAspect}
