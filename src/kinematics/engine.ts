@@ -5,6 +5,7 @@ import { createFilterBank, filterPose, type FilterBank } from './filter/landmark
 import { DEFAULT_ONE_EURO, type OneEuroParams } from './filter/oneEuro';
 import { applyProfile, type CalibrationProfile } from './calibration/profile';
 import { JJ_SPEC, JJ_ZONES, jjStep, type JJZones } from './fsm/exercises/jumpingJack';
+import { PU_MAX_IOTA, PUSHUP_SPEC, PUSHUP_TRACK0, pushUpStep, type PushUpTrack } from './fsm/exercises/pushUp';
 import { SQUAT_SPEC } from './fsm/exercises/squat';
 import { createFsm, fsmStep, toIdle, type ExerciseSpec, type FsmState, type RepEvent } from './fsm/machine';
 import { toPose } from './landmarks/adapter';
@@ -16,10 +17,11 @@ import { formScore, pForm, quality, repQ, type Quality } from './scoring/quality
 import { DEFAULT_T, DEFAULT_TTOP, qRomJJ, qRomSquat } from './scoring/rom';
 import { qTempo, tempoPlateau } from './scoring/tempo';
 import { jjSignals } from './signals/jumpingJack';
+import { pushUpSignals } from './signals/pushUp';
 import { squatSignals } from './signals/squat';
 import type { JointId, ModelSpec, Pose, PoseFrame } from './types';
 
-export type EngineExercise = 'squat' | 'jumpingJack';
+export type EngineExercise = 'squat' | 'jumpingJack' | 'pushUp';
 
 export interface EngineConfig {
   readonly exercise: EngineExercise;
@@ -62,21 +64,25 @@ export interface EngineState {
   readonly arbiter: ArbiterState;
   /** Intentos emitidos (válidas, incompletas y faltas): numeran las repeticiones para el escalado de avisos. */
   readonly attempts: number;
+  readonly pu: PushUpTrack;
   /** Señales secundarias de la repetición en curso: `τ` en el extremo (sentadilla) y asimetría máxima en el pico (jumping jack). */
   readonly acc: RepAcc;
 }
 
-type PauseCause = 'VIS_LOW' | 'VIEW' | 'OUT_OF_FRAME';
+type PauseCause = 'VIS_LOW' | 'VIEW' | 'OUT_OF_FRAME' | 'POSTURE';
 
 interface FrameCheck {
   readonly viewBadSinceMs: number | null;
+  /** Flexión: cuerpo no horizontal fuera de una repetición. */
+  readonly postureBadSinceMs: number | null;
   readonly edgeRun: number;
   readonly okRun: number;
   /** Causa de encuadre que mantiene la pausa (la visibilidad va aparte en `vis`). */
-  readonly issue: 'VIEW' | 'OUT_OF_FRAME' | null;
+  readonly issue: 'VIEW' | 'OUT_OF_FRAME' | 'POSTURE' | null;
 }
 
-const FRAME_OK: FrameCheck = { viewBadSinceMs: null, edgeRun: 0, okRun: 0, issue: null };
+const FRAME_OK: FrameCheck = { viewBadSinceMs: null, postureBadSinceMs: null, edgeRun: 0, okRun: 0, issue: null };
+const POSTURE_BAD_MS = 1000;
 const VIEW_BAD_MS = 1000;
 const EDGE_FRAMES = 3;
 const RESUME_FRAMES = 5;
@@ -85,9 +91,11 @@ const EDGE_MARGIN = 0.02;
 interface RepAcc {
   readonly tauBottom: number | null;
   readonly asymMax: number | null;
+  /** Flexión: θb con signo de la peor alineación en el fondo y la subida. */
+  readonly bodySigned: number | null;
 }
 
-const EMPTY_ACC: RepAcc = { tauBottom: null, asymMax: null };
+const EMPTY_ACC: RepAcc = { tauBottom: null, asymMax: null, bodySigned: null };
 
 export type ScoredRep = RepEvent & {
   readonly q?: number;
@@ -129,6 +137,7 @@ export function createEngine(cfg: EngineConfig): EngineState {
     pausedSinceMs: null,
     arbiter: createArbiter(),
     attempts: 0,
+    pu: PUSHUP_TRACK0,
     acc: EMPTY_ACC,
   };
 }
@@ -140,7 +149,7 @@ const CAL_JJ_RHO = 1.2;
 function resolveConfig(cfg: EngineConfig): ResolvedConfig {
   'worklet';
   const profile = cfg.calibrating ? null : (cfg.profile ?? null);
-  const baseSpec = cfg.exercise === 'jumpingJack' ? JJ_SPEC : SQUAT_SPEC;
+  const baseSpec = cfg.exercise === 'jumpingJack' ? JJ_SPEC : cfg.exercise === 'pushUp' ? PUSHUP_SPEC : SQUAT_SPEC;
   let spec = baseSpec;
   let zones: JJZones = JJ_ZONES;
   if (cfg.calibrating) {
@@ -160,6 +169,11 @@ function requiredJoints(exercise: EngineExercise, side: 'l' | 'r'): readonly Joi
   'worklet';
   if (exercise === 'jumpingJack') {
     return ['lShoulder', 'rShoulder', 'lHip', 'rHip', 'lWrist', 'rWrist', 'lAnkle', 'rAnkle'];
+  }
+  if (exercise === 'pushUp') {
+    return side === 'l'
+      ? ['lShoulder', 'lElbow', 'lWrist', 'lHip', 'lKnee', 'lAnkle']
+      : ['rShoulder', 'rElbow', 'rWrist', 'rHip', 'rKnee', 'rAnkle'];
   }
   return side === 'l' ? ['lShoulder', 'lHip', 'lKnee', 'lAnkle'] : ['rShoulder', 'rHip', 'rKnee', 'rAnkle'];
 }
@@ -187,16 +201,19 @@ function score(cfg: ResolvedConfig, rep: RepEvent, pf: number): number {
   if (cfg.exercise === 'jumpingJack') {
     return repQ(qRomJJ(rep.extreme, rep.extreme2 ?? 0), qTempo('jumpingJack', downS, upS), pf);
   }
+  const tempo = qTempo(cfg.exercise === 'pushUp' ? 'pushUp' : 'squat', downS, upS);
   // Con perfil, T = fondo calibrado y Ttop = inicio calibrado (spec §6.1).
   const T = cfg.profile ? cfg.profile.extremeThr - 10 : DEFAULT_T;
   const Ttop = cfg.profile ? cfg.profile.startThr + 10 : DEFAULT_TTOP;
-  return repQ(qRomSquat(rep.extreme, rep.top ?? rep.extreme, T, Ttop), qTempo('squat', downS, upS), pf);
+  return repQ(qRomSquat(rep.extreme, rep.top ?? rep.extreme, T, Ttop), tempo, pf);
 }
 
 const TRUNK_LEAN_MIN_DEG = 55;
 const TRUNK_LEAN_MARGIN_DEG = 15;
 const JJ_ASYM_DEG = 35;
 const P_SOFT_MILD = 0.1;
+const P_SOFT_SEVERE = 0.25;
+const PU_HIPS_DEG = 160;
 
 /** Faltas suaves de una repetición válida (spec §7) y sus penalizaciones para P_form. */
 function softFaults(exercise: EngineExercise, rep: RepEvent, acc: RepAcc, tauCal: number): { faults: FeedbackCode[]; penalties: number[] } {
@@ -212,6 +229,15 @@ function softFaults(exercise: EngineExercise, rep: RepEvent, acc: RepAcc, tauCal
     const d = rep.durationMs / 1000;
     if (d < lo) faults.push('SQ_TOO_FAST');
     else if (d > hi) faults.push('SQ_TOO_SLOW');
+  } else if (exercise === 'pushUp') {
+    if (acc.bodySigned !== null && Math.abs(acc.bodySigned) < PU_HIPS_DEG) {
+      faults.push(acc.bodySigned < 0 ? 'PU_HIPS_SAG' : 'PU_HIPS_PIKE');
+      penalties.push(P_SOFT_SEVERE);
+    }
+    const [lo, hi] = tempoPlateau('pushUp');
+    const d = rep.durationMs / 1000;
+    if (d < lo) faults.push('PU_TOO_FAST');
+    else if (d > hi) faults.push('PU_TOO_SLOW');
   } else if (acc.asymMax !== null && acc.asymMax > JJ_ASYM_DEG) {
     faults.push('JJ_ASYMMETRY');
   }
@@ -222,6 +248,7 @@ function softFaults(exercise: EngineExercise, rep: RepEvent, acc: RepAcc, tauCal
 function incompleteCode(exercise: EngineExercise, code: string | null): FeedbackCode {
   'worklet';
   if (exercise === 'squat') return 'SQ_DEPTH_SHALLOW';
+  if (exercise === 'pushUp') return 'PU_DEPTH_SHALLOW';
   return code === 'JJ_FEET_NARROW' ? 'JJ_FEET_NARROW' : 'JJ_ARMS_LOW';
 }
 
@@ -238,24 +265,32 @@ function nearEdge(pose: Pose, joints: readonly JointId[], aspect: number): boole
 }
 
 /** Vista incorrecta más de 1 s o articulación al borde 3 cuadros: pausa; 5 cuadros correctos la levantan. */
-function frameCheckStep(f: FrameCheck, pose: Pose, joints: readonly JointId[], want: 'lateral' | 'frontal', aspect: number, tMs: number): FrameCheck {
+function frameCheckStep(
+  f: FrameCheck, pose: Pose, joints: readonly JointId[], want: 'lateral' | 'frontal', aspect: number, tMs: number, postureBad: boolean,
+): FrameCheck {
   'worklet';
   const v = classifyView(pose);
   const wrongView = v !== null && v !== 'ambiguous' && v !== want;
   const viewBadSinceMs = wrongView ? (f.viewBadSinceMs ?? tMs) : null;
+  const postureBadSinceMs = postureBad ? (f.postureBadSinceMs ?? tMs) : null;
   const edgeRun = nearEdge(pose, joints, aspect) ? f.edgeRun + 1 : 0;
-  const now = viewBadSinceMs !== null && tMs - viewBadSinceMs > VIEW_BAD_MS ? 'VIEW' : edgeRun >= EDGE_FRAMES ? 'OUT_OF_FRAME' : null;
-  if (now !== null) return { viewBadSinceMs, edgeRun, okRun: 0, issue: now };
-  if (f.issue === null) return { viewBadSinceMs, edgeRun, okRun: 0, issue: null };
-  const bad = wrongView || edgeRun > 0;
+  const now = viewBadSinceMs !== null && tMs - viewBadSinceMs > VIEW_BAD_MS ? 'VIEW'
+    : edgeRun >= EDGE_FRAMES ? 'OUT_OF_FRAME'
+    : postureBadSinceMs !== null && tMs - postureBadSinceMs > POSTURE_BAD_MS ? 'POSTURE'
+    : null;
+  if (now !== null) return { viewBadSinceMs, postureBadSinceMs, edgeRun, okRun: 0, issue: now };
+  if (f.issue === null) return { viewBadSinceMs, postureBadSinceMs, edgeRun, okRun: 0, issue: null };
+  const bad = wrongView || edgeRun > 0 || postureBad;
   const okRun = bad ? 0 : f.okRun + 1;
-  return { viewBadSinceMs, edgeRun, okRun, issue: okRun >= RESUME_FRAMES ? null : f.issue };
+  return { viewBadSinceMs, postureBadSinceMs, edgeRun, okRun, issue: okRun >= RESUME_FRAMES ? null : f.issue };
 }
 
 function pauseCode(cause: PauseCause, exercise: EngineExercise, want: 'lateral' | 'frontal'): FeedbackCode {
   'worklet';
+  if (cause === 'POSTURE') return 'PU_POSITION';
   if (cause !== 'VIEW') return cause;
   if (exercise === 'jumpingJack') return 'JJ_FACE_CAMERA';
+  if (exercise === 'pushUp') return 'PU_POSITION';
   return want === 'lateral' ? 'VIEW_WRONG_SIDE' : 'VIEW_WRONG_FRONT';
 }
 
@@ -285,7 +320,7 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
     events.push({ type: 'SUBJECT_CHANGED', tMs });
   }
 
-  const side = s.cfg.exercise === 'squat' ? chooseSide(s, rawPose) : s.side;
+  const side = s.cfg.exercise === 'jumpingJack' ? s.side : chooseSide(s, rawPose);
   const filtered = filterPose(s.bank, rawPose, s.cfg.oneEuro, JOINT_MIN_V);
   s = { ...s, side, bank: filtered.bank };
 
@@ -294,7 +329,11 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   const prevCause: PauseCause | null = s.vis.paused ? 'VIS_LOW' : s.frameCheck.issue;
   const vis = visibilityStep(s.vis, meanVisibility(rawPose, joints), tMs);
   const aspect = frame.meta.height > 0 ? frame.meta.width / frame.meta.height : 1;
-  const frameCheck = frameCheckStep(s.frameCheck, rawPose, joints, s.cfg.view, aspect, tMs);
+  // Flexión: fuera de una repetición, el cuerpo no horizontal (de pie, sentado) pausa con PU_POSITION.
+  const puSig = s.cfg.exercise === 'pushUp' ? pushUpSignals(filtered.pose, side) : null;
+  const outOfRep = s.fsm.phase === 'IDLE' || s.fsm.phase === 'FAULT';
+  const postureBad = puSig !== null && outOfRep && puSig.iota !== null && puSig.iota > PU_MAX_IOTA;
+  const frameCheck = frameCheckStep(s.frameCheck, rawPose, joints, s.cfg.view, aspect, tMs, postureBad);
   s = { ...s, vis: vis.s, frameCheck };
   const paused = isPaused(s);
   const cause: PauseCause | null = vis.paused ? 'VIS_LOW' : frameCheck.issue;
@@ -324,6 +363,17 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
     if (!paused && sig.asym !== null && (r.s.phase === 'INFLECTION' || r.s.phase === 'ASCENDING' && prevPhase === 'INFLECTION')) {
       acc = { ...acc, asymMax: Math.max(acc.asymMax ?? 0, sig.asym) };
     }
+  } else if (puSig !== null) {
+    value = puSig.thetaE;
+    const pr = pushUpStep(s.fsm, s.pu, { tMs, thetaE: puSig.thetaE, thetaB: puSig.thetaB, iota: puSig.iota, paused }, s.cfg.spec);
+    r = pr;
+    s = { ...s, pu: pr.track };
+    if (prevPhase === 'IDLE') acc = EMPTY_ACC;
+    // θb en el fondo y la subida: se guarda la peor alineación (θb más bajo) con su signo.
+    const bottomOrUp = r.s.phase === 'INFLECTION' || r.s.phase === 'ASCENDING';
+    if (!paused && bottomOrUp && puSig.thetaBSigned !== null && (acc.bodySigned === null || Math.abs(puSig.thetaBSigned) < Math.abs(acc.bodySigned))) {
+      acc = { ...acc, bodySigned: puSig.thetaBSigned };
+    }
   } else {
     const sig = squatSignals(filtered.pose, side);
     value = sig.thetaK;
@@ -339,7 +389,7 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
     let faults: FeedbackCode[];
     if (rep.outcome !== 'valid') {
       // Spec §6.3: una repetición no contada (incompleta o falta) es Miss y reinicia el combo.
-      faults = rep.outcome === 'incomplete' ? [incompleteCode(s.cfg.exercise, rep.code)] : [];
+      faults = rep.outcome === 'incomplete' ? [incompleteCode(s.cfg.exercise, rep.code)] : rep.code === 'PU_POSITION' ? ['PU_POSITION'] : [];
       s = { ...s, combo: 0 };
       events.push({ ...rep, quality: 'Miss', mult: 1, faults });
     } else {
