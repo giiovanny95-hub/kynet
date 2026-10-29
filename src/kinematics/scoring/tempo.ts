@@ -19,3 +19,10 @@ export function qTempo(exercise: ScoredExercise, tDownS: number, tUpS: number): 
   const g = t.r === null || tUpS <= 0 ? 1 : Math.max(0.3, trap(tDownS / tUpS, t.r[0], t.r[1], t.r[2], t.r[3]));
   return f ** 0.7 * g ** 0.3;
 }
+
+/** Meseta `[Dlo, Dhi]` en segundos (spec §6.2): fuera de ella la repetición es rápida o lenta. */
+export function tempoPlateau(exercise: ScoredExercise): readonly [number, number] {
+  'worklet';
+  const d = TEMPO[exercise].d;
+  return [d[1], d[2]];
+}

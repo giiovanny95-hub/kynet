@@ -11,8 +11,9 @@ function usable(lm: Landmark | undefined): lm is Landmark {
 /**
  * Señales de jumping jack en vista frontal (spec §4.4): `alpha` = media de los ángulos cadera–hombro–muñeca
  * y `rhoF` = separación de tobillos / ancho de hombros.
+ * `asym` = diferencia absoluta entre los ángulos de brazo izquierdo y derecho.
  */
-export function jjSignals(pose: Pose): { alpha: number | null; rhoF: number | null } {
+export function jjSignals(pose: Pose): { alpha: number | null; rhoF: number | null; asym: number | null } {
   'worklet';
   const j = pose.joints;
   const left = usable(j.lHip) && usable(j.lShoulder) && usable(j.lWrist) ? angle2D(j.lHip, j.lShoulder, j.lWrist) : null;
@@ -23,5 +24,6 @@ export function jjSignals(pose: Pose): { alpha: number | null; rhoF: number | nu
     const shoulders = Math.abs(j.lShoulder.x - j.rShoulder.x);
     rhoF = shoulders > 0 ? Math.abs(j.lAnkle.x - j.rAnkle.x) / shoulders : null;
   }
-  return { alpha, rhoF };
+  const asym = left !== null && right !== null ? Math.abs(left - right) : null;
+  return { alpha, rhoF, asym };
 }

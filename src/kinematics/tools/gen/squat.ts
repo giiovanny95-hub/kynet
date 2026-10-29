@@ -11,6 +11,8 @@ export interface GenSquatOptions {
   readonly jitterMs?: number;
   /** Segundos de pie antes de la primera repetición (y 0,5 s al final). */
   readonly standS?: number;
+  /** Inclinación extra del tronco (grados) en el fondo, proporcional a la profundidad. */
+  readonly trunkLeanDeg?: number;
 }
 
 const W = 720;
@@ -24,12 +26,12 @@ const DEG = Math.PI / 180;
 type P = { x: number; y: number };
 
 /** Esqueleto lateral 2D en unidades de alto de cuadro para un ángulo de rodilla dado. */
-function skeleton(kneeDeg: number): Record<string, P> {
+function skeleton(kneeDeg: number, extraLeanRad = 0): Record<string, P> {
   const s = ((180 - kneeDeg) / 2) * DEG;
   const ankle = { x: 0.3, y: 0.9 };
   const knee = { x: ankle.x + SHANK * Math.sin(s), y: ankle.y - SHANK * Math.cos(s) };
   const hip = { x: knee.x - THIGH * Math.sin(s), y: knee.y - THIGH * Math.cos(s) };
-  const lean = s * 0.6;
+  const lean = s * 0.6 + extraLeanRad;
   const shoulder = { x: hip.x + TORSO * Math.sin(lean), y: hip.y - TORSO * Math.cos(lean) };
   const elbow = { x: shoulder.x + 0.02, y: shoulder.y + 0.12 };
   const wrist = { x: elbow.x + 0.02, y: elbow.y + 0.11 };
@@ -70,7 +72,9 @@ export function genSquat(o: GenSquatOptions): PoseFrame[] {
     const jitter = o.jitterMs ? (rng() * 2 - 1) * o.jitterMs : 0;
     const tMs = Math.max(lastT + 1, tIdeal + jitter);
     lastT = tMs;
-    const sk = skeleton(kneeAt(tMs / 1000, o));
+    const knee = kneeAt(tMs / 1000, o);
+    const depth = Math.min(1, Math.max(0, (TOP_DEG - knee) / (TOP_DEG - 90)));
+    const sk = skeleton(knee, (o.trunkLeanDeg ?? 0) * depth * DEG);
     const raw: Landmark[] = Array.from({ length: 33 }, () => ({ x: 0, y: 0, z: 0, v: 0 }));
     for (const [part, idx, dx] of PARTS) {
       const p = sk[part];

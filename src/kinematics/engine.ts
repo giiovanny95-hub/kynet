@@ -1,4 +1,6 @@
 import { JOINT_MIN_V } from './config/visibility';
+import { arbiterStep, createArbiter, type ArbiterState } from './feedback/arbiter';
+import type { FeedbackCode, FeedbackEvent } from './feedback/codes';
 import { createFilterBank, filterPose, type FilterBank } from './filter/landmarkFilter';
 import { DEFAULT_ONE_EURO, type OneEuroParams } from './filter/oneEuro';
 import { JJ_SPEC, jjStep } from './fsm/exercises/jumpingJack';
@@ -8,9 +10,9 @@ import { toPose } from './landmarks/adapter';
 import { createGuard, guardStep, type GuardState } from './quality/subjectGuard';
 import { createVisState, visibilityStep, type VisState } from './quality/visibility';
 import { comboStep } from './scoring/combo';
-import { formScore, quality, repQ, type Quality } from './scoring/quality';
+import { formScore, pForm, quality, repQ, type Quality } from './scoring/quality';
 import { qRomJJ, qRomSquat } from './scoring/rom';
-import { qTempo } from './scoring/tempo';
+import { qTempo, tempoPlateau } from './scoring/tempo';
 import { jjSignals } from './signals/jumpingJack';
 import { squatSignals } from './signals/squat';
 import type { JointId, ModelSpec, Pose, PoseFrame } from './types';
@@ -35,10 +37,32 @@ export interface EngineState {
   readonly reps: number;
   readonly lastTMs: number | null;
   readonly pausedSinceMs: number | null;
+  readonly arbiter: ArbiterState;
+  /** Intentos emitidos (válidas, incompletas y faltas): numeran las repeticiones para el escalado de avisos. */
+  readonly attempts: number;
+  /** Señales secundarias de la repetición en curso: `τ` en el extremo (sentadilla) y asimetría máxima en el pico (jumping jack). */
+  readonly acc: RepAcc;
 }
 
-export type ScoredRep = RepEvent & { readonly q?: number; readonly quality?: Quality; readonly formScore?: number; readonly mult?: number };
-export type EngineEvent = ScoredRep | { readonly type: 'PAUSE' | 'RESUME' | 'REP_ABANDONED' | 'SUBJECT_CHANGED'; readonly tMs: number };
+interface RepAcc {
+  readonly tauBottom: number | null;
+  readonly asymMax: number | null;
+}
+
+const EMPTY_ACC: RepAcc = { tauBottom: null, asymMax: null };
+
+export type ScoredRep = RepEvent & {
+  readonly q?: number;
+  readonly quality?: Quality;
+  readonly formScore?: number;
+  readonly mult?: number;
+  /** Faltas suaves o causa de la incompleta. */
+  readonly faults: readonly FeedbackCode[];
+};
+export type EngineEvent =
+  | ScoredRep
+  | FeedbackEvent
+  | { readonly type: 'PAUSE' | 'RESUME' | 'REP_ABANDONED' | 'SUBJECT_CHANGED'; readonly tMs: number };
 
 export interface Hud {
   readonly phase: string;
@@ -62,6 +86,9 @@ export function createEngine(cfg: EngineConfig): EngineState {
     reps: 0,
     lastTMs: null,
     pausedSinceMs: null,
+    arbiter: createArbiter(),
+    attempts: 0,
+    acc: EMPTY_ACC,
   };
 }
 
@@ -89,14 +116,46 @@ function chooseSide(s: EngineState, pose: Pose): 'l' | 'r' {
   return r > l + 0.15 ? 'r' : l > r + 0.15 ? 'l' : s.side;
 }
 
-function score(exercise: EngineExercise, rep: RepEvent): number {
+function score(exercise: EngineExercise, rep: RepEvent, pf: number): number {
   'worklet';
   const downS = (rep.downMs ?? 0) / 1000;
   const upS = (rep.upMs ?? 0) / 1000;
   if (exercise === 'jumpingJack') {
-    return repQ(qRomJJ(rep.extreme, rep.extreme2 ?? 0), qTempo('jumpingJack', downS, upS), 1);
+    return repQ(qRomJJ(rep.extreme, rep.extreme2 ?? 0), qTempo('jumpingJack', downS, upS), pf);
   }
-  return repQ(qRomSquat(rep.extreme, rep.top ?? rep.extreme), qTempo('squat', downS, upS), 1);
+  return repQ(qRomSquat(rep.extreme, rep.top ?? rep.extreme), qTempo('squat', downS, upS), pf);
+}
+
+const TRUNK_LEAN_MIN_DEG = 55;
+const TRUNK_LEAN_MARGIN_DEG = 15;
+const JJ_ASYM_DEG = 35;
+const P_SOFT_MILD = 0.1;
+
+/** Faltas suaves de una repetición válida (spec §7) y sus penalizaciones para P_form. */
+function softFaults(exercise: EngineExercise, rep: RepEvent, acc: RepAcc, tauCal: number): { faults: FeedbackCode[]; penalties: number[] } {
+  'worklet';
+  const faults: FeedbackCode[] = [];
+  const penalties: number[] = [];
+  if (exercise === 'squat') {
+    if (acc.tauBottom !== null && acc.tauBottom > Math.max(TRUNK_LEAN_MIN_DEG, tauCal + TRUNK_LEAN_MARGIN_DEG)) {
+      faults.push('SQ_TRUNK_LEAN');
+      penalties.push(P_SOFT_MILD);
+    }
+    const [lo, hi] = tempoPlateau('squat');
+    const d = rep.durationMs / 1000;
+    if (d < lo) faults.push('SQ_TOO_FAST');
+    else if (d > hi) faults.push('SQ_TOO_SLOW');
+  } else if (acc.asymMax !== null && acc.asymMax > JJ_ASYM_DEG) {
+    faults.push('JJ_ASYMMETRY');
+  }
+  return { faults, penalties };
+}
+
+/** Causa de una repetición incompleta como código de feedback. */
+function incompleteCode(exercise: EngineExercise, code: string | null): FeedbackCode {
+  'worklet';
+  if (exercise === 'squat') return 'SQ_DEPTH_SHALLOW';
+  return code === 'JJ_FEET_NARROW' ? 'JJ_FEET_NARROW' : 'JJ_ARMS_LOW';
 }
 
 /**
@@ -140,28 +199,46 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
 
   let value: number | null;
   let r: { s: FsmState; events: RepEvent[] };
+  const prevPhase = s.fsm.phase;
+  let acc = s.acc;
   if (s.cfg.exercise === 'jumpingJack') {
     const sig = jjSignals(filtered.pose);
     value = sig.alpha;
     r = jjStep(s.fsm, { tMs, alpha: sig.alpha, rhoF: sig.rhoF, paused: vis.paused }, JJ_SPEC);
+    if (prevPhase === 'IDLE') acc = EMPTY_ACC;
+    if (!vis.paused && sig.asym !== null && (r.s.phase === 'INFLECTION' || r.s.phase === 'ASCENDING' && prevPhase === 'INFLECTION')) {
+      acc = { ...acc, asymMax: Math.max(acc.asymMax ?? 0, sig.asym) };
+    }
   } else {
-    value = squatSignals(filtered.pose, side).thetaK;
+    const sig = squatSignals(filtered.pose, side);
+    value = sig.thetaK;
     r = fsmStep(s.fsm, { tMs, value, paused: vis.paused }, SQUAT_SPEC);
+    if (prevPhase === 'IDLE') acc = EMPTY_ACC;
+    // τ en el cuadro del extremo: se actualiza cada vez que la FSM registra un mínimo nuevo.
+    const descending = r.s.phase === 'DESCENDING' || r.s.phase === 'INFLECTION';
+    if (descending && r.s.tExtremeMs === tMs) acc = { ...acc, tauBottom: sig.tau };
   }
-  s = { ...s, fsm: r.s };
+  s = { ...s, fsm: r.s, acc };
 
   for (const rep of r.events) {
+    let faults: FeedbackCode[];
     if (rep.outcome !== 'valid') {
       // Spec §6.3: una repetición no contada (incompleta o falta) es Miss y reinicia el combo.
+      faults = rep.outcome === 'incomplete' ? [incompleteCode(s.cfg.exercise, rep.code)] : [];
       s = { ...s, combo: 0 };
-      events.push({ ...rep, quality: 'Miss', mult: 1 });
-      continue;
+      events.push({ ...rep, quality: 'Miss', mult: 1, faults });
+    } else {
+      const soft = softFaults(s.cfg.exercise, rep, s.acc, 0);
+      faults = soft.faults;
+      const q = score(s.cfg.exercise, rep, pForm(soft.penalties));
+      const qual = quality(q, faults.length);
+      const c = comboStep({ combo: s.combo }, qual);
+      s = { ...s, combo: c.combo, reps: s.reps + 1 };
+      events.push({ ...rep, q, quality: qual, formScore: formScore(q), mult: c.mult, faults });
     }
-    const q = score(s.cfg.exercise, rep);
-    const qual = quality(q, 0);
-    const c = comboStep({ combo: s.combo }, qual);
-    s = { ...s, combo: c.combo, reps: s.reps + 1 };
-    events.push({ ...rep, q, quality: qual, formScore: formScore(q), mult: c.mult });
+    const fb = arbiterStep(s.arbiter, faults, rep.tEndMs, s.attempts + 1);
+    s = { ...s, arbiter: fb.a, attempts: s.attempts + 1 };
+    if (fb.event) events.push(fb.event);
   }
   return { s, events, hud: hudOf(s, value) };
 }

@@ -8,6 +8,8 @@ export interface GenJumpingJackOptions {
   readonly seed: number;
   readonly fps: number;
   readonly mode?: 'full' | 'armsOnly' | 'feetOnly';
+  /** Grados que le faltan al brazo derecho en el pico (asimetría). */
+  readonly asymDeg?: number;
 }
 
 const W = 720;
@@ -21,12 +23,12 @@ const STAND_S = 1;
 type P = { x: number; y: number };
 
 /** Esqueleto frontal: `alphaDeg` = brazo respecto a la vertical hacia abajo; `rho` = separación de tobillos / ancho de hombros. */
-function skeleton(alphaDeg: number, rho: number): Record<number, P> {
+function skeleton(alphaDeg: number, rho: number, rightLagDeg = 0): Record<number, P> {
   const out: Record<number, P> = {};
-  const a = alphaDeg * DEG;
   const ankleHalf = (rho * 2 * SHOULDER_HALF) / 2;
   for (const side of [-1, 1] as const) {
     const left = side === -1;
+    const a = (left ? alphaDeg : alphaDeg - rightLagDeg) * DEG;
     const sh = { x: CX + side * SHOULDER_HALF, y: 0.35 };
     const wrist = { x: sh.x + side * ARM * Math.sin(a), y: sh.y + ARM * Math.cos(a) };
     const elbow = { x: (sh.x + wrist.x) / 2, y: (sh.y + wrist.y) / 2 };
@@ -61,7 +63,7 @@ export function genJumpingJack(o: GenJumpingJackOptions): PoseFrame[] {
     const open = inReps ? 0.5 - 0.5 * Math.cos((2 * Math.PI * rel) / o.periodS) : 0;
     const alpha = 20 + (mode === 'feetOnly' ? 0 : open * 158);
     const rho = 0.5 + (mode === 'armsOnly' ? 0 : open * 1.6);
-    const sk = skeleton(alpha, rho);
+    const sk = skeleton(alpha, rho, (o.asymDeg ?? 0) * open);
     const raw: Landmark[] = Array.from({ length: 33 }, () => ({ x: 0, y: 0, z: 0, v: 0 }));
     for (const [k, p] of Object.entries(sk)) {
       const xu = p.x + o.sigma * gaussian(rng);
