@@ -63,4 +63,16 @@ describe('validación de vista y encuadre (spec §2)', () => {
     const frames = genSquat(opts).map((f, i) => (i > 40 && i < 60 ? { ...f, raw: f.raw.map((lm) => ({ ...lm, v: 0.2 })) } : f));
     expect(fb(run(frames).events).map((e) => e.code)).toContain('VIS_LOW');
   });
+
+  it('el HUD lleva la causa de la pausa mientras dura', () => {
+    let s = createEngine({ exercise: 'squat', model: BLAZEPOSE33 });
+    const codes = new Set<string | null>();
+    for (const f of genSquat({ ...opts, yawDeg: 0, standS: 2 })) {
+      const r = step(s, f);
+      s = r.s;
+      if (r.hud.paused) codes.add(r.hud.pauseCode);
+      else expect(r.hud.pauseCode).toBeNull();
+    }
+    expect([...codes]).toEqual(['VIEW_WRONG_SIDE']);
+  });
 });

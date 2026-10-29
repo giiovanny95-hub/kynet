@@ -40,6 +40,8 @@ export interface SessionState {
   readonly fatigueShownInSet: boolean;
   /** El descanso en curso vuelve a la misma serie (elegido en la tarjeta de fatiga) en vez de pasar a la siguiente. */
   readonly restResumesSet: boolean;
+  /** Pausa pedida por el usuario: solo la levanta `resume` (no volver a la app) y no caduca. */
+  readonly manualPause: boolean;
 }
 
 export type SessionAction =
@@ -49,7 +51,10 @@ export type SessionAction =
   | { readonly type: 'appState'; readonly active: boolean; readonly nowMs: number }
   | { readonly type: 'skipRest' }
   | { readonly type: 'fatigueChoice'; readonly choice: 'rest' | 'endSet' | 'continue'; readonly nowMs: number }
+  | { readonly type: 'pause'; readonly nowMs: number }
+  | { readonly type: 'resume'; readonly nowMs: number }
   | { readonly type: 'cameraError'; readonly reason: 'permission' | 'busy' }
+  | { readonly type: 'retryCamera'; readonly nowMs: number }
   | { readonly type: 'finish'; readonly nowMs: number };
 
 export const REST_MS = 30_000;
@@ -66,7 +71,7 @@ export function createSession(): SessionState {
   return {
     phase: 'idle', exercise: null, sets: 0, repsPerSet: 0, set: 0, repsInSet: 0, validReps: 0, cleanReps: 0, activeMs: 0,
     restEndsAtMs: null, warnings: [], topFault: null, reps: [], error: null, lastMs: null, enginePaused: false,
-    resumePhase: null, pausedAtMs: null, faultCounts: {}, missStreak: 0, fatigueShownInSet: false, restResumesSet: false,
+    resumePhase: null, pausedAtMs: null, faultCounts: {}, missStreak: 0, fatigueShownInSet: false, restResumesSet: false, manualPause: false,
   };
 }
 
@@ -143,17 +148,36 @@ export function sessionReducer(s0: SessionState, a: SessionAction): SessionState
   if (a.type === 'start') {
     return { ...createSession(), phase: 'active', exercise: a.exercise, sets: a.sets, repsPerSet: a.repsPerSet, set: 1, lastMs: a.nowMs };
   }
-  if (a.type === 'cameraError') return { ...s0, phase: 'error', error: a.reason };
+  if (a.type === 'cameraError') {
+    // En pausa la cámara está apagada a propósito: su error no cuenta. El error guarda la fase para Reintentar.
+    if (s0.phase === 'paused' || s0.phase === 'done' || s0.phase === 'idle') return s0;
+    const resumePhase = s0.phase === 'error' ? s0.resumePhase : s0.phase;
+    return { ...s0, phase: 'error', error: a.reason, resumePhase };
+  }
+  if (a.type === 'retryCamera') {
+    if (s0.phase !== 'error') return s0;
+    return { ...s0, phase: s0.resumePhase ?? 'active', resumePhase: null, error: null, lastMs: a.nowMs };
+  }
   if (a.type === 'finish') return { ...accrue(s0, a.nowMs), phase: 'done' };
   if (s0.phase === 'done' || s0.phase === 'error' || s0.phase === 'idle') return s0;
 
   switch (a.type) {
+    case 'pause': {
+      if (s0.phase === 'paused') return { ...s0, manualPause: true };
+      return { ...accrue(s0, a.nowMs), phase: 'paused', resumePhase: s0.phase, pausedAtMs: a.nowMs, manualPause: true };
+    }
+    case 'resume': {
+      if (s0.phase !== 'paused') return s0;
+      const away = a.nowMs - (s0.pausedAtMs ?? a.nowMs);
+      const restEndsAtMs = s0.restEndsAtMs === null ? null : s0.restEndsAtMs + away;
+      return { ...s0, phase: s0.resumePhase ?? 'active', resumePhase: null, pausedAtMs: null, lastMs: a.nowMs, restEndsAtMs, manualPause: false };
+    }
     case 'appState': {
       if (!a.active) {
         if (s0.phase === 'paused') return s0;
         return { ...accrue(s0, a.nowMs), phase: 'paused', resumePhase: s0.phase, pausedAtMs: a.nowMs };
       }
-      if (s0.phase !== 'paused') return s0;
+      if (s0.phase !== 'paused' || s0.manualPause) return s0;
       const away = a.nowMs - (s0.pausedAtMs ?? a.nowMs);
       if (away > RESUME_LIMIT_MS) return { ...s0, phase: 'done' };
       // El descanso no corre mientras la app está en segundo plano.
@@ -161,7 +185,11 @@ export function sessionReducer(s0: SessionState, a: SessionAction): SessionState
       return { ...s0, phase: s0.resumePhase ?? 'active', resumePhase: null, pausedAtMs: null, lastMs: a.nowMs, restEndsAtMs };
     }
     case 'engine': {
-      // Fuera de 'active' (pausa, descanso, fatiga) los eventos del motor no cuentan: evita repeticiones fantasma.
+      // La pausa del motor (visibilidad, encuadre) se sigue en todas las fases para no contar tiempo activo
+      // sin persona; repeticiones y avisos solo cuentan en 'active' (evita repeticiones fantasma).
+      if (a.event.type === 'PAUSE' || a.event.type === 'RESUME') {
+        return onEngine(s0.phase === 'active' ? accrue(s0, a.nowMs) : s0, a.event, a.nowMs);
+      }
       if (s0.phase !== 'active') return s0;
       return onEngine(accrue(s0, a.nowMs), a.event, a.nowMs);
     }

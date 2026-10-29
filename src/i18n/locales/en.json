@@ -77,8 +77,10 @@
     },
     "dev": {
       "record": "Record landmarks",
-      "stopRecording": "Stop and share"
-    }
+      "stopRecording": "Stop and share",
+      "noFileSystem": "Recording of {{kb}} KB ready, but it cannot be saved yet: expo-file-system needs approval."
+    },
+    "critical": "Your phone is very hot. Rest for a few minutes"
   },
   "feedback": {
     "SQ_DEPTH_SHALLOW": "Go a bit lower",

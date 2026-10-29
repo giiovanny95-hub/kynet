@@ -15,7 +15,8 @@ import { Skeleton } from '@/ui/Skeleton';
 import { tokens } from '@/ui/tokens';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
-const PLACED_AFTER_MS = 1000;
+// Más que el segundo que el motor tarda en pausar por vista incorrecta: así la vista también se comprueba.
+const PLACED_AFTER_MS = 1500;
 const POLL_MS = 200;
 const MAX_FAILS = 2;
 const MIRROR_PREVIEW = true;

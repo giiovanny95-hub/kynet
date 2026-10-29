@@ -77,8 +77,10 @@
     },
     "dev": {
       "record": "Grabar landmarks",
-      "stopRecording": "Detener y compartir"
-    }
+      "stopRecording": "Detener y compartir",
+      "noFileSystem": "Grabación de {{kb}} KB lista, pero aún no se puede guardar: falta aprobar expo-file-system."
+    },
+    "critical": "Tu móvil está muy caliente. Descansa unos minutos"
   },
   "feedback": {
     "SQ_DEPTH_SHALLOW": "Baja un poco más",

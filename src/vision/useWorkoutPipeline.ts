@@ -45,11 +45,11 @@ interface CameraThreadState {
 }
 
 const EMPTY_SUMMARY = summarizeMetrics(createMetrics());
-const EMPTY_HUD: Hud = { phase: 'IDLE', value: null, reps: 0, paused: false };
+const EMPTY_HUD: Hud = { phase: 'IDLE', value: null, reps: 0, paused: false, pauseCode: null };
 
 function hudChanged(a: Hud | null, b: Hud): boolean {
   'worklet';
-  return a === null || a.phase !== b.phase || a.reps !== b.reps || a.paused !== b.paused;
+  return a === null || a.phase !== b.phase || a.reps !== b.reps || a.paused !== b.paused || a.pauseCode !== b.pauseCode;
 }
 
 /**
@@ -96,7 +96,11 @@ export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
         const tMs = frame.timestamp / 1e6;
         const gate = frameGate(st.nextDueMs, tMs, targetFps.value);
         st.nextDueMs = gate.nextDueMs;
-        if (!gate.process) return;
+        if (!gate.process) {
+          // En pausa térmica no hay inferencia: el esqueleto no debe quedarse congelado en pantalla.
+          if (targetFps.value === 0 && landmarks.value !== undefined) landmarks.value = undefined;
+          return;
+        }
         st.metrics = metricsStep(st.metrics, tMs, false);
 
         // Kotlin ya entrega los puntos en vertical (rotation = 0); la app está fijada en vertical.

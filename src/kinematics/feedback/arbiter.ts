@@ -26,7 +26,7 @@ function escalate(s: Severity): Severity {
 
 /**
  * Elige como mucho un aviso (spec §7): el de mayor severidad que no esté en enfriamiento.
- * Enfriamiento de 4 s por código (los de pausa no tienen); 3 repeticiones seguidas con el
+ * Enfriamiento de 4 s por código, también los de pausa (spec §7 no hace excepciones); 3 repeticiones seguidas con el
  * mismo código suben un nivel (`pause` y `high` no suben más).
  */
 export function arbiterStep(
@@ -47,7 +47,7 @@ export function arbiterStep(
     }
     codes[code] = track;
     const base = SEVERITY[code];
-    const cooling = base !== 'pause' && track.lastEmitMs !== null && tMs - track.lastEmitMs < COOLDOWN_MS;
+    const cooling = track.lastEmitMs !== null && tMs - track.lastEmitMs < COOLDOWN_MS;
     if (cooling) continue;
     const up = base !== 'pause' && base !== 'high' && track.streak >= ESCALATE_AFTER;
     const severity = up ? escalate(base) : base;
