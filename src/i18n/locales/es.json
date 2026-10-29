@@ -74,6 +74,10 @@
       "rest": "Descansar",
       "endSet": "Terminar serie",
       "continue": "Seguir"
+    },
+    "dev": {
+      "record": "Grabar landmarks",
+      "stopRecording": "Detener y compartir"
     }
   },
   "feedback": {

@@ -74,6 +74,10 @@
       "rest": "Rest",
       "endSet": "End set",
       "continue": "Keep going"
+    },
+    "dev": {
+      "record": "Record landmarks",
+      "stopRecording": "Stop and share"
     }
   },
   "feedback": {

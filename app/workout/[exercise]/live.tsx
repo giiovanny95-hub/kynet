@@ -1,7 +1,7 @@
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 
 import { useFeedbackCues } from '@/audio/useFeedbackCues';
@@ -77,7 +77,13 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
     [cues, dispatch],
   );
 
-  const pipeline = useWorkoutPipeline({ exercise, profile, calibrating: false, onEvent });
+  const onRecording = useCallback((json: string) => void Share.share({ message: json }).catch(() => undefined), []);
+  const pipeline = useWorkoutPipeline({ exercise, profile, calibrating: false, onEvent, onRecording: __DEV__ ? onRecording : undefined });
+  const [recording, setRecording] = useState(false);
+  const toggleRecording = () => {
+    pipeline.recording.value = !recording;
+    setRecording(!recording);
+  };
   const cameraOn = session.phase === 'active' || session.phase === 'rest' || session.phase === 'fatigue';
   const last = session.reps[session.reps.length - 1];
   const warning = session.warnings[session.warnings.length - 1];
@@ -102,6 +108,11 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
           <Text style={styles.topText}>{t('workout.set', { set: session.set, sets: session.sets })}</Text>
           <Text style={styles.topText}>{clock(session.activeMs)}</Text>
         </View>
+        {__DEV__ ? (
+          <Pressable style={[styles.chip, styles.rec]} onPress={toggleRecording}>
+            <Text style={styles.chipText}>{recording ? t('workout.dev.stopRecording') : t('workout.dev.record')}</Text>
+          </Pressable>
+        ) : null}
 
         {pipeline.stats.targetFps < 30 ? <Text style={styles.banner}>{t('workout.hot')}</Text> : null}
         {warning ? <Text style={styles.banner}>{t(warning === '15min' ? 'workout.warn15' : 'workout.warn25')}</Text> : null}
@@ -162,6 +173,7 @@ const styles = StyleSheet.create({
   topText: { color: tokens.text, fontSize: 15, fontWeight: '600', fontVariant: ['tabular-nums'] },
   chip: { backgroundColor: tokens.overlay, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
   chipText: { color: tokens.text, fontWeight: '700' },
+  rec: { position: 'absolute', top: 88, right: 12 },
   banner: { alignSelf: 'center', marginTop: 96, color: tokens.onAccent, backgroundColor: tokens.warn, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, overflow: 'hidden' },
   bottom: { position: 'absolute', left: 16, right: 16, bottom: 32, gap: 8, alignItems: 'center' },
   message: { color: tokens.onAccent, backgroundColor: tokens.warn, fontSize: 18, fontWeight: '700', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, overflow: 'hidden' },
