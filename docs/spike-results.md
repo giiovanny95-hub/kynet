@@ -92,6 +92,21 @@ selector temporal de modelo (no subido). Modelo full: `pose_landmarker_full.task
   cinemática no los usa.
 - El full mejora los pies (relevante para `SQ_HEELS_LIFT`) pero no cabe en 30 FPS en el S26 Ultra.
 
-## Pixel 7 Pro
+## Pixel 7 Pro (Tensor G2)
 
-Pendiente: aún no se ha conectado.
+### Primeras mediciones (2026-10-29, 15:55 → 16:05, pruebas cortas)
+
+Código `1b2fee4` más un selector temporal de delegado (no subido). Lite, persona a ~1–2 m, luz de interior.
+
+| Configuración | Inferencia p50 / p95 | Intervalo p50 / p95 | FPS (HUD) |
+|---|---|---|---|
+| CPU | 46–87 / 75–124 ms | 66–83 / 100–125 ms | ~15 |
+| GPU | 33 / 41–47 ms | 42 / 42 ms | ~24 |
+| GPU + `constraints={[{ fps: 30 }]}` | 29–33 / 53–58 ms | 33–34 / 67 ms | **~25** |
+
+- **Al revés que en el S26:** en el Pixel la GPU es ~2× más rápida que la CPU. El delegado bueno depende del
+  teléfono.
+- La cámara frontal del Pixel entrega **24 FPS** con luz de interior si no se pide 30; con `{ fps: 30 }` entrega 30.
+  En el S26 la restricción no cambia nada (sigue en 33 / 34 ms).
+- Con GPU y 30 FPS de cámara la app procesa ~25 FPS: la inferencia ronda el periodo de 33 ms y los picos
+  (p95 ~55 ms) hacen perder cuadros. **No cumple** aún los 30 FPS.

@@ -12,6 +12,9 @@ import { useSpikeCamera } from '@/vision/useSpikeCamera';
 /** La vista previa de la cámara frontal se muestra espejada; el dibujo debe coincidir. */
 const MIRROR_PREVIEW = true;
 
+/** Sin esto la cámara frontal del Pixel 7 Pro entrega 24 FPS con luz de interior (medido el 2026-10-29). */
+const CAMERA_CONSTRAINTS = [{ fps: 30 }];
+
 /** Pantalla de prueba de la parte 1 (solo desarrollo): cámara, pose de MediaPipe y métricas. */
 export default function SpikeScreen() {
   const { t } = useTranslation();
@@ -41,7 +44,7 @@ export default function SpikeScreen() {
 
   return (
     <View style={styles.fill} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
-      <Camera style={styles.fill} device="front" isActive outputs={[frameOutput]} />
+      <Camera style={styles.fill} device="front" isActive outputs={[frameOutput]} constraints={CAMERA_CONSTRAINTS} />
       <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
         <Points points={points} mode="points" color="#3ddc84" strokeWidth={10} strokeCap="round" />
       </Canvas>
