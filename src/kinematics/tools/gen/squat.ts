@@ -1,4 +1,5 @@
 import type { FrameMeta, Landmark, PoseFrame } from '../../types';
+import { CAM_H, CAM_W, placeBody, project, type CameraSpec, type Vec3 } from './camera';
 import { gaussian, mulberry32 } from './prng';
 
 export interface GenSquatOptions {
@@ -23,6 +24,12 @@ export interface GenSquatOptions {
   readonly heelVStanding?: number;
   /** El talón empieza a subir estos ms antes que la rodilla (por defecto 0: a la vez). */
   readonly heelLeadMs?: number;
+  /** Con cámara, el esqueleto se construye en 3D (metros) y se proyecta (vista de frente, F1.2). */
+  readonly camera?: CameraSpec;
+  /** Solo con `camera`: fracción en que se cierra la separación de las rodillas en el fondo (rodillas hacia dentro). */
+  readonly kneesInFrac?: number;
+  /** Solo con `camera`: durante `standS` la persona se acerca hasta 0,8 m y ahí se agacha (ronda 2 de B3). */
+  readonly approachCamera?: boolean;
 }
 
 const W = 720;
@@ -71,8 +78,92 @@ function kneeAt(t: number, o: GenSquatOptions): number {
   return TOP_DEG - (TOP_DEG - bottom) * (0.5 - 0.5 * Math.cos(2 * Math.PI * phase));
 }
 
-/** Sentadillas sintéticas en vista lateral (BlazePose33, cuadro vertical 720x1280). */
+// Esqueleto 3D en metros [H]: pierna y tronco de un adulto de ~1,75 m; anchos de la spec vista-frontal (F1.2).
+const M_SHANK = 0.43;
+const M_THIGH = 0.45;
+const M_TORSO = 0.52;
+const M_ANKLE_Y = 0.08;
+const M_SHOULDER_HALF = 0.19;
+const M_HIP_HALF = 0.15;
+const M_FOOT_HALF = 0.15;
+const APPROACH_M = 0.8;
+
+/**
+ * Esqueleto 3D en coordenadas del cuerpo (`x` a la izquierda de la persona = derecha de la cámara, `y` arriba,
+ * `z` negativo hacia delante). Mismo plano sagital que `skeleton`: lo que allí es "delante" aquí es `-z`.
+ */
+function skeleton3D(kneeDeg: number, extraLeanRad: number, kneesIn: number): Record<string, readonly [Vec3, Vec3]> {
+  const s = ((180 - kneeDeg) / 2) * DEG;
+  const lean = s * 0.6 + extraLeanRad;
+  const kneeZ = -M_SHANK * Math.sin(s);
+  const kneeY = M_ANKLE_Y + M_SHANK * Math.cos(s);
+  const hipZ = kneeZ + M_THIGH * Math.sin(s);
+  const hipY = kneeY + M_THIGH * Math.cos(s);
+  const shZ = hipZ - M_TORSO * Math.sin(lean);
+  const shY = hipY + M_TORSO * Math.cos(lean);
+  const pair = (half: number, y: number, z: number): readonly [Vec3, Vec3] => [
+    { x: half, y, z },
+    { x: -half, y, z },
+  ];
+  const kneeHalf = M_FOOT_HALF * (1 - kneesIn);
+  return {
+    ankle: pair(M_FOOT_HALF, M_ANKLE_Y, 0),
+    heel: pair(M_FOOT_HALF, M_ANKLE_Y - 0.03, 0.07),
+    toe: pair(M_FOOT_HALF + 0.03, M_ANKLE_Y - 0.06, -0.18),
+    knee: pair(kneeHalf, kneeY, kneeZ),
+    hip: pair(M_HIP_HALF, hipY, hipZ),
+    shoulder: pair(M_SHOULDER_HALF, shY, shZ),
+    elbow: pair(M_SHOULDER_HALF + 0.03, shY - 0.28, shZ - 0.05),
+    wrist: pair(M_SHOULDER_HALF + 0.04, shY - 0.52, shZ - 0.1),
+    head: pair(0.04, shY + 0.25, shZ - 0.08),
+  };
+}
+
+// BlazePose33 por parte: [parte, índice izquierdo, índice derecho]. La nariz (0) va en el centro.
+const PARTS3D: ReadonlyArray<readonly [string, number, number]> = [
+  ['head', 2, 5], ['head', 7, 8], ['shoulder', 11, 12], ['elbow', 13, 14], ['wrist', 15, 16],
+  ['hip', 23, 24], ['knee', 25, 26], ['ankle', 27, 28], ['heel', 29, 30], ['toe', 31, 32],
+];
+
+function genSquat3D(o: GenSquatOptions, cam0: CameraSpec): PoseFrame[] {
+  const rng = mulberry32(o.seed);
+  const stand = o.standS ?? 1;
+  const totalS = stand + o.reps * o.periodS + 0.5;
+  const frames: PoseFrame[] = [];
+  let lastT = Number.NEGATIVE_INFINITY;
+  for (let i = 0; i < totalS * o.fps; i++) {
+    const tIdeal = (i / o.fps) * 1000;
+    const jitter = o.jitterMs ? (rng() * 2 - 1) * o.jitterMs : 0;
+    const tMs = Math.max(lastT + 1, tIdeal + jitter);
+    lastT = tMs;
+    const knee = kneeAt(tMs / 1000, o);
+    const depth = Math.min(1, Math.max(0, (TOP_DEG - knee) / (TOP_DEG - 90)));
+    const walk = o.approachCamera ? Math.min(1, tMs / 1000 / stand) : 0;
+    const cam: CameraSpec = { ...cam0, distanceM: cam0.distanceM + (APPROACH_M - cam0.distanceM) * walk };
+    const sk = skeleton3D(knee, (o.trunkLeanDeg ?? 0) * depth * DEG, (o.kneesInFrac ?? 0) * depth);
+    const raw: Landmark[] = Array.from({ length: 33 }, () => ({ x: 0, y: 0, z: 0, v: 0 }));
+    const put = (idx: number, p: Vec3) => {
+      const q = project(placeBody(p, cam), cam);
+      if (q === null) return;
+      raw[idx] = { x: q.x + (o.sigma * gaussian(rng) * CAM_H) / CAM_W, y: q.y + o.sigma * gaussian(rng), z: 0, v: 0.95 };
+    };
+    for (const [part, li, ri] of PARTS3D) {
+      const pr = sk[part];
+      if (!pr) continue;
+      put(li, pr[0]);
+      put(ri, pr[1]);
+    }
+    const head = sk.head;
+    if (head) put(0, { x: 0, y: head[0].y - 0.03, z: head[0].z - 0.05 });
+    const meta: FrameMeta = { tMs, width: CAM_W, height: CAM_H, rotation: 0, mirrored: false };
+    frames.push({ meta, model: 'blazepose33', raw });
+  }
+  return frames;
+}
+
+/** Sentadillas sintéticas en vista lateral (BlazePose33, cuadro vertical 720x1280); con `camera`, en 3D proyectado. */
 export function genSquat(o: GenSquatOptions): PoseFrame[] {
+  if (o.camera) return genSquat3D(o, o.camera);
   const rng = mulberry32(o.seed);
   const totalS = (o.standS ?? 1) + o.reps * o.periodS + 0.5;
   const frames: PoseFrame[] = [];
