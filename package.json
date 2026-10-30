@@ -14,6 +14,7 @@
     "expo-linking": "~58.0.15",
     "expo-localization": "~58.0.5",
     "expo-router": "~58.0.28",
+    "expo-speech": "~58.0.3",
     "expo-status-bar": "~58.0.4",
     "fitpose-native": "file:modules/fitpose-native",
     "i18next": "26.5.11",

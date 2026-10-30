@@ -115,5 +115,13 @@
     "noTip": "Sigue así",
     "short": "Cuenta como día activo si haces 20 repeticiones",
     "done": "Listo"
+  },
+  "voice": {
+    "count": "{{n}}",
+    "setDone": "Serie completa",
+    "tick": "{{n}}",
+    "go": "¡Vamos!",
+    "on": "Voz: sí",
+    "off": "Voz: no"
   }
 }

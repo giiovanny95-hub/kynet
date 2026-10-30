@@ -7,6 +7,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import { Camera } from 'react-native-vision-camera';
 
 import { useFeedbackCues } from '@/audio/useFeedbackCues';
+import { useVoice } from '@/audio/useVoice';
 import { getProfile, setProfile } from '@/features/workout/calibrationStore';
 import { createPlacement, placementStep, type PlacementTick } from '@/features/workout/placement';
 import { isExercise } from '@/features/workout/plans';
@@ -51,6 +52,7 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
   const fails = useRef(0);
   const { onEvents: cues, playTone } = useFeedbackCues();
   const [tick, setTick] = useState<PlacementTick | null>(null);
+  const { say } = useVoice();
   const { height: windowHeight } = useWindowDimensions();
   useKeepAwake();
   // Silueta guía fija (producto §3.3): se dibuja con el mismo componente que el esqueleto en vivo.
@@ -97,13 +99,14 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
       if (r.tick === null) return;
       setTick(r.tick);
       playTone(r.tick === 'go' ? 'perfect' : 'rep');
+      say(r.tick === 'go' ? { key: 'voice.go', priority: 2 } : { key: 'voice.tick', params: { n: r.tick }, priority: 2 });
       if (r.tick === 'go') {
         if (known) goLive();
         else setStage('calibrating');
       }
     }, POLL_MS);
     return () => clearInterval(id);
-  }, [placingOrCounting, known, hud, landmarks, playTone, goLive]);
+  }, [placingOrCounting, known, hud, landmarks, playTone, say, goLive]);
 
   const useStandard = () => {
     setProfile(exercise, null);

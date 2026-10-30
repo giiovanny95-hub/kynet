@@ -7,6 +7,8 @@ import { Alert, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'r
 import { Camera } from 'react-native-vision-camera';
 
 import { useFeedbackCues } from '@/audio/useFeedbackCues';
+import { useVoice } from '@/audio/useVoice';
+import { pickUtterance } from '@/audio/voicePolicy';
 import { getProfile } from '@/features/workout/calibrationStore';
 import { createToneState, toneAt, toneStep } from '@/features/workout/formTone';
 import { DEFAULT_PLAN, isExercise } from '@/features/workout/plans';
@@ -54,6 +56,9 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   const { height: windowHeight } = useWindowDimensions();
   const phaseRef = useRef(session.phase);
   phaseRef.current = session.phase;
+  const setRef = useRef({ repsInSet: session.repsInSet, repsPerSet: session.repsPerSet });
+  setRef.current = { repsInSet: session.repsInSet, repsPerSet: session.repsPerSet };
+  const voice = useVoice();
   const { onEvents: cues } = useFeedbackCues();
   // La pantalla no debe apagarse durante el entrenamiento: apagarla manda la app a segundo plano y pausa la sesión.
   useKeepAwake();
@@ -91,8 +96,12 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
         if (e.type === 'FEEDBACK') setMessage(e.code);
       }
       cues(events);
+      // El reductor aún no ha contado este lote: se suman aquí sus repeticiones válidas.
+      const valid = events.filter((e) => e.type === 'REP' && e.outcome === 'valid').length;
+      const u = pickUtterance(events, { repsInSet: setRef.current.repsInSet + valid, repsPerSet: setRef.current.repsPerSet });
+      if (u !== null) voice.say(u);
     },
-    [cues, dispatch],
+    [cues, dispatch, voice],
   );
 
   // Solo desarrollo: el JSON se guarda en los documentos de la app y se saca con adb (ver docs/fixtures.md); nunca se sube.
@@ -162,6 +171,9 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
         <View style={styles.top}>
           <Pressable style={styles.chip} onPress={() => dispatch({ type: 'pause', nowMs: Date.now() })}>
             <Text style={styles.chipText}>{t('workout.pause')}</Text>
+          </Pressable>
+          <Pressable style={styles.chip} onPress={() => voice.setEnabled(!voice.enabled)}>
+            <Text style={styles.chipText}>{voice.enabled ? t('voice.on') : t('voice.off')}</Text>
           </Pressable>
           <Text style={styles.topText}>{t(`exercise.${exercise}`)}</Text>
           <Text style={styles.topText}>{t('workout.set', { set: session.set, sets: session.sets })}</Text>
