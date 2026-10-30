@@ -4,6 +4,8 @@
 2026-10-29, 18:45 (hora local de la PC). Sesión **local** (PC con Windows; Pixel 7 Pro por USB, sin nadie delante).
 
 ## Estado
+- **Google OAuth configurado por el usuario (2026-10-30):** clientes Android y Web, proveedor en Supabase y
+  `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` en `.env.local`. Falta probarlo (B1).
 - **Cierre del MVP, bloque A (2026-10-30):** `SQ_HEELS_LIFT` robusto y descarga de sesiones de otros dispositivos,
   hechos por la PC y revisados en la nube. El bloque B (mediciones en el teléfono) espera al usuario.
 - **Memoria de Claude Code (nube, 2026-10-30):** `CLAUDE.md` con flujo (superpowers) y mapa de memoria, reglas por
@@ -58,10 +60,6 @@
 | `dispose()` del landmarker al desmontar | El recolector de JS no ve la memoria nativa y de GPU | Ninguno |
 
 ## Para decidir (usuario)
-- **Google OAuth (lo hace el usuario):**
-  - Crear los clientes Android (`com.kynet.app.dev` + SHA-1 de debug) y Web en Google Cloud.
-  - Activar Google en Supabase (`kynet-dev`) con el Client ID y el Client Secret del cliente Web.
-  - Poner `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` en `.env.local`.
 - **Diseño en Stitch:** la clave ya está guardada en la PC (`STITCH_API_KEY`); falta conectar el MCP y la orden de
   diseñar. Faltan el icono y el wordmark definitivos.
 - S26 Ultra: ¿probar GPU con carga sostenida y, si aguanta, re-evaluar el delegado durante el uso?
@@ -74,6 +72,8 @@
      de sesión simple.
    - Investigación en `docs/diseno/investigacion-animacion.md`. Los 5 paquetes están aprobados.
    - El bloque C de B3 (instrumentación) queda en pausa.
+   - **Al terminar el bloque de diseño en curso, la PC ejecuta B1** (login con Google y comprobación de A2) y
+     después vuelve al diseño.
 Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
 1. **Bloque A terminado y revisado en la nube** (366 tests, typecheck, lint e i18n):
    - A1 `SQ_HEELS_LIFT` (`a4d1e54`): ventana de ±150 ms; 0/160 falsos con cualquier σ; detección con subida del
