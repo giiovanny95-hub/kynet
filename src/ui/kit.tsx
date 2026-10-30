@@ -2,6 +2,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PressableScale } from './PressableScale';
+import { ProgressBar } from './ProgressBar';
 import { fonts, radius, space, tokens, type } from './tokens';
 
 /** Piezas comunes de las pantallas fuera del entrenamiento. Colores y fuentes solo desde `tokens`. */
@@ -58,14 +59,11 @@ export function Choice({ label, selected, onPress }: { label: string; selected: 
   );
 }
 
-export function ProgressBar({ value, max }: { value: number; max: number }) {
-  const pct = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
-  return (
-    <View style={styles.track}>
-      <View style={[styles.fill, { width: `${pct * 100}%` }]} />
-    </View>
-  );
-}
+// Componentes animados del diseño (E1), reexportados para que las pantallas importen todo desde `kit`.
+export { AnimatedNumber } from './AnimatedNumber';
+export { PressableScale } from './PressableScale';
+export { ProgressBar };
+export { ProgressRing } from './ProgressRing';
 
 /** Fila de misión: título, progreso y recompensa. */
 export function MissionRow({ title, value, target, label, reward, done }: { title: string; value: number; target: number; label: string; reward: string; done: boolean }) {
@@ -98,8 +96,6 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.4 },
   choice: { padding: 16, borderRadius: tokens.radiusButton, borderWidth: 1, borderColor: tokens.border, backgroundColor: tokens.card },
   choiceOn: { borderColor: tokens.accent },
-  track: { height: 8, borderRadius: 4, backgroundColor: tokens.surface, overflow: 'hidden' },
-  fill: { height: 8, backgroundColor: tokens.accent },
   mission: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   dot: { fontSize: 18 },
   missionBody: { flex: 1, gap: 4 },
