@@ -274,5 +274,21 @@
     "unavailable": "Sign-in isn't set up in this build yet.",
     "error": "That didn't work. Please try again.",
     "syncError": "Some sessions couldn't be uploaded; we'll retry."
+  },
+  "devUi": {
+    "title": "Components",
+    "numbers": "Numbers and streak",
+    "xp": "+{{xp}} XP",
+    "next": "Next",
+    "progress": "Progress",
+    "controls": "Controls",
+    "week": "Week",
+    "month": "Month",
+    "quarter": "3 months",
+    "confetti": "Confetti",
+    "ghost": "Reset",
+    "item": "Item {{n}}",
+    "loading": "Loading",
+    "open": "Open design components"
   }
 }

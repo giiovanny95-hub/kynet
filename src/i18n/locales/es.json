@@ -274,5 +274,21 @@
     "unavailable": "El inicio de sesión aún no está configurado en esta versión.",
     "error": "No se pudo completar. Inténtalo de nuevo.",
     "syncError": "Algunas sesiones no se pudieron subir; se reintentará."
+  },
+  "devUi": {
+    "title": "Componentes",
+    "numbers": "Cifras y racha",
+    "xp": "+{{xp}} XP",
+    "next": "Siguiente",
+    "progress": "Progreso",
+    "controls": "Controles",
+    "week": "Semana",
+    "month": "Mes",
+    "quarter": "3 meses",
+    "confetti": "Confeti",
+    "ghost": "Reiniciar",
+    "item": "Elemento {{n}}",
+    "loading": "Carga",
+    "open": "Abrir componentes de diseño"
   }
 }
