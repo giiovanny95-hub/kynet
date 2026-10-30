@@ -8,10 +8,10 @@ Fecha: 2026-10-28. Base: `pose-spike-research.md` y `requirements.md`. Leyenda: 
 |---|---|---|
 | Base | Expo SDK 58, RN 0.88, nueva arquitectura, Hermes, TS strict. Retroceso: SDK 57 | [V] versiones; [NV] VC 5.2.3 con RN 0.88 |
 | Cámara/worklets | VC 5.2.3 + `vision-camera-worklets` + `react-native-worklets` 0.13.x. Nunca `worklets-core` | [V] |
-| Inferencia | **Decisión del usuario (ronda 4): módulo Kotlin propio con MediaPipe PoseLandmarker (33 pts) desde el inicio**, dentro de `fitpose-native`, tras interfaz común `PoseEstimator`. **Plan B:** `react-native-fast-tflite` 3.0.1 + MoveNet (17 pts) si el módulo no corre a 30 FPS en el Pixel 7 Pro o el S26 Ultra al final de la semana 3 | [SPIKE] |
+| Inferencia | **Decisión del usuario (ronda 4): módulo Kotlin propio con MediaPipe PoseLandmarker (33 pts) desde el inicio**, dentro de `kynet-native`, tras interfaz común `PoseEstimator`. **Plan B:** `react-native-fast-tflite` 3.0.1 + MoveNet (17 pts) si el módulo no corre a 30 FPS en el Pixel 7 Pro o el S26 Ultra al final de la semana 3 | [SPIKE] |
 | Dibujo | Skia 2.14 (no saltar a 3.x). Canvas + SharedValue por defecto; `vision-camera-skia` si hay desfase de orientación | [SPIKE] |
 | SQLite | **expo-sqlite ~58.0.14** (viene en `bundledNativeModules` SDK 58 [V]). **Se cambia op-sqlite** (0.52.1 en npm [V]) porque no está en el set de Expo, exige fijar versión y plugin a mano, y la ventaja (velocidad bruta, SQLCipher) no aplica: el volumen es de cientos de filas y la cinemática no toca la BD. Reabrir solo si aparece cuello de botella medido | cambio |
-| Audio | **expo-audio ~58.0.10** [V] (expo-av está obsoleto [NV: confirmar aviso en SDK 58]). Latencia de efectos cortos no garantizada [NV]. Plan: medir en parte 3; si >60 ms perceptibles, SoundPool en el módulo nativo propio `fitpose-native` (el mismo que expone el estado térmico). `AudioServices` es iOS, irrelevante ahora | [SPIKE] |
+| Audio | **expo-audio ~58.0.10** [V] (expo-av está obsoleto [NV: confirmar aviso en SDK 58]). Latencia de efectos cortos no garantizada [NV]. Plan: medir en parte 3; si >60 ms perceptibles, SoundPool en el módulo nativo propio `kynet-native` (el mismo que expone el estado térmico). `AudioServices` es iOS, irrelevante ahora | [SPIKE] |
 | Háptica | `expo-haptics` ~58.0.7 [V], disparada en paralelo al sonido | |
 | Enrutado | **Expo Router ~58.0.28** [V], rutas por archivos en `app/`. Cámara fuera del árbol de pestañas (stack modal a pantalla completa) | |
 | Estado/datos | **Zustand 5** (estado de sesión en vivo, ajustes, sesión de usuario) [V 5.0.16]. Persistencia en SQLite vía repositorios, no en Zustand persist. **TanStack Query: no en el MVP** (todo es local-first, sin lecturas remotas paginadas); se añade con ligas (etapa 2) | simplificado |
@@ -19,7 +19,7 @@ Fecha: 2026-10-28. Base: `pose-spike-research.md` y `requirements.md`. Leyenda: 
 | Login | `@react-native-google-signin/google-signin` (nativo, 16.2.0 [V npm]) + `supabase.auth.signInWithIdToken`. Alternativa `expo-auth-session` (navegador, peor UX) [NV: elegir en parte 5] | |
 | Sesión/Tokens | `expo-secure-store` ~58.0.2 [V] para refresh token vía adaptador de storage de supabase-js 2.x [V 2.118.0]. Sin AsyncStorage | |
 | Recordatorios | `expo-notifications` ~58.1.7 [V], solo **locales** programadas (push remoto sigue fuera de alcance). Permiso `POST_NOTIFICATIONS` en Android 13+ pedido tras el primer entrenamiento, no al arrancar | |
-| Térmica | No hay API en Expo [NV]. `fitpose-native` (Expo Modules API, Kotlin) expone `PowerManager.addThermalStatusListener` (API 29+). `expo-battery` ~58.0.3 [V] da nivel y ahorro de energía | |
+| Térmica | No hay API en Expo [NV]. `kynet-native` (Expo Modules API, Kotlin) expone `PowerManager.addThermalStatusListener` (API 29+). `expo-battery` ~58.0.3 [V] da nivel y ahorro de energía | |
 | Otros | `expo-keep-awake`, `expo-build-properties`, `expo-dev-client`, `expo-localization` [V]. `react-native-mmkv` no necesario | |
 
 Carpetas propuestas originales (/kinematics /vision /gamification /ui /audio /database) siguen siendo válidas; se reorganizan en la sección 10.
@@ -39,7 +39,7 @@ vision/  audio/      gamification/  data/ ───► sync/ ───► Supaba
 kinematics/ ◄─────── (solo tipos) ────┘
   ▲
   └─ core/ (tipos, result, reloj, utilidades puras)  ◄── todos pueden importar core
-ui/ (componentes y tema, sin lógica de dominio)   i18n/   native/ (fitpose-native: térmica, SoundPool)
+ui/ (componentes y tema, sin lógica de dominio)   i18n/   native/ (kynet-native: térmica, SoundPool)
 ```
 
 Reglas de dependencia (verificables con `eslint-plugin-boundaries` o `dependency-cruiser` en CI):
@@ -66,7 +66,7 @@ Reglas de dependencia (verificables con `eslint-plugin-boundaries` o `dependency
 - **Contrapresión**: `dropFramesWhileBusy: true` (por defecto [V]); `onFrameDropped` alimenta un contador de métricas. `frame.dispose()` siempre en `try/finally`. Si se pasa a MediaPipe nativo: `LIVE_STREAM` + `detectAsync`, mailbox de tamaño 1 [NV nombre de API v5].
 - **Datos a la UI**: `SharedValue<Float32Array>` con landmarks suavizados (33x3 o 17x3) + `SharedValue` de fase/ángulo; Skia lee en el hilo UI a 60 Hz con interpolación entre muestras. Nada de `runOnJS` por cuadro.
 - **Eventos de baja frecuencia** (repetición contada, falla de forma, visibilidad baja, cambio de fase) usan `scheduleOnRN`/`runOnJS` (nombre exacto según worklets 0.13 [NV]) hacia un store Zustand; React solo re-renderiza HUD (contador, mensaje), con selectores finos.
-- **Audio/háptica** se disparan desde JS al recibir el evento de repetición (latencia de un salto de hilo, aceptable) y solo si no se supera el presupuesto medido; si no, dispararlos desde el worklet mediante `fitpose-native` [SPIKE].
+- **Audio/háptica** se disparan desde JS al recibir el evento de repetición (latencia de un salto de hilo, aceptable) y solo si no se supera el presupuesto medido; si no, dispararlos desde el worklet mediante `kynet-native` [SPIKE].
 - **No bloquear UI**: SQLite y sync fuera del flujo de cuadros; durante la sesión solo se acumula en memoria (buffer de reps) y se escribe al terminar (una transacción). Sin `console.log` por cuadro.
 
 ## 3. Flujo de una sesión
@@ -125,7 +125,7 @@ Login es opcional (se puede entrenar sin cuenta; la sincronización empieza tras
 
 ## 7. Térmica, batería y permisos
 
-- Estado térmico por `fitpose-native` (`THERMAL_STATUS_*`); política: `NONE/LIGHT` 30 FPS; `MODERATE` 25; `SEVERE` o peor → **20 FPS** (más `onFrame` que descarta por tiempo, la FSM no cambia: usa `ts` real, no conteo de cuadros) y mensaje al usuario; `CRITICAL` → pausar y sugerir descanso. Histéresis de 30 s para subir de nuevo.
+- Estado térmico por `kynet-native` (`THERMAL_STATUS_*`); política: `NONE/LIGHT` 30 FPS; `MODERATE` 25; `SEVERE` o peor → **20 FPS** (más `onFrame` que descarta por tiempo, la FSM no cambia: usa `ts` real, no conteo de cuadros) y mensaje al usuario; `CRITICAL` → pausar y sugerir descanso. Histéresis de 30 s para subir de nuevo.
 - Batería: `expo-battery`; si nivel < 15 % o ahorro de energía activado, empezar a 20 FPS y avisar. `expo-keep-awake` activo solo en `live`. Brillo no se toca en el MVP.
 - Resolución 640x480 y tensor 192/256; sin segunda superficie de vídeo. Registrar FPS medio, descartes y eventos térmicos por sesión (diagnóstico local).
 - Permisos: cámara (obligatorio), notificaciones (opcional, tras primer entrenamiento). Estados explícitos y pantalla de recuperación hacia Ajustes. Revalidar permiso al volver a primer plano.
@@ -148,13 +148,13 @@ CI (GitHub Actions): en cada PR `typecheck`, `lint`, `test`, `i18n:check`, `expo
 - `eas.json`: `development` (`developmentClient: true`, `distribution: internal`, APK, `applicationId` sufijo `.dev`), `preview` (internal, APK, release con Hermes, sufijo `.preview`), `production` (AAB, `autoIncrement`). Cada variante con su `app.config.ts` dinámico (nombre, id, esquema, URL de Supabase).
 - Perfil de canal de actualizaciones (`expo-updates`/EAS Update) **fuera del MVP**; no cambia código nativo, valorarlo después.
 - Secretos: la clave `anon` de Supabase es pública por diseño (la seguridad es RLS); URL y anon key como `EXPO_PUBLIC_*` por perfil en EAS environment variables. **Nunca** `service_role` ni secretos OAuth del servidor en el cliente. Google Web Client ID por variante; SHA-1 de las claves (debug, upload, Play App Signing) registrados en la consola de Google. Keystore gestionado por EAS. Secretos de CI en GitHub Secrets (`EXPO_TOKEN`). `.env*` ignorados por git.
-- Plugins de config: `expo-build-properties` (minSdk, targetSdk, 16 KB page size [NV]), plugin de fast-tflite (GPU libs), plugin propio de `fitpose-native` (y `.task`/Gradle de MediaPipe cuando toque).
+- Plugins de config: `expo-build-properties` (minSdk, targetSdk, 16 KB page size [NV]), plugin de fast-tflite (GPU libs), plugin propio de `kynet-native` (y `.task`/Gradle de MediaPipe cuando toque).
 - Verificar en la parte 0: build de desarrollo en ambos móviles; si VC 5.2.3 no compila con RN 0.88, bajar a SDK 57.
 
 ## 10. Estructura del repo y convenciones
 
 ```
-fitpose/
+kynet/
   app/                      # rutas Expo Router (finas)
   src/
     core/                   # tipos (Pose, Landmark, RepEvent), Result, reloj, utilidades
@@ -167,7 +167,7 @@ fitpose/
     features/               # auth, onboarding, workout, summary, habit, settings
     ui/                     # componentes y tema
     i18n/                   # config, locales/es.json, en.json
-  modules/fitpose-native/   # Expo module Kotlin: térmica, SoundPool, (luego MediaPipe)
+  modules/kynet-native/   # Expo module Kotlin: térmica, SoundPool, (luego MediaPipe)
   assets/ (models/, audio/, fixtures/)
   supabase/migrations/
   docs/  CLAUDE.md  eas.json  app.config.ts
@@ -182,7 +182,7 @@ Convenciones: TS `strict`, `noUncheckedIndexedAccess`, sin `any` (regla ESLint);
 3. Flexiones de lado: con 33 puntos hay hombro, codo, muñeca, cadera y tobillo; el riesgo baja pero la oclusión de un lado del cuerpo sigue existiendo. Validar en la parte 4.
 4. Latencia de `expo-audio` para efectos; fallback SoundPool.
 5. API de worklets 0.13 para volver a JS y `runAsync` en VC v5 [NV]; leer documentación de VC v5 (margelo.com no accesible en el spike).
-6. Estado térmico sin API Expo: depende de `fitpose-native`; sin dispositivo de gama media.
+6. Estado térmico sin API Expo: depende de `kynet-native`; sin dispositivo de gama media.
 7. Google Sign-In nativo exige configuración de SHA-1 por variante; error frecuente.
 8. Privacidad: política antes de publicar; datos de salud y cuenta.
 9. Abiertas: nombre/ID de paquete; guardar o no cada repetición en servidor; dataset/imágenes de ejercicios (licencias); `expo-background-task` en Android es oportunista (Doze).
@@ -200,7 +200,7 @@ Parte 0
 Parte 1
 7. Instalar con `expo install` y fijar a mano: VC 5.2.3, `vision-camera-worklets`, `react-native-worklets` 0.13.x, `nitro-modules` (versión de VC), Skia 2.14, reanimated, resizer; plugin Babel de worklets último. Rebuild de desarrollo. Si falla: SDK 57.
 8. Pantalla `spike`: permiso de cámara + `useFrameOutput` con 640x480, contador de `onFrameDropped`, `frame.dispose()` en `finally`.
-9. Crear `fitpose-native` (módulo Expo en Kotlin) con MediaPipe `PoseLandmarker` en modo `LIVE_STREAM` o por imagen, recibiendo el cuadro de VisionCamera y devolviendo los 33 landmarks; probar delegados CPU/GPU; medir etapas (conversión del cuadro, inferencia, post) con p50/p95. Si en la semana 3 no se cumple el criterio de salida, plan B: `fast-tflite` 3.0.1 + MoveNet Lightning.
+9. Crear `kynet-native` (módulo Expo en Kotlin) con MediaPipe `PoseLandmarker` en modo `LIVE_STREAM` o por imagen, recibiendo el cuadro de VisionCamera y devolviendo los 33 landmarks; probar delegados CPU/GPU; medir etapas (conversión del cuadro, inferencia, post) con p50/p95. Si en la semana 3 no se cumple el criterio de salida, plan B: `fast-tflite` 3.0.1 + MoveNet Lightning.
 10. Esqueleto: Canvas Skia + SharedValue; validar orientación, espejo, cámara frontal/trasera; comparar con `vision-camera-skia`.
 11. Indicador de jank (contador animado) y FPS UI/JS; 10 min por dispositivo con temperatura y descartes.
 12. Plan B preparado en paralelo (máx. 2 días, solo si el paso 9 se retrasa): MoveNet con `fast-tflite` en el mismo arnés para comparar.

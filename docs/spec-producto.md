@@ -1,4 +1,4 @@
-# Spec de producto: KYNET (antes FitPose)
+# Spec de producto: KYNET
 
 Estado: borrador para aprobación. Alcance: MVP (partes 0-6 de `requirements.md`). Idioma de la app: español neutro LATAM/ES, tuteo.
 
@@ -8,7 +8,7 @@ Estado: borrador para aprobación. Alcance: MVP (partes 0-6 de `requirements.md`
 
 **Usuario:** adulto (18+) que entrena en casa sin equipo, con poco espacio y poca paciencia para configurar cosas.
 
-**Diferenciador:** las apps del benchmark son juegos arcade sin técnica ni progresión. FitPose cuenta, corrige la forma y motiva a volver cada día.
+**Diferenciador:** las apps del benchmark son juegos arcade sin técnica ni progresión. KYNET cuenta, corrige la forma y motiva a volver cada día.
 
 **Principios de diseño**
 1. **Forma antes que volumen.** Una repetición limpia vale más que una sucia. Nunca premiamos el movimiento brusco ni el cansancio extremo.
@@ -246,7 +246,7 @@ Tres niveles de onboarding fijan reps iniciales (4.6). Ajuste automático modera
 
 ### 5.4 Advertencia médica y descargo
 Pantalla obligatoria antes del primer entrenamiento (casilla "Entiendo y acepto"):
-> "FitPose es una herramienta de apoyo para entrenar y no sustituye el consejo de un profesional sanitario. Consulta a tu médico antes de empezar si tienes una condición cardíaca, respiratoria, articular o embarazo, o si llevas tiempo sin hacer ejercicio. Detente si sientes dolor, mareo, falta de aire u opresión en el pecho. Entrena en un espacio libre de obstáculos. El análisis de postura es aproximado y puede fallar: tu cuerpo manda."
+> "KYNET es una herramienta de apoyo para entrenar y no sustituye el consejo de un profesional sanitario. Consulta a tu médico antes de empezar si tienes una condición cardíaca, respiratoria, articular o embarazo, o si llevas tiempo sin hacer ejercicio. Detente si sientes dolor, mareo, falta de aire u opresión en el pecho. Entrena en un espacio libre de obstáculos. El análisis de postura es aproximado y puede fallar: tu cuerpo manda."
 Se repite resumida en Perfil > Aviso médico y en los términos. La app no da diagnósticos ni consejos clínicos ni de pérdida de peso. Opción en onboarding "Tengo una lesión" abre el aviso extendido y sugiere omitir el ejercicio afectado (sin lógica médica).
 
 ## 6. Privacidad

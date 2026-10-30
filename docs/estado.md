@@ -6,7 +6,7 @@
 ## Estado
 - **Partes 5-6 (nube, 2026-10-30), sin probar en teléfono:**
   - Reglas de XP, nivel, racha y misiones iguales en `src/gamification` y en SQL.
-  - Migraciones 0001-0009 **aplicadas en `fitpose-dev`**, con prueba de `sync_session` en la base real (115 XP,
+  - Migraciones 0001-0009 **aplicadas en `kynet-dev`**, con prueba de `sync_session` en la base real (115 XP,
     reintento idempotente; transacción revertida).
   - `delete-account` desplegada.
   - App: almacén SQLite (`kynet.db`), onboarding 18+, pestañas, aviso médico y XP en el resumen.
@@ -52,7 +52,6 @@
 | `dispose()` del landmarker al desmontar | El recolector de JS no ve la memoria nativa y de GPU | Ninguno |
 
 ## Para decidir (usuario)
-- **Slug de EAS:** sigue siendo `fitpose`. Cambiarlo a `kynet` exige renombrar el proyecto en expo.dev.
 - **Diseño en Stitch:** el MCP está configurado, pero espera la clave del usuario y la orden de diseñar. Faltan
   el icono y el wordmark definitivos.
 - S26 Ultra: ¿probar GPU con carga sostenida y, si aguanta, re-evaluar el delegado durante el uso?

@@ -7,7 +7,7 @@ en el Galaxy S26 Ultra y en el Pixel 7 Pro.
 Configuración común: build de desarrollo (debug, `arm64-v8a`), cámara frontal, `pixelFormat: 'yuv'`,
 `targetResolution` VGA 4:3 (640×480), MediaPipe PoseLandmarker lite (float16) en modo VIDEO, una persona a
 unos 2 m, de pie y moviéndose poco. Las métricas salen del HUD de la pantalla `spike`; memoria con
-`adb shell dumpsys meminfo com.fitpose.app.dev` y térmica con `adb shell dumpsys thermalservice`.
+`adb shell dumpsys meminfo com.kynet.app.dev` y térmica con `adb shell dumpsys thermalservice`.
 
 ## Galaxy S26 Ultra (SM-S948B)
 
@@ -41,7 +41,7 @@ además de la inferencia. Siguiente paso: Paso C (delegado GPU/CPU y conversión
 ### Paso C: dónde se iba el tiempo (2026-10-29, 14:25 → 14:50)
 
 Plan: `docs/superpowers/plans/2026-10-29-rendimiento-parte-1.md`. Tiempos nativos por etapa con
-`adb logcat -s FitposeNative` (ventanas de 150 cuadros, ~5 s cada una); "intervalo" es el tiempo entre cuadros
+`adb logcat -s KynetNative` (ventanas de 150 cuadros, ~5 s cada una); "intervalo" es el tiempo entre cuadros
 procesados según las marcas de tiempo de la cámara (33 ms = 30 FPS). Persona sentada a ~1 m, luz de interior.
 
 | Configuración | `toBitmap` p50 | Inferencia p50 / p95 | Intervalo p50 / p95 | Lectura |

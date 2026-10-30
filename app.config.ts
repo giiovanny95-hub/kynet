@@ -7,10 +7,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
     name: variant.name,
-    // El slug identifica el proyecto EAS (projectId): cambiarlo exige renombrar el proyecto en expo.dev.
-    slug: 'fitpose',
+    slug: 'kynet',
     owner: 'geovanniavs-team',
-    extra: { ...config.extra, eas: { projectId: 'a8c82199-7010-4761-8c2b-912312b38027' } },
+    extra: { ...config.extra, eas: { projectId: 'bcfd17cb-bf24-4c7d-aa34-44c51fe237f3' } },
     version: '0.1.0',
     scheme: variant.scheme,
     orientation: 'portrait',

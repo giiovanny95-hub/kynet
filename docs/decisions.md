@@ -20,9 +20,9 @@ Cada dependencia nueva se anota con versión y razón.
 | 2026-10-29 | react-native-worklets, react-native-reanimated, @shopify/react-native-skia | 0.13.0, 4.7.1, 2.14.0 (exactas, las del SDK 58) | Worklets, valores compartidos y dibujo del esqueleto |
 | 2026-10-29 | Sin `babel.config.js` | — | `babel-preset-expo` del SDK 58 añade solo el plugin de `react-native-worklets` |
 | 2026-10-29 | Riesgo abierto | — | VisionCamera 5.2.4 se desarrolla con RN 0.85.3; con RN 0.88.1 solo se sabrá al compilar en EAS. Si falla, retroceder a SDK 57 |
-| 2026-10-29 | nitrogen | 0.37.0 (exacta) | Generar el código Nitro de `modules/fitpose-native` (`npm run codegen` dentro del módulo) |
+| 2026-10-29 | nitrogen | 0.37.0 (exacta) | Generar el código Nitro de `modules/kynet-native` (`npm run codegen` dentro del módulo) |
 | 2026-10-29 | Plantilla `create-nitro-module` | 3.7.1 | Solo se tomó la carpeta `android/` y `post-script.js`; lo demás (publicación, semantic-release) se descartó |
 | 2026-10-29 | com.google.mediapipe:tasks-vision | 0.10.21 — **NO VERIFICADA** | Maven no responde desde el entorno cloud; confirmar la versión vigente al compilar en EAS |
 | 2026-10-29 | Modelo pose_landmarker_lite.task (float16, v1) | sha256 59929e1d…574a | Descarga verificada en `postinstall` (`scripts/fetch-pose-model.sh`); no se versiona |
-| 2026-10-29 | Marca **KYNET** (decisión del usuario) | — | Nombre, identidad y estilo según `docs/marca/`. Renombrado completo: `com.kynet.app`, esquema `kynet`, módulo `modules/kynet-native`. Se mantiene el slug `fitpose` porque identifica el proyecto EAS. La navegación sigue la de las specs (Hoy · Progreso · Misiones · Perfil) y el MVP no cambia |
+| 2026-10-29 | Marca **KYNET** (decisión del usuario) | — | Nombre, identidad y estilo según `docs/marca/`. Renombrado completo: `com.kynet.app`, esquema `kynet`, módulo `modules/kynet-native`. El 2026-10-30 también el repo de GitHub (`kynet`), el proyecto EAS (nuevo, `@geovanniavs-team/kynet`, id `bcfd17cb…`) y el nombre del proyecto de Supabase (`kynet-dev`). La navegación sigue la de las specs (Hoy · Progreso · Misiones · Perfil) y el MVP no cambia |
 | 2026-10-29 | expo-font, @expo-google-fonts/montserrat, @expo-google-fonts/inter | ~58.0.11, 0.4.2, 0.4.2 | Tipografías del manual KYNET (licencia OFL), aprobadas por el usuario; cada peso se importa por su ruta |

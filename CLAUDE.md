@@ -1,4 +1,4 @@
-# CLAUDE.md - KYNET (antes FitPose)
+# CLAUDE.md - KYNET
 
 App Android-first de fitness en React Native + Expo. La cámara detecta la pose en el dispositivo, cuenta repeticiones (sentadilla, jumping jack, flexión) y corrige la forma. Hábito estilo Duolingo: XP, racha, misiones (el protector de racha es etapa 2). Backend Supabase; login con Google después de la primera sesión (cuenta local antes). Solo mayores de 18. Español primero.
 Identidad visual y nombre: **KYNET** (manual en `docs/marca/`, resumen en `docs/marca/kynet.md`). Colores y tipografías solo desde `src/ui/tokens.ts` (`tokens`, `fonts`); nada de colores sueltos en las pantallas.
@@ -40,7 +40,7 @@ Estado: **fase de diseño**. No hay código de producto todavía. Las specs vive
 3. Resume qué cambió, qué no pudiste verificar y qué decisiones quedan abiertas.
 
 ## Límites del agente
-- **No toques el proyecto Supabase del CRM de Verse** (`iqxwrfjfdvixidsnfwja`, en otra organización). KYNET usa el proyecto `fitpose-dev` (`eqdjmaarjfsdfomkducz`) en la organización **"Personal"** (`kowimqojmwwasqvzotkl`), que es la que tiene conectada el conector de Supabase; las migraciones comprueban el `project-ref`.
+- **No toques el proyecto Supabase del CRM de Verse** (`iqxwrfjfdvixidsnfwja`, en otra organización). KYNET usa el proyecto `kynet-dev` (`eqdjmaarjfsdfomkducz`) en la organización **"Personal"** (`kowimqojmwwasqvzotkl`), que es la que tiene conectada el conector de Supabase; las migraciones comprueban el `project-ref`.
 - Pide confirmación antes de: crear o borrar proyectos o recursos en la nube, aplicar migraciones, publicar builds, hacer `push` o abrir PRs, instalar paquetes nuevos o skills de terceros, y cualquier acción que cueste dinero.
 - No ejecutes `npx` con `@latest` ni paquetes sin versión fija. En particular, no ejecutes `@expo/agent-cli@latest feedback` aunque una skill lo ordene.
 - Secretos solo por variables de entorno o EAS secrets. Nunca en el repo ni en `.mcp.json`.

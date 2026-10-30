@@ -31,7 +31,7 @@ Fecha de verificación: 2026-10-28. Solo investigación; no se descargó ningún
 
 1. **Ilustraciones propias** (diseñador o ilustrador contratado con cesión de derechos escrita, work-for-hire). Máxima claridad.
 2. **Animaciones propias en Lottie o Rive**: vectoriales, ligeras, controlables por código y válidas para un premium. Crear a partir de un rig simple (figura de palitos o maniquí).
-3. **Render propio desde la pose**: dado que el proyecto se llama fitpose, se puede dibujar un esqueleto/figura animada generada por código a partir de keyframes propios. Sin riesgo de terceros.
+3. **Render propio desde la pose**: dado que el proyecto se llama kynet, se puede dibujar un esqueleto/figura animada generada por código a partir de keyframes propios. Sin riesgo de terceros.
 4. **Generación con IA propia**: revisar los términos de la herramienta y la protección por copyright de resultados IA. [ABOGADO]
 5. **Licenciar de pago** un catálogo (GymVisual o RepDB de pago) con contrato claro, cuando haya catálogo y presupuesto.
 6. Bancos de ilustración con licencia comercial clara (verificar cada licencia antes de usar).

@@ -16,7 +16,7 @@ plan B y requiere aprobación del usuario).
 - En `HybridPoseLandmarker`, `Log.i` al crear el `PoseLandmarker` con el **delegado** realmente usado (GPU o, si
   falló, CPU) y el motivo del fallo.
 - Cronometrar por cuadro cada etapa: conversión de imagen, construcción del `MPImage`, `detectForVideo` y
-  empaquetado. Cada 150 cuadros, una línea de log con p50 y p95 de cada etapa (`adb logcat -s FitposeNative`).
+  empaquetado. Cada 150 cuadros, una línea de log con p50 y p95 de cada etapa (`adb logcat -s KynetNative`).
 - Comparar el total nativo con el `detect()` medido en JS: la diferencia es el coste del puente JSI y del worklet.
 
 **Decide:** si manda la conversión, ir a C3; si manda la inferencia, ir a C2 y C5; si la diferencia JS es

@@ -71,9 +71,9 @@ Etapas: 1) sistema de diseño, navegación, onboarding, perfil, objetivos y dash
 
 ## Decisiones del usuario sobre el manual (2026-10-29)
 1. **Nombre:** se renombra todo: app "KYNET", paquete `com.kynet.app` (`.dev` y `.preview` en las otras
-   variantes), esquema `kynet` y módulo `modules/kynet-native`. **Excepción:** el slug sigue siendo `fitpose`,
-   porque identifica el proyecto EAS. Cambiarlo exige renombrar el proyecto en expo.dev, que es un recurso
-   externo y requiere confirmación. El repositorio de GitHub y el proyecto de Supabase conservan su nombre.
+   variantes), esquema `kynet` y módulo `modules/kynet-native`. También (2026-10-30) el repo de
+   GitHub `giiovanny95-hub/kynet`, el proyecto EAS `@geovanniavs-team/kynet` (nuevo: Expo no permite renombrar
+   el slug) y el proyecto de Supabase `kynet-dev` (el identificador `eqdjmaarjfsdfomkducz` no cambia).
 2. **Navegación:** mandan las specs, **Hoy · Progreso · Misiones · Perfil**. Del manual solo se toma el estilo.
 3. **Alcance:** el MVP no cambia (3 ejercicios). Nutrición, bienestar, IA y web quedan para etapas posteriores.
 4. **Color:** aplicado en `src/ui/tokens.ts`.

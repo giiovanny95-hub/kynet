@@ -1,11 +1,11 @@
-# Requisitos consolidados: KYNET (antes FitPose)
+# Requisitos consolidados: KYNET
 
 Fuentes: Informe 1 (blueprint técnico), Informe 2 (infraestructura con Claude Code), Informe 3 (benchmark de 10 apps) y las decisiones del usuario. Estado: borrador para aprobación.
 
 ## 1. Visión
 App móvil para adultos que entrenan en casa. La cámara del teléfono detecta la pose en el dispositivo, cuenta repeticiones y avisa de errores de forma. Un sistema de hábito inspirado en Duolingo (XP, racha, misiones y, en la etapa 2, protector de racha y ranking por temporadas) fomenta el uso diario. El vídeo nunca sale del teléfono.
 
-Diferenciador frente al mercado (Informe 3): casi todas las apps son juegos arcade sin técnica ni progresión. FitPose combina conteo y corrección de forma con motivación diaria.
+Diferenciador frente al mercado (Informe 3): casi todas las apps son juegos arcade sin técnica ni progresión. KYNET combina conteo y corrección de forma con motivación diaria.
 
 ## 2. Decisiones cerradas
 | Tema | Decisión |
@@ -72,16 +72,16 @@ Ligas y ranking global, push, iOS y Apple Sign-In, pase de batalla, carril premi
 4. Racha y misiones sin servidor de tiempo confiable: definir zona horaria y manejo offline.
 5. Privacidad: datos de salud y cuenta; política de privacidad antes de publicar.
 6. Licencias de datasets y atribución.
-7. Nombre definitivo e identificador de paquete (provisional: FitPose).
+7. Nombre definitivo e identificador de paquete (provisional: KYNET).
 
 ## 9. Decisiones de la revisión cruzada de specs (ronda 4)
 | Tema | Decisión del usuario | Efecto en los documentos |
 |------|----------------------|--------------------------|
 | Corte del día | 03:00 local | `spec-datos-supabase.md` y `spec-arquitectura.md` deben calcular `local_date` con el corte de las 03:00 (restar 3 h a la hora local antes de tomar la fecha) |
 | Día de racha | 20 repeticiones válidas o 3 minutos | `spec-arquitectura.md` (decía "una sesión válida") y `daily_activity.qualified` en datos se alinean con esta regla |
-| Modelo de pose | Ir directo a MediaPipe con módulo nativo Kotlin | Parte 1 pasa de un spike a construir `fitpose-native` con PoseLandmarker (33 puntos). Estimación de la spec: 2 a 4 semanas |
+| Modelo de pose | Ir directo a MediaPipe con módulo nativo Kotlin | Parte 1 pasa de un spike a construir `kynet-native` con PoseLandmarker (33 puntos). Estimación de la spec: 2 a 4 semanas |
 | Edad mínima | **18 años** (ronda 5; sustituye al 16 de la ronda 4). Se ampliará después | Sin consentimiento parental por ahora; pantalla de fecha de nacimiento con bloqueo de menores. Ampliar el rango exigirá revisión legal por país |
-| Organización de Supabase | **"Personal"** (`kowimqojmwwasqvzotkl`), separada de la organización del CRM de Verse (ronda 6) | Proyecto creado: `fitpose-dev` (`eqdjmaarjfsdfomkducz`, us-east-1, plan gratuito, 2026-10-29). URL y clave publicable en `.env.local` (no versionado) y en las variables de EAS. Desde esta sesión ya no se ven el CRM ni "Geovanni AV"; la eliminación de "Geovanni AV" la confirma el usuario en el panel (respaldo en `/home/user/backups/geovanni-av-2026-10-28/`) |
+| Organización de Supabase | **"Personal"** (`kowimqojmwwasqvzotkl`), separada de la organización del CRM de Verse (ronda 6) | Proyecto creado: `kynet-dev` (`eqdjmaarjfsdfomkducz`, us-east-1, plan gratuito, 2026-10-29). URL y clave publicable en `.env.local` (no versionado) y en las variables de EAS. Desde esta sesión ya no se ven el CRM ni "Geovanni AV"; la eliminación de "Geovanni AV" la confirma el usuario en el panel (respaldo en `/home/user/backups/geovanni-av-2026-10-28/`) |
 | Login | Después de la primera sesión (ronda 5) | Cuenta local al inicio; Google tras la primera sesión con importación inicial de las sesiones locales (`spec-datos-supabase.md`, DA2) |
 | Protector de racha, pausa, reparación y compra | **Fuera del MVP** (ronda 5) | Un día cerrado sin actividad rompe la racha; columna `protectors_available` reservada con valor 0 |
 
