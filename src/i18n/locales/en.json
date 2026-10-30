@@ -273,7 +273,12 @@
     "confirmDelete": "Delete",
     "unavailable": "Sign-in isn't set up in this build yet.",
     "error": "That didn't work. Please try again.",
-    "syncError": "Some sessions couldn't be uploaded; we'll retry."
+    "syncError": "Some sessions couldn't be uploaded; we'll retry.",
+    "errors": {
+      "serverConfig": "Google sign-in is not enabled on the server. Please tell the team.",
+      "network": "No connection. Check your network and try again.",
+      "google": "Google could not complete the sign-in. Please try again."
+    }
   },
   "devUi": {
     "title": "Components",

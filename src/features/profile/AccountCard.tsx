@@ -1,9 +1,10 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
 
 import { currentEmail, deleteAccount, exportMyData, loginAvailable, signInWithGoogle, signOut } from '@/auth/accountService';
+import { signInMessageKey } from '@/auth/signInError';
 import { getStore } from '@/data/storeProvider';
 import { LAST_SYNC_ERROR_KEY, runSync } from '@/sync/syncService';
 import { Body, Button, Card, H2 } from '@/ui/kit';
@@ -14,27 +15,38 @@ export function AccountCard({ pending, onChange }: { pending: number; onChange: 
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  // El error de la última acción y el aviso de la cola van por separado: recargar el estado (que lee el aviso) no
+  // debe borrar el error que el usuario acaba de provocar; se borra al iniciar otra acción.
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [syncWarning, setSyncWarning] = useState(false);
+  const running = useRef(false);
 
   const load = useCallback(async () => {
     setEmail(await currentEmail());
-    setMessage((await getStore().getKv(LAST_SYNC_ERROR_KEY)) !== null ? t('account.syncError') : null);
-  }, [t]);
+    setSyncWarning((await getStore().getKv(LAST_SYNC_ERROR_KEY)) !== null);
+  }, []);
   useFocusEffect(
     useCallback(() => {
       void load();
     }, [load]),
   );
 
-  const act = async (task: () => Promise<boolean>) => {
+  /** Ejecuta una acción de cuenta. Devuelve la clave i18n del error, o `null` si no hay nada que avisar. */
+  const act = async (task: () => Promise<string | null>) => {
+    // Cerrojo síncrono: dos pulsaciones seguidas llegan antes de que `busy` deshabilite el botón.
+    if (running.current) return;
+    running.current = true;
     setBusy(true);
-    setMessage(null);
-    const ok = await task().catch(() => false);
-    setBusy(false);
-    if (!ok) setMessage(t('account.error'));
+    setActionError(null);
+    const errorKey = await task().catch(() => 'account.error');
     await load();
+    setActionError(errorKey);
+    setBusy(false);
+    running.current = false;
     onChange();
   };
+  const ok = (done: boolean) => (done ? null : 'account.error');
+  const message = actionError !== null ? t(actionError) : syncWarning ? t('account.syncError') : null;
 
   if (!loginAvailable()) {
     return (
@@ -50,7 +62,7 @@ export function AccountCard({ pending, onChange }: { pending: number; onChange: 
       <Card>
         <H2>{t('account.title')}</H2>
         <Body tone="muted">{t('account.local')}</Body>
-        <Button label={t('account.signIn')} disabled={busy} onPress={() => void act(async () => (await signInWithGoogle()) !== 'error')} />
+        <Button label={t('account.signIn')} disabled={busy} onPress={() => void act(async () => signInMessageKey(await signInWithGoogle()))} />
         {message !== null ? <Body tone="warn">{message}</Body> : null}
       </Card>
     );
@@ -63,9 +75,9 @@ export function AccountCard({ pending, onChange }: { pending: number; onChange: 
         style: 'destructive',
         onPress: () =>
           void act(async () => {
-            const ok = await deleteAccount();
-            if (ok) router.replace('/onboarding');
-            return ok;
+            const deleted = await deleteAccount();
+            if (deleted) router.replace('/onboarding');
+            return ok(deleted);
           }),
       },
     ]);
@@ -75,9 +87,9 @@ export function AccountCard({ pending, onChange }: { pending: number; onChange: 
       <Body>{t('account.signedInAs', { email })}</Body>
       <Body tone="muted">{pending > 0 ? t('account.pending', { count: pending }) : t('account.synced')}</Body>
       {message !== null ? <Body tone="warn">{message}</Body> : null}
-      <Button kind="secondary" label={t('account.sync')} disabled={busy} onPress={() => void act(async () => (await runSync(), true))} />
-      <Button kind="secondary" label={t('account.export')} disabled={busy} onPress={() => void act(exportMyData)} />
-      <Button kind="secondary" label={t('account.signOut')} disabled={busy} onPress={() => void act(async () => (await signOut(), true))} />
+      <Button kind="secondary" label={t('account.sync')} disabled={busy} onPress={() => void act(async () => (await runSync(), null))} />
+      <Button kind="secondary" label={t('account.export')} disabled={busy} onPress={() => void act(async () => ok(await exportMyData()))} />
+      <Button kind="secondary" label={t('account.signOut')} disabled={busy} onPress={() => void act(async () => (await signOut(), null))} />
       <Button kind="secondary" label={t('account.delete')} disabled={busy} onPress={confirmDelete} />
     </Card>
   );

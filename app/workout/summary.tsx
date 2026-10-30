@@ -1,9 +1,10 @@
 import { Redirect, useRouter } from 'expo-router';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { loginAvailable, signInWithGoogle } from '@/auth/accountService';
+import { signInMessageKey } from '@/auth/signInError';
 import { LOCAL_USER } from '@/data/account';
 import { useGameState } from '@/features/progress/useGameState';
 import { getLastSession } from '@/features/workout/useWorkoutSession';
@@ -20,6 +21,17 @@ export default function SummaryScreen() {
   const router = useRouter();
   const last = getLastSession();
   const { data, refresh } = useGameState();
+  const [signInError, setSignInError] = useState<string | null>(null);
+  const signingIn = useRef(false);
+  const onSignIn = async () => {
+    if (signingIn.current) return; // dos pulsaciones seguidas no lanzan dos logins
+    signingIn.current = true;
+    setSignInError(null);
+    const key = signInMessageKey(await signInWithGoogle());
+    await refresh();
+    setSignInError(key);
+    signingIn.current = false;
+  };
   useEffect(() => {
     // El guardado local es asíncrono: se recalcula cuando termina.
     void last?.saved.then(refresh);
@@ -65,9 +77,10 @@ export default function SummaryScreen() {
       {data !== null && data.userId === null && loginAvailable() ? (
         <View style={styles.game}>
           <Text style={styles.line}>{t('summaryGame.savePrompt')}</Text>
-          <Pressable style={styles.secondary} onPress={() => void signInWithGoogle().then(refresh)}>
+          <Pressable style={styles.secondary} onPress={() => void onSignIn()}>
             <Text style={styles.secondaryText}>{t('account.signIn')}</Text>
           </Pressable>
+          {signInError !== null ? <Text style={styles.warn}>{t(signInError)}</Text> : null}
         </View>
       ) : null}
       <Pressable style={styles.button} onPress={() => router.replace('/')}>
@@ -83,6 +96,7 @@ const styles = StyleSheet.create({
   line: { fontFamily: fonts.body, color: tokens.text, fontSize: 20 },
   tip: { fontFamily: fonts.body, color: tokens.accent, fontSize: 18, marginTop: 8 },
   muted: { fontFamily: fonts.body, color: tokens.muted, fontSize: 15 },
+  warn: { fontFamily: fonts.body, color: tokens.warn, fontSize: 15 },
   game: { backgroundColor: tokens.card, borderRadius: tokens.radius, borderWidth: 1, borderColor: tokens.border, padding: 16, gap: 8, marginTop: 8 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   xp: { fontFamily: fonts.display, color: tokens.accent, fontSize: 28 },

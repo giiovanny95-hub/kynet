@@ -273,7 +273,12 @@
     "confirmDelete": "Eliminar",
     "unavailable": "El inicio de sesión aún no está configurado en esta versión.",
     "error": "No se pudo completar. Inténtalo de nuevo.",
-    "syncError": "Algunas sesiones no se pudieron subir; se reintentará."
+    "syncError": "Algunas sesiones no se pudieron subir; se reintentará.",
+    "errors": {
+      "serverConfig": "El inicio de sesión con Google no está activado en el servidor. Avisa al equipo.",
+      "network": "Sin conexión. Revisa tu red e inténtalo de nuevo.",
+      "google": "Google no pudo completar el inicio de sesión. Inténtalo de nuevo."
+    }
   },
   "devUi": {
     "title": "Componentes",
