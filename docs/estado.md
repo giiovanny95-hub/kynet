@@ -4,6 +4,10 @@
 2026-10-29, 18:45 (hora local de la PC). Sesión **local** (PC con Windows; Pixel 7 Pro por USB, sin nadie delante).
 
 ## Estado
+- **Memoria de Claude Code (nube, 2026-10-30):** `CLAUDE.md` con flujo (superpowers) y mapa de memoria, reglas por
+  área en `.claude/rules/` con las lecciones reales, hook `SessionStart` (`.claude/hooks/session-context.mjs`),
+  skills `cerrar-sesion` y `aprender`, y plugins del proyecto (superpowers, claude-md-management, context7 y expo).
+  Falta confirmar en la PC con `/context` y `/plugin`.
 - **Partes 5-6 (nube, 2026-10-30), sin probar en teléfono:**
   - Reglas de XP, nivel, racha y misiones iguales en `src/gamification` y en SQL.
   - Migraciones 0001-0009 **aplicadas en `kynet-dev`**, con prueba de `sync_session` en la base real (115 XP,
@@ -52,17 +56,23 @@
 | `dispose()` del landmarker al desmontar | El recolector de JS no ve la memoria nativa y de GPU | Ninguno |
 
 ## Para decidir (usuario)
-- **Diseño en Stitch:** el MCP está configurado, pero espera la clave del usuario y la orden de diseñar. Faltan
-  el icono y el wordmark definitivos.
+- **Google OAuth (lo hace el usuario):**
+  - Crear los clientes Android (`com.kynet.app.dev` + SHA-1 de debug) y Web en Google Cloud.
+  - Activar Google en Supabase (`kynet-dev`) con el Client ID y el Client Secret del cliente Web.
+  - Poner `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` en `.env.local`.
+- **Diseño en Stitch:** la clave ya está guardada en la PC (`STITCH_API_KEY`); falta conectar el MCP y la orden de
+  diseñar. Faltan el icono y el wordmark definitivos.
 - S26 Ultra: ¿probar GPU con carga sostenida y, si aguanta, re-evaluar el delegado durante el uso?
-- Resumen con 0 repeticiones: dice "¡Buen trabajo!" y "Sigue así". Propuesto a la nube cambiar el texto.
 
 ## Siguiente paso
-Con una persona: 10 min del S26 con GPU; después, prueba de 15 min de la parte 3 contando repeticiones.
+1. Aclarar el "6/12" del entrenamiento con persona: ¿se contaron 6 de 12 repeticiones reales? Si es así, el conteo
+   falla: hay que depurarlo con una grabación (fixture).
+2. Tras el OAuth: probar el login, la subida, la exportación y el borrado de cuenta en el Pixel.
+3. Con una persona: 10 min del S26 con GPU y prueba de 15 min de la parte 3 contando repeticiones.
 
 ## Pendiente que requiere la PC o un teléfono
 - Pruebas con persona: S26 con GPU, conteo real de los tres ejercicios, voz y vibración, 15 min de la parte 3.
 
 ## Pendiente que puede hacer la sesión remota
-- Textos del resumen con 0 repeticiones; silueta guía (cabeza separada de los hombros, pies bajo el panel).
+- Descargar sesiones de otros dispositivos (pull con cursor, spec-datos-supabase §4.4).
 - `SQ_HEELS_LIFT` con el umbral de talones acordado.
