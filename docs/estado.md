@@ -67,6 +67,11 @@
 - S26 Ultra: ¿probar GPU con carga sostenida y, si aguanta, re-evaluar el delegado durante el uso?
 
 ## Siguiente paso
+0. **Diseño premium (prioridad del usuario, 2026-10-30):**
+   - D0: la PC exporta el mockup de Stitch a `docs/diseno/stitch/`. Después la nube escribe la spec de diseño y el
+     plan.
+   - Investigación en `docs/diseno/investigacion-animacion.md`. Los 5 paquetes esperan la aprobación del usuario.
+   - El bloque C de B3 (instrumentación) queda en pausa.
 Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
 1. **Bloque A terminado y revisado en la nube** (366 tests, typecheck, lint e i18n):
    - A1 `SQ_HEELS_LIFT` (`a4d1e54`): ventana de ±150 ms; 0/160 falsos con cualquier σ; detección con subida del
