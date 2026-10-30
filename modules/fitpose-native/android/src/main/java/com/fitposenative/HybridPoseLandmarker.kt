@@ -59,6 +59,12 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
 
   private val pending = ConcurrentHashMap<Long, Pending>()
 
+  /**
+   * Tras `dispose()` no se vuelve a tocar MediaPipe: un cuadro aún en vuelo recrearía el landmarker. Cada visita a
+   * una pantalla con cámara que no liberaba el suyo dejaba ~80 MB de memoria nativa y de GPU (Pixel 7 Pro).
+   */
+  @Volatile private var disposed = false
+
   // Solo hilo de la cámara.
   private var lastTimestampMs = -1L
   private var lastWidth = 0
@@ -86,6 +92,7 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
     }
 
   override fun detect(frame: HybridFrameSpec): ArrayBuffer? {
+    if (disposed) return null
     val image = (frame as? NativeFrame)?.image ?: return null
     // MediaPipe exige marcas de tiempo estrictamente crecientes.
     val tMs = image.imageInfo.timestamp / 1_000_000L
@@ -131,6 +138,7 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
 
   /** Hilo de MediaPipe. */
   private fun onResult(delegate: Delegate, result: PoseLandmarkerResult) {
+    if (disposed) return
     val tMs = result.timestampMs()
     val sent = pending.remove(tMs) ?: return
     // Las entradas que MediaPipe descartó por estar ocupado nunca tendrán resultado.
@@ -160,6 +168,8 @@ class HybridPoseLandmarker : HybridPoseLandmarkerSpec() {
   }
 
   override fun dispose() {
+    if (disposed) return
+    disposed = true
     delegates.close()
     results.clear()
     delivered = null

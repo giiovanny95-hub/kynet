@@ -36,6 +36,8 @@ const EMPTY_SUMMARY: MetricsSummary = summarizeMetrics(createMetrics());
 export function useSpikeCamera() {
   const landmarker = useMemo(() => createPoseLandmarker(), []);
   const boxed = useMemo(() => NitroModules.box(landmarker), [landmarker]);
+  // El recolector de JS no sabe cuánta memoria nativa y de GPU retiene MediaPipe: sin esto cada visita dejaba ~80 MB.
+  useEffect(() => () => landmarker.dispose(), [landmarker]);
   // Identifica esta pantalla para no heredar el estado de una visita anterior que siga en el runtime.
   const session = useMemo(() => Math.random(), []);
   const landmarks = useSharedValue<Float32Array | undefined>(undefined);

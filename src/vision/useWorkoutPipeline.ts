@@ -64,6 +64,8 @@ function hudChanged(a: Hud | null, b: Hud): boolean {
 export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
   const landmarker = useMemo(() => createPoseLandmarker(), []);
   const boxed = useMemo(() => NitroModules.box(landmarker), [landmarker]);
+  // El recolector de JS no sabe cuánta memoria nativa y de GPU retiene MediaPipe: sin esto cada visita dejaba ~80 MB.
+  useEffect(() => () => landmarker.dispose(), [landmarker]);
   const { exercise, profile, calibrating } = o;
   // Identifica esta configuración en el runtime de la cámara para no heredar un motor anterior.
   const session = useMemo(() => Math.random(), [exercise, profile, calibrating]);
