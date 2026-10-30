@@ -1,20 +1,27 @@
 # Estado del proyecto (traspaso entre sesiones)
 
 ## Última actualización
-2026-10-30. Sesión de la **nube**: plan de vista de frente y Codex en el equipo. Último commit de la PC: `6497ca1`.
+2026-10-31. Sesión de la **nube**: revisión de B1, F0 y la colaboración Claude-Codex. Último commit de la PC: `728635f`.
 
 ## Estado
-- **Equipo (2026-10-30):** la nube planifica y revisa; **Codex** (PC) hace diseño y pantallas (`AGENTS.md`);
-  **Claude Code** (PC) hace la lógica y coordina a Codex (`codex exec`, revisión y commits). Detalle en `CLAUDE.md`.
-- **Colaboración Claude + Codex (local):** política en `docs/colaboracion-agentes.md`, CLI de reservas `scripts/agent-coordination.mjs`, `npm run verify` portable (también en CI). Evidencia en `docs/colaboracion-validacion.md`.
+- **Equipo (2026-10-30):** la nube planifica y revisa; **Codex** (PC) hace principalmente diseño y pantallas
+  (`AGENTS.md`); **Claude Code** (PC) hace la lógica y es el integrador único.
+  - Mecanismo: plugin oficial `codex@openai-codex` con worktree propio y entrega por SHA.
+  - Política: `docs/colaboracion-agentes.md` (`be32bc3`, revisada en la nube).
+  - CLI de reservas: `scripts/agent-coordination.mjs`.
+  - `npm run verify`, también en CI.
 - **Vista de frente (2026-10-30):** spec `docs/spec-vista-frontal.md` y plan
   `docs/superpowers/plans/2026-10-30-vista-frontal.md`. El usuario elige Frente (por defecto) o Lado en sentadilla y
   flexión.
-- **B1 casi completo (PC, `7dfa372` y `6497ca1`):**
-  - login con Google en los dos teléfonos;
-  - XP igual al del servidor;
+- **F0 de vista de frente hecho (`728635f`, aceptado):**
+  - reproductor `npm run replay`;
+  - el grabador guarda `view`, `profile` y `realReps`, y se puede armar antes de la salida;
+  - `PAUSE` lleva su causa.
+- **B1 cerrado (PC, 2026-10-31):**
+  - login con Google, exportar, y cerrar sesión y volver a entrar en los dos teléfonos;
+  - en el servidor siguen 3 sesiones, 119 `rep_summaries` y 331 XP, sin duplicados;
   - A2 verificado;
-  - falta exportar los datos, y cerrar sesión y volver a entrar sin duplicados.
+  - **sin probar:** borrar la cuenta, hasta tener una cuenta de prueba aparte.
 - **Cierre del MVP, bloque A (2026-10-30):** `SQ_HEELS_LIFT` robusto y descarga de sesiones de otros dispositivos,
   hechos por la PC y revisados en la nube. El bloque B (mediciones en el teléfono) espera al usuario.
 - **Memoria de Claude Code (nube, 2026-10-30):** `CLAUDE.md` con flujo (superpowers) y mapa de memoria, reglas por
@@ -31,9 +38,6 @@
     cada 15 min), exportar y borrar cuenta.
   - **Falta:**
     - Recompilar el dev client (módulos nativos nuevos).
-    - Crear los clientes OAuth de Google y activar el proveedor en Supabase.
-    - `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` en `.env.local`.
-    - ~~Descargar sesiones de otros dispositivos~~: hecho en `b5f75bb` (PC); falta verlo en el teléfono con login.
 - **Marca KYNET (2026-10-29):** app renombrada por completo (`com.kynet.app`, esquema `kynet`,
   `modules/kynet-native`) con los colores y tipografías del manual (`docs/marca/kynet.md`). La navegación y el
   alcance siguen las specs.
@@ -75,10 +79,9 @@
 
 ## Siguiente paso
 0. **En paralelo (decisión del usuario, 2026-10-30):**
-   - **Codex:** plan de diseño `2026-10-30-diseno-premium.md`, desde E2.1 (E0 y E1 hechos), y después F5 de la vista
-     de frente.
-   - **Claude Code (PC):** termina lo que queda de B1 y después el plan de vista de frente, F0 → F4, F6 y F7. F0
-     retoma la instrumentación de B3, que estaba en pausa.
+   - **Codex:** plan de diseño `2026-10-30-diseno-premium.md`, desde E2.1 en cuanto tenga cuota (E0 y E1 hechos), y
+     después F5 de la vista de frente.
+   - **Claude Code (PC):** vista de frente F1 → F4 (F1.4 es punto de control con la nube), y después F6 y F7.
    - Decisiones de diseño ya tomadas: títulos de nivel solo visuales, Progreso combinado y detalle de sesión simple.
 Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
 1. **Bloque A terminado y revisado en la nube** (366 tests, typecheck, lint e i18n):
@@ -89,7 +92,7 @@ Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
    - B2: modo avión;
    - B4: 15 min entrenando;
    - B3: precisión con persona, incluidas las series de talones;
-   - B1: casi hecho (ver Estado);
+   - B1: hecho, salvo borrar la cuenta;
    - B5: S26 con GPU.
 
 ## Pendiente que requiere la PC o un teléfono

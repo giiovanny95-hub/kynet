@@ -8,8 +8,8 @@ Las reglas técnicas de `CLAUDE.md`, specs y reglas por área siguen vigentes.
 | Rol | Responsabilidad |
 |---|---|
 | Claude nube | Requisitos, investigación, planes, decisiones de producto con el usuario, aceptación y estado global |
-| Claude local | Coordinador único de ejecución, integración, Android/ADB/Metro, teléfonos y entrega a la nube |
-| Codex delegado | Implementación delimitada, diagnóstico, tests, refactors y revisión independiente |
+| Claude local | Coordinador único de ejecución, integración, Android/ADB/Metro, teléfonos y entrega a la nube; área principal: lógica (decisión del usuario, 2026-10-30) |
+| Codex delegado | Implementación delimitada, diagnóstico, tests, refactors y revisión independiente; área principal: diseño y pantallas (decisión del usuario, 2026-10-30) |
 | Codex desktop | Igual contrato de tarea, identidad distinta; no es automáticamente el worker iniciado por Claude |
 
 Para configurar esta colaboración, Codex desktop actúa como integrador temporal autorizado; al entregar libera el rol.

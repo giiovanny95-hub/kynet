@@ -5,14 +5,15 @@ detecta la pose en el teléfono y cuenta repeticiones; tiene hábito tipo Duolin
 Supabase. Español primero.
 
 ## Tu papel en el equipo (decisión del usuario, 2026-10-30)
-- **Codex = diseño y pantallas:** el plan `docs/superpowers/plans/2026-10-30-diseno-premium.md` (E2-E3) y las tareas
-  marcadas `[codex]` en otros planes.
+- **Codex = principalmente diseño y pantallas:** el plan `docs/superpowers/plans/2026-10-30-diseno-premium.md` (E2-E3)
+  y las tareas marcadas `[codex]` en otros planes. También revisiones independientes cuando te las pidan.
 - **Claude Code (PC)** hace la lógica (cinemática, motor, datos, módulo nativo y mediciones en teléfono). Además
   te lanza las tareas, revisa tu diff y **es el único que hace commit y push**.
 - **La sesión de Claude en la nube** escribe specs y planes y revisa.
 
-**No hagas `git commit`, `git push` ni cambies de rama.** Deja los cambios en el árbol de trabajo y termina con un
-resumen: archivos tocados, checks ejecutados con su resultado y lo que no pudiste verificar.
+**Trabajas en el worktree y la rama `feat/codex-<id>` que te asigna Claude local:** commit local allí y entrega por
+SHA con un resumen (archivos, checks con su resultado y lo que no pudiste verificar). Nunca hagas push, ni escribas
+en el checkout principal, ni cambies de rama fuera de tu worktree.
 
 ## Antes de empezar, lee
 1. `docs/estado.md`: estado actual y siguiente paso.
@@ -46,7 +47,6 @@ con `| grep` al final. Si tocaste rutas de `app/`, borra `.expo/types/router.d.t
 - El único nombre es **KYNET**.
 
 ## Trabajo compartido
-- Claude nube planifica; Claude local coordina, integra y usa los dispositivos; Codex implementa tareas acotadas y revisa.
 - El usuario autorizó implementar la colaboración el 2026-10-30. Política operativa única: `docs/colaboracion-agentes.md`.
 - Un escritor por checkout. Usa worktree y tarea con dueño, sesión y base SHA antes de delegar escritura.
 - No confundas esta sesión con los hilos que inicia el plugin. Reporta ID de tarea/job, commit y pruebas.

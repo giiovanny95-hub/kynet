@@ -1,8 +1,8 @@
 # Plan: los tres ejercicios de frente (vista elegible)
 
 > **Para quien ejecuta.** Las tareas `[claude]` las hace Claude Code en la PC, con `superpowers:executing-plans` y
-> TDD. Las tareas `[codex]` las lanza Claude Code con `codex exec` (ver "Reparto de trabajo" en `CLAUDE.md`), revisa
-> el diff y hace el commit. Una tarea, un commit. Spec: `docs/spec-vista-frontal.md`, que manda sobre este plan.
+> TDD. Las tareas `[codex]` las delega Claude Code con `/delegar-codex` (worktree `feat/codex-<id>`, entrega por SHA;
+> ver `docs/colaboracion-agentes.md`), revisa el resultado y lo integra. Una tarea, un commit. Spec: `docs/spec-vista-frontal.md`, que manda sobre este plan.
 >
 > **En paralelo:** Codex sigue con el plan de diseño (E2-E3) y Claude Code con este. Los dos tocan
 > `app/workout/[exercise]/*` y los `locales`, así que **Claude Code serializa**: no lanza una tarea de Codex sobre un
@@ -11,7 +11,7 @@
 **Objetivo:** contar y corregir sentadilla y flexión con el usuario de frente al móvil, viendo la pantalla, sin
 romper el modo de lado.
 
-**Verificación por tarea:** `npm run typecheck`, `lint`, `test` e `i18n:check` (en la PC, `herramientas/verificar.sh`).
+**Verificación por tarea:** `npm run typecheck`, `lint`, `test` e `i18n:check` (o `npm run verify`).
 Si la tarea toca `src/kinematics`, también `test:kinematics` y `/benchmark-fsm`, con los fixtures de lado sin cambios.
 
 **Reglas que no se negocian aquí:**
@@ -89,7 +89,8 @@ Si la tarea toca `src/kinematics`, también `test:kinematics` y `/benchmark-fsm`
   - `engine.ts`: `resolveConfig` elige la tabla por `(ejercicio, vista)`;
   - `requiredJoints(ejercicio, vista, lado)`;
   - `defaultView` devuelve `'frontal'`;
-  - el código de vista equivocada sale de la vista elegida.
+  - el código de vista equivocada sale de la vista elegida;
+  - `src/vision/useWorkoutPipeline.ts`: la `view` del fixture grabado sale de la preferencia (hoy se deduce del ejercicio).
 
   Tests del motor con fixtures de las dos vistas. **Los tests de lado actuales pasan sin cambios.**
 - [ ] **F4.2 Calibración:**
@@ -103,8 +104,8 @@ Si la tarea toca `src/kinematics`, también `test:kinematics` y `/benchmark-fsm`
   F5: preferencia, claves i18n, códigos nuevos y función para leer o guardar la vista.
 
 ## F5 `[codex]` Pantallas (Claude Code la lanza tras F4 y revisa el diff)
-Prompt base para `codex exec`: "Lee `AGENTS.md`, `docs/spec-vista-frontal.md` §5 y `docs/spec-diseno.md`. Haz la
-tarea F5.x del plan `docs/superpowers/plans/2026-10-30-vista-frontal.md`. No hagas commit."
+Delegación: `/delegar-codex F5.x` con alcance `app/workout/[exercise]/*`, `src/ui/silhouettes*`, `src/features/workout/placement*`
+y `locales`; contexto: `AGENTS.md`, `docs/spec-vista-frontal.md` §5 y `docs/spec-diseno.md`.
 - [ ] **F5.1 Selector Frente/Lado** en `app/workout/[exercise]/setup.tsx`:
   - `Segmented` de `src/ui`, solo en sentadilla y flexión;
   - guarda `Prefs.exerciseView` y reinicia la colocación al cambiar.
