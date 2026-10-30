@@ -75,10 +75,10 @@ export function AccountCard({ pending, onChange }: { pending: number; onChange: 
       <Body>{t('account.signedInAs', { email })}</Body>
       <Body tone="muted">{pending > 0 ? t('account.pending', { count: pending }) : t('account.synced')}</Body>
       {message !== null ? <Body tone="warn">{message}</Body> : null}
-      <Button kind="ghost" label={t('account.sync')} disabled={busy} onPress={() => void act(async () => (await runSync(), true))} />
-      <Button kind="ghost" label={t('account.export')} disabled={busy} onPress={() => void act(exportMyData)} />
-      <Button kind="ghost" label={t('account.signOut')} disabled={busy} onPress={() => void act(async () => (await signOut(), true))} />
-      <Button kind="ghost" label={t('account.delete')} disabled={busy} onPress={confirmDelete} />
+      <Button kind="secondary" label={t('account.sync')} disabled={busy} onPress={() => void act(async () => (await runSync(), true))} />
+      <Button kind="secondary" label={t('account.export')} disabled={busy} onPress={() => void act(exportMyData)} />
+      <Button kind="secondary" label={t('account.signOut')} disabled={busy} onPress={() => void act(async () => (await signOut(), true))} />
+      <Button kind="secondary" label={t('account.delete')} disabled={busy} onPress={confirmDelete} />
     </Card>
   );
 }

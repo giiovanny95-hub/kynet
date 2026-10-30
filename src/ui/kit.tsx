@@ -1,7 +1,8 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { fonts, tokens } from './tokens';
+import { PressableScale } from './PressableScale';
+import { fonts, radius, space, tokens, type } from './tokens';
 
 /** Piezas comunes de las pantallas fuera del entrenamiento. Colores y fuentes solo desde `tokens`. */
 
@@ -30,18 +31,21 @@ export function Body({ children, tone = 'text' }: { children: ReactNode; tone?: 
   return <Text style={[styles.body, { color }]}>{children}</Text>;
 }
 
-export function Button({ label, onPress, disabled = false, kind = 'primary' }: { label: string; onPress: () => void; disabled?: boolean; kind?: 'primary' | 'ghost' }) {
-  const primary = kind === 'primary';
+/**
+ * Botones de tema.md: primario (teal, 52 dp), secundario (Slate con borde, 48 dp) y fantasma (sin borde, texto
+ * gris). Todos escalan al pulsar; el primario además vibra.
+ */
+export function Button({ label, onPress, disabled = false, kind = 'primary' }: { label: string; onPress: () => void; disabled?: boolean; kind?: 'primary' | 'secondary' | 'ghost' }) {
+  const color = kind === 'primary' ? tokens.onAccent : kind === 'secondary' ? tokens.text : tokens.muted;
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
+    <PressableScale
       disabled={disabled}
+      haptic={kind === 'primary'}
       onPress={onPress}
-      style={[styles.button, primary ? styles.buttonPrimary : styles.buttonGhost, disabled && styles.disabled]}
+      style={[styles.button, kind === 'primary' ? styles.buttonPrimary : kind === 'secondary' ? styles.buttonSecondary : styles.buttonGhost, disabled && styles.disabled]}
     >
-      <Text style={[styles.buttonText, { color: primary ? tokens.onAccent : tokens.text }]}>{label}</Text>
-    </Pressable>
+      <Text style={[styles.buttonText, { color }]}>{label}</Text>
+    </PressableScale>
   );
 }
 
@@ -81,15 +85,16 @@ export function MissionRow({ title, value, target, label, reward, done }: { titl
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.bg },
   content: { padding: 16, paddingTop: 56, paddingBottom: 32, gap: 12 },
-  card: { backgroundColor: tokens.card, borderRadius: tokens.radius, borderWidth: 1, borderColor: tokens.border, padding: 16, gap: 8 },
+  card: { backgroundColor: tokens.card, borderRadius: radius.card, borderWidth: 1, borderColor: tokens.border, padding: space.lg, gap: space.sm },
   h1: { fontFamily: fonts.title, color: tokens.text, fontSize: 26 },
   h2: { fontFamily: fonts.heading, color: tokens.text, fontSize: 18 },
   body: { fontFamily: fonts.body, color: tokens.text, fontSize: 16 },
   small: { fontFamily: fonts.body, color: tokens.muted, fontSize: 13 },
-  button: { padding: 16, borderRadius: tokens.radiusButton, alignItems: 'center' },
-  buttonPrimary: { backgroundColor: tokens.accent },
-  buttonGhost: { borderWidth: 1, borderColor: tokens.border },
-  buttonText: { fontFamily: fonts.strong, fontSize: 17 },
+  button: { minHeight: 48, paddingHorizontal: space.lg, borderRadius: radius.control, alignItems: 'center', justifyContent: 'center' },
+  buttonPrimary: { minHeight: 52, backgroundColor: tokens.accent },
+  buttonSecondary: { backgroundColor: tokens.surface, borderWidth: 1, borderColor: tokens.border },
+  buttonGhost: { backgroundColor: 'transparent' },
+  buttonText: { ...type.titleSm, fontFamily: fonts.strong },
   disabled: { opacity: 0.4 },
   choice: { padding: 16, borderRadius: tokens.radiusButton, borderWidth: 1, borderColor: tokens.border, backgroundColor: tokens.card },
   choiceOn: { borderColor: tokens.accent },

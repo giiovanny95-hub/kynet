@@ -66,8 +66,8 @@ export default function ProfileScreen() {
       <Card>
         <Body tone="muted">{t('profile.privacy')}</Body>
       </Card>
-      <Button kind="ghost" label={t('profile.medical')} onPress={() => router.push('/medical')} />
-      {__DEV__ ? <Button kind="ghost" label={t('profile.devSpike')} onPress={() => router.push('/spike')} /> : null}
+      <Button kind="secondary" label={t('profile.medical')} onPress={() => router.push('/medical')} />
+      {__DEV__ ? <Button kind="secondary" label={t('profile.devSpike')} onPress={() => router.push('/spike')} /> : null}
       <Body tone="muted">{t('profile.version', { v: Constants.expoConfig?.version ?? '' })}</Body>
     </Screen>
   );
