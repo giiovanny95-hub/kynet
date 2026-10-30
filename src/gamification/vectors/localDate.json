@@ -1,0 +1,16 @@
+{
+  "localDate": [
+    { "utc": "2026-10-30T05:40:00Z", "tz": "America/Mexico_City", "expected": "2026-10-29", "note": "23:40 local" },
+    { "utc": "2026-10-30T06:40:00Z", "tz": "America/Mexico_City", "expected": "2026-10-29", "note": "00:40 local cuenta para el día anterior" },
+    { "utc": "2026-10-30T08:59:00Z", "tz": "America/Mexico_City", "expected": "2026-10-29", "note": "02:59 local" },
+    { "utc": "2026-10-30T09:00:00Z", "tz": "America/Mexico_City", "expected": "2026-10-30", "note": "03:00 local: empieza el día" },
+    { "utc": "2026-10-30T09:10:00Z", "tz": "America/Mexico_City", "expected": "2026-10-30", "note": "03:10 local" },
+    { "utc": "2026-10-25T01:30:00Z", "tz": "Europe/Madrid", "expected": "2026-10-24", "note": "cambio de hora: 01:30Z = 02:30 CET; hora local menos 3 h (reloj de pared) da el día 24, como en SQL" },
+    { "utc": "2026-10-30T12:00:00Z", "tz": "UTC", "expected": "2026-10-30", "note": "UTC" }
+  ],
+  "weekStart": [
+    { "date": "2026-11-01", "expected": "2026-10-26" },
+    { "date": "2026-10-26", "expected": "2026-10-26" },
+    { "date": "2026-10-31", "expected": "2026-10-26" }
+  ]
+}
