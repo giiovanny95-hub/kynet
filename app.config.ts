@@ -7,6 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
     name: variant.name,
+    // El slug identifica el proyecto EAS (projectId): cambiarlo exige renombrar el proyecto en expo.dev.
     slug: 'fitpose',
     owner: 'geovanniavs-team',
     extra: { ...config.extra, eas: { projectId: 'a8c82199-7010-4761-8c2b-912312b38027' } },
@@ -14,11 +15,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     scheme: variant.scheme,
     orientation: 'portrait',
     icon: './assets/icon.png',
-    userInterfaceStyle: 'light',
+    userInterfaceStyle: 'dark',
     android: {
       package: variant.androidPackage,
       adaptiveIcon: {
-        backgroundColor: '#E6F4FE',
+        backgroundColor: '#080F14',
         foregroundImage: './assets/android-icon-foreground.png',
         backgroundImage: './assets/android-icon-background.png',
         monochromeImage: './assets/android-icon-monochrome.png',
@@ -27,7 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       permissions: ['android.permission.CAMERA'],
     },
     // Solo reproducción de tonos: sin permiso de micrófono ni servicio en segundo plano.
-    plugins: ['expo-router', 'expo-localization', ['expo-audio', { recordAudioAndroid: false, enableBackgroundPlayback: false }]],
+    plugins: ['expo-router', 'expo-localization', 'expo-font', ['expo-audio', { recordAudioAndroid: false, enableBackgroundPlayback: false }]],
     experiments: { typedRoutes: true },
   };
 };

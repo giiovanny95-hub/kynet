@@ -4,6 +4,9 @@
 2026-10-29, 18:45 (hora local de la PC). Sesión **local** (PC con Windows; Pixel 7 Pro por USB, sin nadie delante).
 
 ## Estado
+- **Marca KYNET (2026-10-29):** app renombrada por completo (`com.kynet.app`, esquema `kynet`,
+  `modules/kynet-native`) con los colores y tipografías del manual (`docs/marca/kynet.md`). La navegación y el
+  alcance siguen las specs.
 - **Tubería de pose:** MediaPipe lite en modo `LIVE_STREAM`, resultados entregados en orden desde una cola,
   delegado elegido por teléfono midiendo CPU y GPU (S26 Ultra → CPU, Pixel 7 Pro → GPU), cámara a 30 FPS.
 - **Parte 1, prueba final de 10 min (`34b8fb5`):**
@@ -36,10 +39,9 @@
 | `dispose()` del landmarker al desmontar | El recolector de JS no ve la memoria nativa y de GPU | Ninguno |
 
 ## Para decidir (usuario)
-- **Marca KYNET** (manual en `docs/marca/`, resumen en `docs/marca/kynet.md`): el usuario la fijó como identidad,
-  estilo y nombre. Hay diferencias con las specs: nombre e identificadores, navegación (Hoy/Misiones frente a
-  Inicio/Entreno), alcance (nutrición, bienestar, web) y tipografías (requieren paquetes). Ver la sección final de
-  `kynet.md`. Stitch MCP está configurado, pero espera la clave del usuario y la orden de diseñar.
+- **Slug de EAS:** sigue siendo `fitpose`. Cambiarlo a `kynet` exige renombrar el proyecto en expo.dev.
+- **Diseño en Stitch:** el MCP está configurado, pero espera la clave del usuario y la orden de diseñar. Faltan
+  el icono y el wordmark definitivos.
 - S26 Ultra: ¿probar GPU con carga sostenida y, si aguanta, re-evaluar el delegado durante el uso?
 - Resumen con 0 repeticiones: dice "¡Buen trabajo!" y "Sigue así". Propuesto a la nube cambiar el texto.
 

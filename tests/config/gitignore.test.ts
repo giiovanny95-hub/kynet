@@ -12,8 +12,8 @@ function isIgnored(path: string): boolean {
 
 describe('.gitignore', () => {
   it('no ignora el código Android del módulo nativo', () => {
-    expect(isIgnored('modules/fitpose-native/android/build.gradle')).toBe(false);
-    expect(isIgnored('modules/fitpose-native/nitrogen/generated/android/FitposeNativeOnLoad.cpp')).toBe(false);
+    expect(isIgnored('modules/kynet-native/android/build.gradle')).toBe(false);
+    expect(isIgnored('modules/kynet-native/nitrogen/generated/android/KynetNativeOnLoad.cpp')).toBe(false);
   });
 
   it('sigue ignorando las carpetas nativas generadas de la app en la raíz', () => {

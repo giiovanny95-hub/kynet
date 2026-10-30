@@ -1,4 +1,4 @@
-# Spec de arquitectura: FitPose (MVP, partes 0-6)
+# Spec de arquitectura: KYNET (MVP, partes 0-6)
 
 Fecha: 2026-10-28. Base: `pose-spike-research.md` y `requirements.md`. Leyenda: **[V]** verificado (npm / `bundledNativeModules.json` de `sdk-58`, hoy); **[NV]** no verificado o inferido; **[SPIKE]** se decide midiendo.
 

@@ -69,13 +69,15 @@ Objetivos, más un dashboard web de análisis. Navegación propuesta: **Inicio �
 Etapas: 1) sistema de diseño, navegación, onboarding, perfil, objetivos y dashboard; 2) entrenamiento;
 3) Vision; 4) análisis y feedback; 5) nutrición, bienestar e integraciones.
 
-## Diferencias con las specs actuales (pendiente de decisión del usuario)
-1. **Nombre:** las specs usan "FitPose (nombre provisional)" y el código usa `com.fitpose.app`, el esquema
-   `fitpose` y el módulo `fitpose-native`.
-2. **Navegación:** `spec-producto.md` §3 dice **Hoy · Progreso · Misiones · Perfil** (con racha, XP y misiones).
-   El manual dice **Inicio · Entreno · Progreso · Perfil** y no menciona misiones ni XP.
-3. **Alcance:** el MVP de las specs son 3 ejercicios en casa. El manual añade nutrición, bienestar, objetivos,
-   recomendaciones de IA y dashboard web (el propio manual los escalona por etapas).
-4. **Color:** `src/ui/tokens.ts` usa un acento verde `#3ddc84` provisional y el manual usa Electric Teal.
-5. **Tipografías:** Montserrat e Inter requieren paquetes nuevos (carga de fuentes), que necesitan aprobación.
+## Decisiones del usuario sobre el manual (2026-10-29)
+1. **Nombre:** se renombra todo: app "KYNET", paquete `com.kynet.app` (`.dev` y `.preview` en las otras
+   variantes), esquema `kynet` y módulo `modules/kynet-native`. **Excepción:** el slug sigue siendo `fitpose`,
+   porque identifica el proyecto EAS. Cambiarlo exige renombrar el proyecto en expo.dev, que es un recurso
+   externo y requiere confirmación. El repositorio de GitHub y el proyecto de Supabase conservan su nombre.
+2. **Navegación:** mandan las specs, **Hoy · Progreso · Misiones · Perfil**. Del manual solo se toma el estilo.
+3. **Alcance:** el MVP no cambia (3 ejercicios). Nutrición, bienestar, IA y web quedan para etapas posteriores.
+4. **Color:** aplicado en `src/ui/tokens.ts`.
+5. **Tipografías:** Montserrat e Inter instaladas y cargadas en `app/_layout.tsx` (`fonts` en `tokens.ts`).
 6. El manual cita MoveNet como alternativa. El proyecto sigue con MediaPipe: cambiar requiere aprobación (CLAUDE.md).
+
+Pendiente de diseño: icono y wordmark definitivos (la "K" geométrica). El icono actual es el genérico de Expo.

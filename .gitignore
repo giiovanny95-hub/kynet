@@ -14,5 +14,5 @@ expo-env.d.ts
 # @end expo-cli
 
 # Compilación local del módulo nativo
-modules/fitpose-native/android/.cxx/
-modules/fitpose-native/android/build/
+modules/kynet-native/android/.cxx/
+modules/kynet-native/android/build/

@@ -1,6 +1,7 @@
 {
   "common": {
-    "appName": "FitPose"
+    "appName": "KYNET",
+    "descriptor": "INTELLIGENT FITNESS"
   },
   "home": {
     "openSpike": "Abrir prueba de cámara",

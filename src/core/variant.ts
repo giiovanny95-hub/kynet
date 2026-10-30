@@ -4,12 +4,12 @@ export interface AppVariant {
   readonly scheme: string;
 }
 
-const BASE_PACKAGE = 'com.fitpose.app';
+const BASE_PACKAGE = 'com.kynet.app';
 
 const VARIANTS: Readonly<Record<'development' | 'preview' | 'production', AppVariant>> = {
-  development: { name: 'FitPose (Dev)', androidPackage: `${BASE_PACKAGE}.dev`, scheme: 'fitpose-dev' },
-  preview: { name: 'FitPose (Preview)', androidPackage: `${BASE_PACKAGE}.preview`, scheme: 'fitpose-preview' },
-  production: { name: 'FitPose', androidPackage: BASE_PACKAGE, scheme: 'fitpose' },
+  development: { name: 'KYNET (Dev)', androidPackage: `${BASE_PACKAGE}.dev`, scheme: 'kynet-dev' },
+  preview: { name: 'KYNET (Preview)', androidPackage: `${BASE_PACKAGE}.preview`, scheme: 'kynet-preview' },
+  production: { name: 'KYNET', androidPackage: BASE_PACKAGE, scheme: 'kynet' },
 };
 
 /** Variante de la app según `APP_VARIANT`; sin valor es producción. */

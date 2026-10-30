@@ -1,4 +1,4 @@
-import { createPoseLandmarker } from 'fitpose-native';
+import { createPoseLandmarker } from 'kynet-native';
 import { useEffect, useMemo, useState } from 'react';
 import { NitroModules } from 'react-native-nitro-modules';
 import { useSharedValue } from 'react-native-reanimated';
@@ -57,11 +57,11 @@ export function useSpikeCamera() {
     onFrame(frame) {
       'worklet';
       try {
-        const g = globalThis as unknown as { __fitposeSpike?: CameraThreadState };
-        let st = g.__fitposeSpike;
+        const g = globalThis as unknown as { __kynetSpike?: CameraThreadState };
+        let st = g.__kynetSpike;
         if (st === undefined || st.session !== session) {
           st = { session, metrics: createMetrics(), lastPublishMs: 0, lastResultTMs: Number.NEGATIVE_INFINITY, frames: 0, framesWithPerson: 0 };
-          g.__fitposeSpike = st;
+          g.__kynetSpike = st;
         }
         const aspect = Math.min(frame.width, frame.height) / Math.max(frame.width, frame.height);
         if (aspect !== frameAspect.value) frameAspect.value = aspect;

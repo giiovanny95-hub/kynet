@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useCameraPermission } from 'react-native-vision-camera';
 
-import { tokens } from './tokens';
+import { fonts, tokens } from './tokens';
 
 interface Props {
   readonly busy?: boolean;
@@ -38,8 +38,8 @@ export function CameraGate({ busy = false, onBack, children }: Props) {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, backgroundColor: tokens.bg },
-  text: { color: tokens.text, fontSize: 17, textAlign: 'center' },
-  button: { backgroundColor: tokens.accent, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
-  buttonText: { color: tokens.onAccent, fontWeight: '700', fontSize: 16 },
-  link: { color: tokens.muted, fontSize: 16, padding: 8 },
+  text: { fontFamily: fonts.body, color: tokens.text, fontSize: 17, textAlign: 'center' },
+  button: { backgroundColor: tokens.accent, paddingHorizontal: 24, paddingVertical: 12, borderRadius: tokens.radiusButton },
+  buttonText: { fontFamily: fonts.strong, color: tokens.onAccent, fontSize: 16 },
+  link: { fontFamily: fonts.body, color: tokens.muted, fontSize: 16, padding: 8 },
 });

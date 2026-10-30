@@ -1,4 +1,4 @@
-import { createPoseLandmarker } from 'fitpose-native';
+import { createPoseLandmarker } from 'kynet-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { NitroModules } from 'react-native-nitro-modules';
 import { useSharedValue } from 'react-native-reanimated';
@@ -92,8 +92,8 @@ export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
     onFrame(frame) {
       'worklet';
       try {
-        const g = globalThis as unknown as { __fitposeWorkout?: CameraThreadState };
-        let st = g.__fitposeWorkout;
+        const g = globalThis as unknown as { __kynetWorkout?: CameraThreadState };
+        let st = g.__kynetWorkout;
         if (st === undefined || st.session !== session) {
           st = {
             session,
@@ -105,7 +105,7 @@ export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
             rec: null,
             lastResultTMs: Number.NEGATIVE_INFINITY,
           };
-          g.__fitposeWorkout = st;
+          g.__kynetWorkout = st;
         }
         const tMs = frame.timestamp / 1e6;
         const gate = frameGate(st.nextDueMs, tMs, targetFps.value);

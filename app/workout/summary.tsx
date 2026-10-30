@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getLastSession } from '@/features/workout/useWorkoutSession';
-import { tokens } from '@/ui/tokens';
+import { fonts, tokens } from '@/ui/tokens';
 
 const SHORT_REPS = 20;
 
@@ -32,10 +32,10 @@ export default function SummaryScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.bg, padding: 24, paddingTop: 72, gap: 12 },
-  title: { color: tokens.text, fontSize: 30, fontWeight: '800', marginBottom: 8 },
-  line: { color: tokens.text, fontSize: 20 },
-  tip: { color: tokens.accent, fontSize: 18, marginTop: 8 },
-  muted: { color: tokens.muted, fontSize: 15 },
-  button: { backgroundColor: tokens.accent, padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 24 },
-  buttonText: { color: tokens.onAccent, fontWeight: '700', fontSize: 17 },
+  title: { fontFamily: fonts.display, color: tokens.text, fontSize: 30, marginBottom: 8 },
+  line: { fontFamily: fonts.body, color: tokens.text, fontSize: 20 },
+  tip: { fontFamily: fonts.body, color: tokens.accent, fontSize: 18, marginTop: 8 },
+  muted: { fontFamily: fonts.body, color: tokens.muted, fontSize: 15 },
+  button: { backgroundColor: tokens.accent, padding: 16, borderRadius: tokens.radiusButton, alignItems: 'center', marginTop: 24 },
+  buttonText: { fontFamily: fonts.strong, color: tokens.onAccent, fontSize: 17 },
 });

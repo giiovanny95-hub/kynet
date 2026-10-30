@@ -17,7 +17,7 @@ import type { FeedbackCode } from '@/kinematics/feedback/codes';
 import { CameraGate } from '@/ui/CameraGate';
 import { silhouetteFor } from '@/ui/silhouettes';
 import { Skeleton } from '@/ui/Skeleton';
-import { tokens } from '@/ui/tokens';
+import { fonts, tokens } from '@/ui/tokens';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
 // El modelo de colocación espera 1,5 s, más que el segundo que el motor tarda en pausar por vista incorrecta.
@@ -169,14 +169,14 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: tokens.bg },
-  countdown: { position: 'absolute', top: '30%', alignSelf: 'center', color: tokens.text, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  countdown: { fontFamily: fonts.display, position: 'absolute', top: '30%', alignSelf: 'center', color: tokens.text, fontVariant: ['tabular-nums'] },
   silhouette: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.5 },
   panel: { position: 'absolute', left: 16, right: 16, bottom: 32, backgroundColor: tokens.overlay, borderRadius: tokens.radius, padding: 16, gap: 8 },
-  title: { color: tokens.muted, fontSize: 15 },
-  headline: { color: tokens.text, fontSize: 20, fontWeight: '700' },
-  message: { color: tokens.warn, fontSize: 16 },
-  text: { color: tokens.text, fontSize: 16 },
-  button: { backgroundColor: tokens.accent, padding: 14, borderRadius: 12, alignItems: 'center' },
-  buttonText: { color: tokens.onAccent, fontWeight: '700', fontSize: 16 },
-  link: { color: tokens.muted, fontSize: 15, padding: 6, textAlign: 'center' },
+  title: { fontFamily: fonts.body, color: tokens.muted, fontSize: 15 },
+  headline: { fontFamily: fonts.title, color: tokens.text, fontSize: 20 },
+  message: { fontFamily: fonts.body, color: tokens.warn, fontSize: 16 },
+  text: { fontFamily: fonts.body, color: tokens.text, fontSize: 16 },
+  button: { backgroundColor: tokens.accent, padding: 14, borderRadius: tokens.radiusButton, alignItems: 'center' },
+  buttonText: { fontFamily: fonts.strong, color: tokens.onAccent, fontSize: 16 },
+  link: { fontFamily: fonts.body, color: tokens.muted, fontSize: 15, padding: 6, textAlign: 'center' },
 });

@@ -24,3 +24,5 @@ Cada dependencia nueva se anota con versión y razón.
 | 2026-10-29 | Plantilla `create-nitro-module` | 3.7.1 | Solo se tomó la carpeta `android/` y `post-script.js`; lo demás (publicación, semantic-release) se descartó |
 | 2026-10-29 | com.google.mediapipe:tasks-vision | 0.10.21 — **NO VERIFICADA** | Maven no responde desde el entorno cloud; confirmar la versión vigente al compilar en EAS |
 | 2026-10-29 | Modelo pose_landmarker_lite.task (float16, v1) | sha256 59929e1d…574a | Descarga verificada en `postinstall` (`scripts/fetch-pose-model.sh`); no se versiona |
+| 2026-10-29 | Marca **KYNET** (decisión del usuario) | — | Nombre, identidad y estilo según `docs/marca/`. Renombrado completo: `com.kynet.app`, esquema `kynet`, módulo `modules/kynet-native`. Se mantiene el slug `fitpose` porque identifica el proyecto EAS. La navegación sigue la de las specs (Hoy · Progreso · Misiones · Perfil) y el MVP no cambia |
+| 2026-10-29 | expo-font, @expo-google-fonts/montserrat, @expo-google-fonts/inter | ~58.0.11, 0.4.2, 0.4.2 | Tipografías del manual KYNET (licencia OFL), aprobadas por el usuario; cada peso se importa por su ruta |

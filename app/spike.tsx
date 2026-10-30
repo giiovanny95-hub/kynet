@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useDerivedValue } from 'react-native-reanimated';
 import { Camera, useCameraPermission } from 'react-native-vision-camera';
 
+import { fonts, tokens } from '@/ui/tokens';
 import { toOverlayPoints } from '@/vision/overlay';
 import { useSpikeCamera } from '@/vision/useSpikeCamera';
 
@@ -46,7 +47,7 @@ export default function SpikeScreen() {
     <View style={styles.fill} onLayout={(e) => setSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}>
       <Camera style={styles.fill} device="front" isActive outputs={[frameOutput]} constraints={CAMERA_CONSTRAINTS} />
       <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Points points={points} mode="points" color="#3ddc84" strokeWidth={10} strokeCap="round" />
+        <Points points={points} mode="points" color={tokens.accent} strokeWidth={10} strokeCap="round" />
       </Canvas>
       <View style={styles.hud}>
         <Text style={styles.hudText}>{t('spike.hud.fps', { value: stats.fps.toFixed(1) })}</Text>
@@ -64,7 +65,7 @@ export default function SpikeScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  link: { color: '#0a66c2', fontWeight: '600' },
+  link: { color: tokens.accent, fontFamily: fonts.strong },
   hud: { position: 'absolute', top: 48, left: 16, backgroundColor: '#000a', padding: 8, borderRadius: 8 },
   hudText: { color: '#fff', fontVariant: ['tabular-nums'] },
 });

@@ -18,7 +18,7 @@ import type { FeedbackCode } from '@/kinematics/feedback/codes';
 import { CameraGate } from '@/ui/CameraGate';
 import { Skeleton } from '@/ui/Skeleton';
 import { toneColor } from '@/ui/toneColor';
-import { tokens } from '@/ui/tokens';
+import { fonts, tokens } from '@/ui/tokens';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
 const MESSAGE_MS = 3000;
@@ -263,23 +263,23 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: tokens.bg },
   top: { position: 'absolute', top: 44, left: 12, right: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  topText: { color: tokens.text, fontSize: 15, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  topText: { fontFamily: fonts.strong, color: tokens.text, fontSize: 15, fontVariant: ['tabular-nums'] },
   chip: { backgroundColor: tokens.overlay, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
-  chipText: { color: tokens.text, fontWeight: '700' },
+  chipText: { fontFamily: fonts.strong, color: tokens.text },
   // A la izquierda: a la derecha lo tapa el menú flotante de desarrollo de Expo.
   rec: { position: 'absolute', top: 88, left: 12 },
-  banner: { alignSelf: 'center', marginTop: 96, color: tokens.onAccent, backgroundColor: tokens.warn, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, overflow: 'hidden' },
+  banner: { fontFamily: fonts.strong, alignSelf: 'center', marginTop: 96, color: tokens.onAccent, backgroundColor: tokens.warn, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, overflow: 'hidden' },
   bottom: { position: 'absolute', left: 16, right: 16, bottom: 32, gap: 8, alignItems: 'center' },
-  message: { color: tokens.onAccent, backgroundColor: tokens.warn, fontSize: 18, fontWeight: '700', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, overflow: 'hidden' },
-  count: { color: tokens.text, fontWeight: '800', fontVariant: ['tabular-nums'], alignSelf: 'stretch', textAlign: 'center' },
+  message: { fontFamily: fonts.strong, color: tokens.onAccent, backgroundColor: tokens.warn, fontSize: 18, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, overflow: 'hidden' },
+  count: { fontFamily: fonts.display, color: tokens.text, fontVariant: ['tabular-nums'], alignSelf: 'stretch', textAlign: 'center' },
   toneBorder: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: TONE_BORDER },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'stretch' },
-  small: { color: tokens.text, fontSize: 15 },
+  small: { fontFamily: fonts.body, color: tokens.text, fontSize: 15 },
   bar: { flex: 1, height: 10, backgroundColor: tokens.overlay, borderRadius: 5, overflow: 'hidden' },
   barFill: { height: 10, backgroundColor: tokens.accent },
   cover: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: tokens.overlay, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 },
-  coverTitle: { color: tokens.text, fontSize: 26, fontWeight: '700', textAlign: 'center' },
-  button: { backgroundColor: tokens.accent, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, minWidth: 220, alignItems: 'center' },
-  buttonText: { color: tokens.onAccent, fontWeight: '700', fontSize: 16 },
-  link: { color: tokens.muted, fontSize: 16, padding: 8 },
+  coverTitle: { fontFamily: fonts.title, color: tokens.text, fontSize: 26, textAlign: 'center' },
+  button: { backgroundColor: tokens.accent, paddingHorizontal: 24, paddingVertical: 12, borderRadius: tokens.radiusButton, minWidth: 220, alignItems: 'center' },
+  buttonText: { fontFamily: fonts.strong, color: tokens.onAccent, fontSize: 16 },
+  link: { fontFamily: fonts.body, color: tokens.muted, fontSize: 16, padding: 8 },
 });

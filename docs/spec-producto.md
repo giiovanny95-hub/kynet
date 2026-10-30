@@ -1,4 +1,4 @@
-# Spec de producto: FitPose (nombre provisional)
+# Spec de producto: KYNET (antes FitPose)
 
 Estado: borrador para aprobación. Alcance: MVP (partes 0-6 de `requirements.md`). Idioma de la app: español neutro LATAM/ES, tuteo.
 

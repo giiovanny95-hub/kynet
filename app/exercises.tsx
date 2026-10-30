@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DEFAULT_PLAN, EXERCISES } from '@/features/workout/plans';
-import { tokens } from '@/ui/tokens';
+import { fonts, tokens } from '@/ui/tokens';
 
 /** Elegir ejercicio (producto §3.2): tres tarjetas con la posición del móvil. */
 export default function ExercisesScreen() {
@@ -31,12 +31,12 @@ export default function ExercisesScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.bg },
   content: { padding: 16, paddingTop: 56, gap: 12 },
-  title: { color: tokens.text, fontSize: 26, fontWeight: '700', marginBottom: 8 },
-  card: { backgroundColor: tokens.card, borderRadius: tokens.radius, padding: 16 },
+  title: { fontFamily: fonts.title, color: tokens.text, fontSize: 26, marginBottom: 8 },
+  card: { backgroundColor: tokens.card, borderRadius: tokens.radius, borderWidth: 1, borderColor: tokens.border, padding: 16 },
   cardBody: { gap: 6 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  name: { color: tokens.text, fontSize: 20, fontWeight: '700' },
-  tag: { color: tokens.onAccent, backgroundColor: tokens.accent, borderRadius: 8, paddingHorizontal: 8, overflow: 'hidden', fontWeight: '700' },
-  muted: { color: tokens.muted, fontSize: 15 },
-  warn: { color: tokens.warn, fontSize: 14 },
+  name: { fontFamily: fonts.title, color: tokens.text, fontSize: 20 },
+  tag: { fontFamily: fonts.strong, color: tokens.onAccent, backgroundColor: tokens.accent, borderRadius: 8, paddingHorizontal: 8, overflow: 'hidden' },
+  muted: { fontFamily: fonts.body, color: tokens.muted, fontSize: 15 },
+  warn: { fontFamily: fonts.body, color: tokens.warn, fontSize: 14 },
 });

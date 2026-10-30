@@ -3,15 +3,15 @@ import { getVariant } from '@/core/variant';
 
 describe('getVariant', () => {
   it('development usa sufijo .dev', () => {
-    expect(getVariant('development')).toEqual({ name: 'FitPose (Dev)', androidPackage: 'com.fitpose.app.dev', scheme: 'fitpose-dev' });
+    expect(getVariant('development')).toEqual({ name: 'KYNET (Dev)', androidPackage: 'com.kynet.app.dev', scheme: 'kynet-dev' });
   });
 
   it('preview usa sufijo .preview', () => {
-    expect(getVariant('preview')).toEqual({ name: 'FitPose (Preview)', androidPackage: 'com.fitpose.app.preview', scheme: 'fitpose-preview' });
+    expect(getVariant('preview')).toEqual({ name: 'KYNET (Preview)', androidPackage: 'com.kynet.app.preview', scheme: 'kynet-preview' });
   });
 
   it('production y valor ausente usan el paquete base', () => {
-    const prod = { name: 'FitPose', androidPackage: 'com.fitpose.app', scheme: 'fitpose' };
+    const prod = { name: 'KYNET', androidPackage: 'com.kynet.app', scheme: 'kynet' };
     expect(getVariant('production')).toEqual(prod);
     expect(getVariant(undefined)).toEqual(prod);
   });

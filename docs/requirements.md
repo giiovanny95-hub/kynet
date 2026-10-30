@@ -1,4 +1,4 @@
-# Requisitos consolidados: FitPose (nombre provisional)
+# Requisitos consolidados: KYNET (antes FitPose)
 
 Fuentes: Informe 1 (blueprint técnico), Informe 2 (infraestructura con Claude Code), Informe 3 (benchmark de 10 apps) y las decisiones del usuario. Estado: borrador para aprobación.
 
