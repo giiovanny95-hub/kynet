@@ -4,6 +4,8 @@
 2026-10-29, 18:45 (hora local de la PC). Sesión **local** (PC con Windows; Pixel 7 Pro por USB, sin nadie delante).
 
 ## Estado
+- **Cierre del MVP, bloque A (2026-10-30):** `SQ_HEELS_LIFT` robusto y descarga de sesiones de otros dispositivos,
+  hechos por la PC y revisados en la nube. El bloque B (mediciones en el teléfono) espera al usuario.
 - **Memoria de Claude Code (nube, 2026-10-30):** `CLAUDE.md` con flujo (superpowers) y mapa de memoria, reglas por
   área en `.claude/rules/` con las lecciones reales, hook `SessionStart` (`.claude/hooks/session-context.mjs`),
   skills `cerrar-sesion` y `aprender`, y plugins del proyecto (superpowers, claude-md-management, context7 y expo).
@@ -66,8 +68,10 @@
 
 ## Siguiente paso
 Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
-1. A1 `SQ_HEELS_LIFT`, ya sin avisos falsos: probar la ventana de ±150 ms, fijar los criterios y subirlo (PC).
-   A2 hecho (`b5f75bb`).
+1. **Bloque A terminado y revisado en la nube** (366 tests, typecheck, lint e i18n):
+   - A1 `SQ_HEELS_LIFT` (`a4d1e54`): ventana de ±150 ms; 0/160 falsos con cualquier σ; detección con subida del
+     3 %: 154/160 con σ 0,006 y 144/160 con σ 0,008, provisional hasta B3;
+   - A2 descarga de sesiones (`b5f75bb`).
 2. **Con el usuario frente al teléfono:**
    - B2: modo avión;
    - B4: 15 min entrenando;
