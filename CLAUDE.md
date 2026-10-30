@@ -12,6 +12,18 @@ Estado: MVP en construcción (partes 0-6 con código; el estado vivo está en `d
 4. Cuando el usuario te corrija o resuelvas un error no obvio, usa la skill `aprender` en ese momento.
 5. Al terminar una tarea, antes de un commit final o un PR, usa la skill `cerrar-sesion`.
 
+## Reparto de trabajo (decisión del usuario, 2026-10-30)
+- **Nube = planificación.** Investiga (Context7 y documentación actual), hace `brainstorming` y escribe specs y planes
+  (`writing-plans`, en `docs/superpowers/plans/`), con tareas pequeñas, archivos exactos, tests esperados y
+  criterio de aceptación medible. Mantiene `docs/estado.md` y `docs/decisions.md`, prepara las preguntas para el
+  usuario y revisa lo que entrega la PC. No escribe código de producto salvo que el usuario lo pida.
+- **PC (sesión local) = ejecución.** Implementa los planes tarea a tarea (`executing-plans` o
+  `subagent-driven-development`, con TDD). Compila, mide en los teléfonos, usa Chrome y los conectores, y sube a
+  `feat/*`. Si un plan choca con la realidad (medición, error de compilación, contradicción), no improvisa:
+  informa en `para-nube/` con la evidencia y espera el plan corregido, o pregunta al usuario si es urgente.
+- **Traspaso:** la nube avisa en `para-local/` con `tipo: plan` y la ruta del plan. La PC responde en `para-nube/`
+  con `tipo: estado` (commit, verificación y lo que no pudo medir). Las dos leen `docs/estado.md` al empezar.
+
 ## Memoria del proyecto (dónde vive cada cosa)
 | Qué | Dónde |
 |---|---|
