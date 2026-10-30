@@ -17,7 +17,7 @@ import type { EngineEvent, EngineExercise } from '@/kinematics/engine';
 import type { FeedbackCode } from '@/kinematics/feedback/codes';
 import { CameraGate } from '@/ui/CameraGate';
 import { Skeleton } from '@/ui/Skeleton';
-import { toneColor } from '@/ui/toneColor';
+import { toneBadge, toneColor } from '@/ui/toneColor';
 import { fonts, tokens } from '@/ui/tokens';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
@@ -145,7 +145,9 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   }, [hud]);
   const last = session.reps[session.reps.length - 1];
   const warning = session.warnings[session.warnings.length - 1];
-  const formColor = toneColor(toneAt(tone.current, hudNow, session.phase));
+  const formTone = toneAt(tone.current, hudNow, session.phase);
+  const formColor = toneColor(formTone);
+  const badge = toneBadge(formTone);
 
   return (
     <CameraGate onBack={() => router.back()}>
@@ -189,6 +191,9 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
         {warning ? <Text style={styles.banner}>{t(warning === '15min' ? 'workout.warn15' : 'workout.warn25')}</Text> : null}
 
         <View style={styles.bottom}>
+          {badge !== null ? (
+            <Text style={[styles.badge, { borderColor: formColor, color: formColor }]}>{`${badge.glyph}  ${t(badge.labelKey)}`}</Text>
+          ) : null}
           {pauseCode !== null && session.phase === 'active' ? (
             <Text style={styles.message}>{t(`feedback.${pauseCode}`)}</Text>
           ) : message !== null ? (
@@ -274,6 +279,7 @@ const styles = StyleSheet.create({
   count: { fontFamily: fonts.display, color: tokens.text, fontVariant: ['tabular-nums'], alignSelf: 'stretch', textAlign: 'center' },
   toneBorder: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: TONE_BORDER },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'stretch' },
+  badge: { fontFamily: fonts.strong, fontSize: 16, borderWidth: 2, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4, backgroundColor: tokens.overlay, overflow: 'hidden' },
   small: { fontFamily: fonts.body, color: tokens.text, fontSize: 15 },
   bar: { flex: 1, height: 10, backgroundColor: tokens.overlay, borderRadius: 5, overflow: 'hidden' },
   barFill: { height: 10, backgroundColor: tokens.accent },

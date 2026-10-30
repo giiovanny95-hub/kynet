@@ -125,5 +125,10 @@
     "go": "Go!",
     "on": "Voice: on",
     "off": "Voice: off"
+  },
+  "tone": {
+    "good": "Good",
+    "warn": "Adjust",
+    "bad": "Fix it"
   }
 }

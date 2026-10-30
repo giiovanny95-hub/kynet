@@ -6,3 +6,9 @@ import { tokens } from './tokens';
 export function toneColor(t: FormTone): string {
   return t === 'good' ? tokens.accent : t === 'warn' ? tokens.warn : t === 'bad' ? tokens.danger : 'transparent';
 }
+
+/** El manual KYNET pide no comunicar solo con color: cada tono lleva icono y texto. */
+export function toneBadge(t: FormTone): { glyph: string; labelKey: string } | null {
+  if (t === 'neutral') return null;
+  return { glyph: t === 'good' ? '✓' : t === 'warn' ? '!' : '✕', labelKey: `tone.${t}` };
+}
