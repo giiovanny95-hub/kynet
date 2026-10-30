@@ -25,7 +25,7 @@ describe('señales de sentadilla de frente (F2.1)', () => {
   });
 
   it('null si falta una articulación de un lado o tiene visibilidad baja', () => {
-    const { lAnkle: _a, ...sinTobillo } = standing;
+    const sinTobillo = { ...standing, lAnkle: undefined };
     const s = squatFrontalSignals(pose(sinTobillo));
     expect(s.rho).toBeNull();
     expect(s.kneeRatio).toBeNull();
