@@ -266,7 +266,8 @@ const styles = StyleSheet.create({
   topText: { color: tokens.text, fontSize: 15, fontWeight: '600', fontVariant: ['tabular-nums'] },
   chip: { backgroundColor: tokens.overlay, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 },
   chipText: { color: tokens.text, fontWeight: '700' },
-  rec: { position: 'absolute', top: 88, right: 12 },
+  // A la izquierda: a la derecha lo tapa el menú flotante de desarrollo de Expo.
+  rec: { position: 'absolute', top: 88, left: 12 },
   banner: { alignSelf: 'center', marginTop: 96, color: tokens.onAccent, backgroundColor: tokens.warn, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, overflow: 'hidden' },
   bottom: { position: 'absolute', left: 16, right: 16, bottom: 32, gap: 8, alignItems: 'center' },
   message: { color: tokens.onAccent, backgroundColor: tokens.warn, fontSize: 18, fontWeight: '700', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, overflow: 'hidden' },

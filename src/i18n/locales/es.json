@@ -114,7 +114,8 @@
     "tip": "Consejo: {{tip}}",
     "noTip": "Sigue así",
     "short": "Cuenta como día activo si haces 20 repeticiones",
-    "done": "Listo"
+    "done": "Listo",
+    "titleEmpty": "Sesión terminada"
   },
   "voice": {
     "count": "{{n}}",

@@ -17,7 +17,7 @@ export default function SummaryScreen() {
   const avgForm = s.reps.length > 0 ? Math.round(s.reps.reduce((a, r) => a + r.formScore, 0) / s.reps.length) : 0;
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>{t('summary.title')}</Text>
+      <Text style={styles.title}>{s.validReps > 0 ? t('summary.title') : t('summary.titleEmpty')}</Text>
       <Text style={styles.line}>{t('summary.reps', { n: s.validReps })}</Text>
       <Text style={styles.line}>{t('summary.clean', { n: s.cleanReps, pct: pct(s.cleanReps) })}</Text>
       <Text style={styles.line}>{t('summary.form', { pct: avgForm })}</Text>

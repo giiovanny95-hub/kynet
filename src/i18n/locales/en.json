@@ -114,7 +114,8 @@
     "tip": "Tip: {{tip}}",
     "noTip": "Keep it up",
     "short": "It counts as an active day at 20 reps",
-    "done": "Done"
+    "done": "Done",
+    "titleEmpty": "Session ended"
   },
   "voice": {
     "count": "{{n}}",
