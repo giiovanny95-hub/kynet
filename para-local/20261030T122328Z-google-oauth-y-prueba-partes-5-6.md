@@ -3,7 +3,7 @@
 Rama `feat/partes-0-1-2`, commit `8702cff`. El usuario autorizó hacerlo todo, incluido el uso de Claude in Chrome.
 
 ## Estado
-- Ya hecho en la nube: migraciones 0001-0009 aplicadas en `fitpose-dev` y `delete-account` desplegada.
+- Ya hecho en la nube: migraciones 0001-0009 aplicadas en `kynet-dev` y `delete-account` desplegada.
 - Paquetes nuevos con versión fija: `expo-sqlite`, `expo-crypto`, `expo-secure-store`, `@supabase/supabase-js`,
   `@react-native-google-signin/google-signin`.
 - Hay que **recompilar el dev client**: hay módulos nativos nuevos.
@@ -26,7 +26,7 @@ Si no existe `android/`, tras `npx expo prebuild` está en ese mismo sitio. Si n
 
 ## 3. Supabase (Claude in Chrome)
 1. Abre https://supabase.com/dashboard/project/eqdjmaarjfsdfomkducz/auth/providers.
-2. Comprueba que el proyecto es `fitpose-dev`. **Nunca toques `iqxwrfjfdvixidsnfwja`.**
+2. Comprueba que el proyecto es `kynet-dev`. **Nunca toques `iqxwrfjfdvixidsnfwja`.**
 3. Activa Google y pega el Client ID y el Client Secret **del cliente Web**.
 4. En "Authorized Client IDs" pon también el Client ID Web.
 5. Activa "Skip nonce check": el SDK nativo de Android no manda nonce.

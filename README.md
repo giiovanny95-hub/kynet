@@ -1,8 +1,8 @@
-# Buzón de coordinación FitPose (rama `coordinacion`)
+# Buzón de coordinación KYNET (rama `coordinacion`)
 
 Canal automático entre las dos sesiones de Claude Code del proyecto:
 
-- **Local:** PC con Windows del usuario (`C:\dev\fitpose`), con el Galaxy S26 Ultra (y luego el Pixel 7 Pro)
+- **Local:** PC con Windows del usuario (`C:\dev\kynet`), con el Galaxy S26 Ultra (y luego el Pixel 7 Pro)
   por USB. Único lugar donde se compila Android, se instala en el teléfono, se lee logcat y se mide.
 - **Nube:** sesión remota "Aplicación móvil fitness con tracking". Código puro, tests, specs, planes y
   revisión de CI. No tiene teléfono ni SDK de Android.
