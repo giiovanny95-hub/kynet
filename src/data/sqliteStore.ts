@@ -120,6 +120,22 @@ export async function createSqliteStore(db: SqlDb): Promise<LocalStore> {
       await db.runAsync('UPDATE outbox SET user_id = ?, initial_import = 1 WHERE user_id IS NULL', [userId]);
       return r?.n ?? 0;
     },
+    async importRemoteSessions(list, ownerUserId) {
+      let n = 0;
+      await db.withTransactionAsync(async () => {
+        for (const s of list) {
+          const exists = await db.getFirstAsync<{ id: string }>('SELECT id FROM sessions WHERE id = ?', [s.id]);
+          if (exists !== null) continue;
+          await db.runAsync('INSERT OR IGNORE INTO sessions (id, ended_at_ms, body) VALUES (?, ?, ?)', [s.id, s.endedAtMs, JSON.stringify(s)]);
+          await db.runAsync(
+            "INSERT OR IGNORE INTO outbox (id, session_id, user_id, next_retry_at_ms, status) VALUES (?, ?, ?, 0, 'done')",
+            [s.id, s.id, ownerUserId],
+          );
+          n++;
+        }
+      });
+      return n;
+    },
     async getKv(key) {
       const r = await db.getFirstAsync<{ value: string }>('SELECT value FROM kv WHERE key = ?', [key]);
       return r?.value ?? null;

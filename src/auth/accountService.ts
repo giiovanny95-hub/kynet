@@ -4,6 +4,7 @@ import { Share } from 'react-native';
 import { deviceTimeZone, USER_ID_KEY } from '@/data/account';
 import { getStore } from '@/data/storeProvider';
 import { loadPrefs } from '@/features/profile/prefsStore';
+import { LAST_PULL_AT_KEY } from '@/sync/pull';
 import { SERVER_STATE_KEY } from '@/sync/syncWorker';
 import { pushProfile, runSync } from '@/sync/syncService';
 
@@ -59,6 +60,8 @@ export async function signOut(): Promise<void> {
   await getSupabase()?.auth.signOut();
   await GoogleSignin.signOut().catch(() => null);
   await getStore().setKv(SERVER_STATE_KEY, null);
+  // La siguiente cuenta descarga sus 90 días desde cero.
+  await getStore().setKv(LAST_PULL_AT_KEY, null);
 }
 
 /** Exporta todos los datos del servidor en JSON (spec §6.2) con la hoja de compartir del sistema. */

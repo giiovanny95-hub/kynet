@@ -38,6 +38,16 @@ export function createMemoryStore(): LocalStore {
       }
       return n;
     },
+    async importRemoteSessions(list, ownerUserId) {
+      let n = 0;
+      for (const s of list) {
+        if (sessions.has(s.id)) continue;
+        sessions.set(s.id, s);
+        outbox.set(s.id, { id: s.id, sessionId: s.id, userId: ownerUserId, initialImport: false, attempts: 0, nextRetryAtMs: 0, lastError: null, status: 'done' });
+        n++;
+      }
+      return n;
+    },
     async getKv(key) {
       return kv.get(key) ?? null;
     },

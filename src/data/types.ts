@@ -26,6 +26,12 @@ export interface LocalStore {
   pendingCount(userId: string | null): Promise<number>;
   /** Asigna al usuario las sesiones locales sin dueño y las marca como importación inicial. */
   claimLocalSessions(userId: string): Promise<number>;
+  /**
+   * Guarda sesiones descargadas de otros dispositivos (spec-datos-supabase §4.4). Solo inserta las que no existen
+   * (si hay una local con el mismo id, gana la local) y deja su cola en `done` para no volver a subirlas.
+   * Devuelve cuántas insertó.
+   */
+  importRemoteSessions(list: readonly SessionSummary[], ownerUserId: string): Promise<number>;
   getKv(key: string): Promise<string | null>;
   setKv(key: string, value: string | null): Promise<void>;
   /** Borra todo (borrado de cuenta o cierre de sesión con limpieza). */

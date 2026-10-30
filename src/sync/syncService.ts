@@ -5,6 +5,7 @@ import { USER_ID_KEY } from '@/data/account';
 import { getStore } from '@/data/storeProvider';
 import type { Prefs } from '@/features/profile/prefs';
 
+import { LAST_PULL_AT_KEY, PULL_COLUMNS, PULL_LIMIT, PULL_WINDOW_MS, pullSessions, type RemoteSessionRow } from './pull';
 import { syncOnce, SERVER_STATE_KEY } from './syncWorker';
 
 export const LAST_SYNC_ERROR_KEY = 'last_sync_error';
@@ -43,6 +44,28 @@ async function doSync(): Promise<void> {
     if (r.error === null) await store.setKv(SERVER_STATE_KEY, JSON.stringify(r.data));
   }
   await store.setKv(LAST_SYNC_ERROR_KEY, result.dead + result.retried > 0 ? String(result.dead + result.retried) : null);
+
+  // Después de subir: sesiones de otros dispositivos (spec-datos-supabase §4.4). RLS ya limita a las propias y vivas.
+  try {
+    const since = (await store.getKv(LAST_PULL_AT_KEY)) ?? new Date(Date.now() - PULL_WINDOW_MS).toISOString();
+    const cursor = await pullSessions(
+      async (sinceIso) => {
+        const r = await supabase
+          .from('workout_sessions')
+          .select(PULL_COLUMNS)
+          .gte('updated_at', sinceIso)
+          .order('updated_at', { ascending: true })
+          .limit(PULL_LIMIT);
+        return { data: r.data as unknown as RemoteSessionRow[] | null, error: r.error === null ? null : { message: r.error.message } };
+      },
+      store,
+      user.id,
+      since,
+    );
+    if (cursor !== null) await store.setKv(LAST_PULL_AT_KEY, cursor);
+  } catch {
+    // Sin red o con un error del servidor se reintenta en la próxima sincronización; los datos locales no cambian.
+  }
 }
 
 /** Copia los ajustes al perfil del servidor (columnas que el usuario puede editar). Silencioso si falla. */

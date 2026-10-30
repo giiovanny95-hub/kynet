@@ -77,6 +77,21 @@ describe.each(stores)('almacén local (%s)', (_name, make) => {
     expect(await st.pendingCount(U)).toBe(1);
   });
 
+  it('importa sesiones de otros dispositivos sin volver a subirlas y sin pisar las locales', async () => {
+    const st = await make();
+    const local = { ...s('a', 1000), avgFormScore: 50 };
+    await st.saveSession(local, U, 0);
+    const pending = (await st.dueOutbox(0))[0];
+    if (pending === undefined) throw new Error('falta la cola de a');
+    await st.updateOutbox({ ...pending, status: 'done' });
+    expect(await st.importRemoteSessions([s('r1', 3000), s('r2', 4000), s('a', 1000)], U)).toBe(2);
+    expect((await st.listSessions()).map((x) => x.id).sort()).toEqual(['a', 'r1', 'r2']);
+    expect(await st.getSession('a')).toEqual(local);
+    expect(await st.pendingCount(U)).toBe(0);
+    expect(await st.dueOutbox(Number.MAX_SAFE_INTEGER)).toEqual([]);
+    expect(await st.importRemoteSessions([s('r1', 3000), s('r2', 4000)], U)).toBe(0);
+  });
+
   it('kv y borrado total', async () => {
     const st = await make();
     await st.setKv('k', '1');

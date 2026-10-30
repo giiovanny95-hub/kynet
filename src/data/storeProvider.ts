@@ -20,6 +20,7 @@ function lazy(): LocalStore {
     updateOutbox: (...a) => open().then((s) => s.updateOutbox(...a)),
     pendingCount: (...a) => open().then((s) => s.pendingCount(...a)),
     claimLocalSessions: (...a) => open().then((s) => s.claimLocalSessions(...a)),
+    importRemoteSessions: (...a) => open().then((s) => s.importRemoteSessions(...a)),
     getKv: (...a) => open().then((s) => s.getKv(...a)),
     setKv: (...a) => open().then((s) => s.setKv(...a)),
     wipe: () => open().then((s) => s.wipe()),

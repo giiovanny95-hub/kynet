@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createMemoryStore } from '@/data/memoryStore';
 import type { SessionSummary } from '@/gamification/types';
 import { classifyError, retryDelayMs, toRpcArgs } from './outbox';
+import { fromRemoteRows, pullSessions, type RemoteSessionRow } from './pull';
 import { parseServerState } from './serverState';
 import { syncOnce, type SyncRpc } from './syncWorker';
 
@@ -112,5 +113,48 @@ describe('estado del servidor', () => {
     expect(parseServerState(null)).toBeNull();
     expect(parseServerState('{')).toBeNull();
     expect(parseServerState(JSON.stringify({ state: null }))).toBeNull();
+  });
+});
+
+const remote = (id: string, code: string, updatedAt: string, reps: RemoteSessionRow['rep_summaries']): RemoteSessionRow => ({
+  id, started_at: '2026-10-30T15:00:00+00:00', ended_at: '2026-10-30T15:05:00+00:00', tz: 'America/Mexico_City', local_date: '2026-10-30',
+  status: 'completed', active_seconds: 120, reps_total: reps.length, reps_valid: reps.filter((r) => r.valid).length, avg_form_score: 90,
+  updated_at: updatedAt, exercises: { code }, rep_summaries: reps,
+});
+const rep = (i: number, valid: boolean) => ({ rep_index: i, t_start_ms: i * 2000, duration_ms: 1800, form_score: valid ? 90 : 0, valid, fault_codes: valid ? [] : ['SQ_DEPTH_SHALLOW'] });
+
+describe('descarga de sesiones de otros dispositivos (spec-datos-supabase §4.4)', () => {
+  it('fromRemoteRows convierte, ordena las repeticiones y descarta ejercicios desconocidos', () => {
+    const out = fromRemoteRows([
+      remote('s1', 'squat', '2026-10-30T15:06:00+00:00', [rep(1, false), rep(0, true)]),
+      remote('s2', 'burpee', '2026-10-30T15:07:00+00:00', [rep(0, true)]),
+    ]);
+    expect(out).toEqual([{
+      id: 's1', exercise: 'squat', startedAtMs: Date.parse('2026-10-30T15:00:00Z'), endedAtMs: Date.parse('2026-10-30T15:05:00Z'),
+      tz: 'America/Mexico_City', localDate: '2026-10-30', status: 'completed', activeSeconds: 120, repsTotal: 2, repsValid: 1, avgFormScore: 90,
+      reps: [
+        { index: 0, tStartMs: 0, durationMs: 1800, formScore: 90, valid: true, faults: [] },
+        { index: 1, tStartMs: 2000, durationMs: 1800, formScore: 0, valid: false, faults: ['SQ_DEPTH_SHALLOW'] },
+      ],
+    }]);
+  });
+
+  it('pullSessions importa desde el cursor y devuelve el updated_at más reciente', async () => {
+    const store = createMemoryStore();
+    const asked: string[] = [];
+    const cursor = await pullSessions(async (since) => {
+      asked.push(since);
+      return { data: [remote('s1', 'squat', '2026-10-30T15:06:00+00:00', [rep(0, true)]), remote('s2', 'pushUp', '2026-10-30T16:00:00+00:00', [])], error: null };
+    }, store, U, '2026-08-01T00:00:00.000Z');
+    expect(asked).toEqual(['2026-08-01T00:00:00.000Z']);
+    expect(cursor).toBe('2026-10-30T16:00:00+00:00');
+    expect((await store.listSessions()).map((x) => x.id).sort()).toEqual(['s1', 's2']);
+    expect(await store.pendingCount(U)).toBe(0);
+  });
+
+  it('pullSessions sin filas o con error no mueve el cursor', async () => {
+    const store = createMemoryStore();
+    expect(await pullSessions(async () => ({ data: [], error: null }), store, U, 'x')).toBeNull();
+    expect(await pullSessions(async () => ({ data: null, error: { message: 'red' } }), store, U, 'x')).toBeNull();
   });
 });
