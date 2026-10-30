@@ -54,7 +54,7 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   const { height: windowHeight } = useWindowDimensions();
   const phaseRef = useRef(session.phase);
   phaseRef.current = session.phase;
-  const cues = useFeedbackCues();
+  const { onEvents: cues } = useFeedbackCues();
   // La pantalla no debe apagarse durante el entrenamiento: apagarla manda la app a segundo plano y pausa la sesión.
   useKeepAwake();
 

@@ -26,7 +26,7 @@ function vibrate(h: HapticCue): void {
 }
 
 /** Tonos precargados al montar (para que no haya retardo) y vibración en paralelo. */
-export function useFeedbackCues(): (events: readonly EngineEvent[]) => void {
+export function useFeedbackCues(): { onEvents: (events: readonly EngineEvent[]) => void; playTone: (name: ToneName) => void } {
   const players = useRef<Partial<Record<ToneName, AudioPlayer>>>({});
 
   useEffect(() => {
@@ -40,7 +40,14 @@ export function useFeedbackCues(): (events: readonly EngineEvent[]) => void {
     };
   }, []);
 
-  return useCallback((events: readonly EngineEvent[]) => {
+  const playTone = useCallback((name: ToneName) => {
+    const p = players.current[name];
+    if (!p) return;
+    p.seekTo(0).catch(() => undefined);
+    p.play();
+  }, []);
+
+  const onEvents = useCallback((events: readonly EngineEvent[]) => {
     // Un evento por lote: el de más prioridad (el árbitro ya limita los avisos).
     let sound: ToneName | null = null;
     let haptic: HapticCue | null = null;
@@ -49,13 +56,9 @@ export function useFeedbackCues(): (events: readonly EngineEvent[]) => void {
       if (c.sound === 'warn' || (c.sound !== null && sound === null)) sound = c.sound;
       if (c.haptic !== null) haptic = haptic === 'warning' ? haptic : c.haptic;
     }
-    if (sound !== null) {
-      const p = players.current[sound];
-      if (p) {
-        p.seekTo(0).catch(() => undefined);
-        p.play();
-      }
-    }
+    if (sound !== null) playTone(sound);
     if (haptic !== null) vibrate(haptic);
-  }, []);
+  }, [playTone]);
+
+  return { onEvents, playTone };
 }
