@@ -20,7 +20,7 @@
     - Recompilar el dev client (módulos nativos nuevos).
     - Crear los clientes OAuth de Google y activar el proveedor en Supabase.
     - `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` en `.env.local`.
-    - Descargar sesiones de otros dispositivos.
+    - ~~Descargar sesiones de otros dispositivos~~: hecho en `b5f75bb` (PC); falta verlo en el teléfono con login.
 - **Marca KYNET (2026-10-29):** app renombrada por completo (`com.kynet.app`, esquema `kynet`,
   `modules/kynet-native`) con los colores y tipografías del manual (`docs/marca/kynet.md`). La navegación y el
   alcance siguen las specs.
@@ -65,10 +65,15 @@
 - S26 Ultra: ¿probar GPU con carga sostenida y, si aguanta, re-evaluar el delegado durante el uso?
 
 ## Siguiente paso
-Ejecutar (PC) `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
-1. A1 `SQ_HEELS_LIFT` y A2 descarga de sesiones de otros dispositivos.
-2. B2 sin conexión y B4 15 min de la parte 3 (solo teléfono).
-3. B3 precisión con persona; B1 login cuando exista el OAuth; B5 S26 con GPU.
+Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
+1. A1 `SQ_HEELS_LIFT`, ya sin avisos falsos: probar la ventana de ±150 ms, fijar los criterios y subirlo (PC).
+   A2 hecho (`b5f75bb`).
+2. **Con el usuario frente al teléfono:**
+   - B2: modo avión;
+   - B4: 15 min entrenando;
+   - B3: precisión con persona, incluidas las series de talones;
+   - B1: cuando exista el OAuth;
+   - B5: S26 con GPU.
 
 ## Pendiente que requiere la PC o un teléfono
 - Pruebas con persona: S26 con GPU, conteo real de los tres ejercicios, voz y vibración, 15 min de la parte 3.

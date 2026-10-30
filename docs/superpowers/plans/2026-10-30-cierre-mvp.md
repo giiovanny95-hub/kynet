@@ -97,7 +97,21 @@ supuestos) y cerrar las dos piezas de código que faltan.
 Si no se llega al 95 % con una subida del 3 %, **no cambies el umbral**: informa con la tabla. Se decidirá con los
 fixtures reales de B3.
 
-### A2. Descarga de sesiones de otros dispositivos
+**Decisión rev. 2 (2026-10-30)**, tras `para-nube/20261030T153000Z-a1-rev2-y-a2.md`: 0/160 avisos falsos con
+cualquier σ, pero solo 141/160 detectadas con σ 0,008.
+- [ ] 1. Prueba una ventana del pico de ±150 ms y repite la tabla. Se adopta solo si se mantiene 0/160 sin subida
+  en todas las filas y mejora la de σ 0,008. Si no, se queda en ±100 ms.
+- [ ] 2. Criterios de `heelLift.robust.test.ts`, que va en `test:benchmark`:
+  - **0 avisos falsos obligatorio** para todo σ ≤ 0,008;
+  - ≥ 152/160 con subida del 3 % hasta σ 0,006;
+  - con σ 0,008, un suelo de regresión de ≥ 136/160 (85 %), **provisional hasta tener los fixtures reales de B3**.
+- [ ] 3. Ejecuta `npm test`, `test:kinematics` (por debajo de 2 s), `test:benchmark`, `workletOrder`, typecheck,
+  lint e i18n.
+- [ ] 4. Skill `aprender`: la lección de las medianas y "un aviso falso es peor que uno perdido".
+- [ ] 5. Commit en `feat/partes-0-1-2` y `tipo: estado` con la tabla y la ventana elegida.
+- La base con la rodilla extendida (opción c) se descarta por ahora. Se reconsidera solo si B3 lo pide.
+
+### A2. Descarga de sesiones de otros dispositivos (HECHO: `b5f75bb`; falta comprobarlo en B1)
 
 **Spec** (spec-datos-supabase §4.4):
 - Tras el login o una reinstalación: las sesiones de los últimos 90 días.
