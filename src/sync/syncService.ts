@@ -7,6 +7,7 @@ import type { Prefs } from '@/features/profile/prefs';
 
 import { LAST_PULL_AT_KEY, PULL_COLUMNS, PULL_LIMIT, PULL_WINDOW_MS, pullSessions, type RemoteSessionRow } from './pull';
 import { syncOnce, SERVER_STATE_KEY } from './syncWorker';
+import { syncDue } from './throttle';
 
 export const LAST_SYNC_ERROR_KEY = 'last_sync_error';
 
@@ -21,6 +22,19 @@ export function runSync(): Promise<void> {
     running = null;
   });
   return running;
+}
+
+let lastFocusSyncMs: number | null = null;
+
+/**
+ * Sincronización al enfocar Hoy, Progreso, Misiones, Perfil o el resumen, como mucho una vez cada 30 s: así se ve lo
+ * que otro teléfono subió sin esperar a los 15 min. Devuelve `true` si sincronizó (para recargar la pantalla).
+ */
+export async function syncOnFocus(nowMs: number = Date.now()): Promise<boolean> {
+  if (!syncDue(lastFocusSyncMs, nowMs)) return false;
+  lastFocusSyncMs = nowMs;
+  await runSync();
+  return true;
 }
 
 async function doSync(): Promise<void> {

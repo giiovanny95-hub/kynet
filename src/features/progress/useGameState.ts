@@ -8,6 +8,7 @@ import type { Prefs } from '@/features/profile/prefs';
 import { localDate } from '@/gamification/localDate';
 import { provisionalState, type ProvisionalState } from '@/gamification/provisional';
 import { parseServerState } from '@/sync/serverState';
+import { syncOnFocus } from '@/sync/syncService';
 import { SERVER_STATE_KEY } from '@/sync/syncWorker';
 import type { SessionSummary } from '@/gamification/types';
 
@@ -22,7 +23,7 @@ export interface GameData {
   readonly pending: number;
 }
 
-/** Estado provisional para Hoy, Progreso, Misiones y el resumen. Se recalcula al enfocar la pantalla. */
+/** Estado provisional para Hoy, Progreso, Misiones, Perfil y el resumen. Se recalcula y sincroniza al enfocar la pantalla. */
 export function useGameState(): { data: GameData | null; refresh: () => Promise<void> } {
   const [data, setData] = useState<GameData | null>(null);
   const refresh = useCallback(async () => {
@@ -51,7 +52,16 @@ export function useGameState(): { data: GameData | null; refresh: () => Promise<
   }, []);
   useFocusEffect(
     useCallback(() => {
+      let active = true;
+      // Primero lo local (sin esperar a la red); si toca sincronizar (cada 30 s como mucho), se recarga al terminar
+      // para mostrar lo que haya subido otro teléfono.
       void refresh();
+      void syncOnFocus()
+        .then((synced) => (synced && active ? refresh() : undefined))
+        .catch(() => undefined);
+      return () => {
+        active = false;
+      };
     }, [refresh]),
   );
   return { data, refresh };
