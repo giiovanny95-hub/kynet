@@ -34,3 +34,9 @@ export function weekStart(date: string): string {
   const dow = new Date(`${date}T00:00:00Z`).getUTCDay(); // 0 = domingo
   return addDays(date, -((dow + 6) % 7));
 }
+
+/** Fecha de calendario local, sin el corte de las 03:00 (para cumpleaños y textos). */
+export function calendarDate(ms: number, tz: string): string {
+  const p = parts(ms, tz);
+  return fromUtcDate(new Date(Date.UTC(p.y, p.m - 1, p.d)));
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, localDate, weekStart } from './localDate';
+import { addDays, calendarDate, localDate, weekStart } from './localDate';
 import vectors from './vectors/localDate.json';
 
 describe('día local con corte a las 03:00 (spec de datos §2.1)', () => {
@@ -21,4 +21,10 @@ describe('fechas', () => {
   for (const v of vectors.weekStart) {
     it(`weekStart(${v.date}) = ${v.expected}`, () => expect(weekStart(v.date)).toBe(v.expected));
   }
+});
+
+describe('calendarDate', () => {
+  it('no aplica el corte de las 03:00', () => {
+    expect(calendarDate(Date.parse('2026-10-30T06:40:00Z'), 'America/Mexico_City')).toBe('2026-10-30');
+  });
 });
