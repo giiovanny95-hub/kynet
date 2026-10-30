@@ -64,6 +64,9 @@ export { AnimatedNumber } from './AnimatedNumber';
 export { PressableScale } from './PressableScale';
 export { ProgressBar };
 export { ProgressRing } from './ProgressRing';
+export { StaggerIn } from './StaggerIn';
+export { StreakFlame } from './StreakFlame';
+export { XpToast } from './XpToast';
 
 /** Fila de misión: título, progreso y recompensa. */
 export function MissionRow({ title, value, target, label, reward, done }: { title: string; value: number; target: number; label: string; reward: string; done: boolean }) {
