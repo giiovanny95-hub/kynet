@@ -1,7 +1,12 @@
 import { ESLint } from 'eslint';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 const eslint = new ESLint({ cwd: process.cwd() });
+
+// La primera llamada carga la configuración y los plugins de ESLint; con la máquina ocupada pasa de los 5 s por defecto.
+beforeAll(async () => {
+  await eslint.lintText('export {};\n', { filePath: 'src/kinematics/x.ts' });
+}, 30_000);
 
 async function ruleIds(code: string, filePath: string): Promise<string[]> {
   const [result] = await eslint.lintText(code, { filePath });
