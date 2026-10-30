@@ -1,5 +1,12 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Bash(npx --yes @expo/agent-cli*)",
+      "Bash(npx -y @expo/agent-cli*)",
+      "Bash(npx @expo/agent-cli*)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -14,18 +21,25 @@
       }
     ]
   },
-  "extraKnownMarketplaces": {
-    "claude-plugins-official": {
-      "source": { "source": "github", "repo": "anthropics/claude-plugins-official" }
-    }
-  },
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
-    "expo@claude-plugins-official": true
+    "expo@claude-plugins-official": true,
+    "codex@openai-codex": true
   },
-  "permissions": {
-    "deny": ["Bash(npx --yes @expo/agent-cli*)", "Bash(npx -y @expo/agent-cli*)", "Bash(npx @expo/agent-cli*)"]
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    }
   }
 }

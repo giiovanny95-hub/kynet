@@ -9,12 +9,13 @@ Objetivo: que la próxima sesión, en la PC o en la nube, arranque sabiendo exac
 Usa también `superpowers:verification-before-completion`: nada se declara hecho sin la salida de los comandos.
 
 ## 1. Verificar (según lo que tocaste)
-- Siempre: `npm run typecheck`, `npm run lint`, `npm run test`.
+- Siempre: `npm run verify` desde el checkout entregado. Política y roles: `docs/colaboracion-agentes.md`.
 - Textos: `npm run i18n:check`. SQL o reglas de gamificación: `npm run test:sql`. Cinemática: `npm run test:kinematics`.
 - Rutas, imports nativos o paquetes: `npx expo export --platform android` (borra la carpeta de salida después).
 - Cámara, pose o UI del entrenamiento: medir en dispositivo real. Si no se pudo, anótalo como **no verificado**.
 
 ## 2. Estado de traspaso: `docs/estado.md`
+- El worker entrega evidencia al integrador; Claude nube es el editor habitual del estado. No editarlo desde varias tareas en paralelo. La configuración inicial autorizada puede reconciliarlo como parte de su entrega.
 - "Última actualización" con fecha, hora y sesión (PC o nube).
 - "Estado": qué cambió (con commit), qué funciona y qué no se verificó.
 - "Siguiente paso" concreto (lo lee el hook al arrancar) y "Para decidir (usuario)".

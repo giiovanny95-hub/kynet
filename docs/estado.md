@@ -6,6 +6,7 @@
 ## Estado
 - **Equipo (2026-10-30):** la nube planifica y revisa; **Codex** (PC) hace diseño y pantallas (`AGENTS.md`);
   **Claude Code** (PC) hace la lógica y coordina a Codex (`codex exec`, revisión y commits). Detalle en `CLAUDE.md`.
+- **Colaboración Claude + Codex (local):** política en `docs/colaboracion-agentes.md`, CLI de reservas `scripts/agent-coordination.mjs`, `npm run verify` portable (también en CI). Evidencia en `docs/colaboracion-validacion.md`.
 - **Vista de frente (2026-10-30):** spec `docs/spec-vista-frontal.md` y plan
   `docs/superpowers/plans/2026-10-30-vista-frontal.md`. El usuario elige Frente (por defecto) o Lado en sentadilla y
   flexión.

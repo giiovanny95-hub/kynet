@@ -4,6 +4,9 @@ Cada dependencia nueva se anota con versión y razón.
 
 | Fecha | Dependencia / decisión | Versión | Razón |
 |-------|------------------------|---------|-------|
+| 2026-10-30 | Colaboración Claude nube/local + Codex autorizada por el usuario | protocolo en `docs/colaboracion-agentes.md` | Un coordinador local, tareas por ID, un escritor por checkout, reservas y entrega por SHA; evita conflictos y memoria divergente |
+| 2026-10-30 | Plugin oficial `codex@openai-codex`, marketplace `openai/codex-plugin-cc` | 1.0.6; CLI 0.166.0-alpha.5.1 | Instalado en alcance proyecto KYNET, autenticación existente verificada; no duplicar con un puente MCP propio; gate Stop desactivado en piloto |
+| 2026-10-30 | Verificación portable y coordinación local con Node builtins | sin dependencias nuevas | `npm run verify` común con CI; tareas y reservas fuera de Git, resúmenes durables por buzón; pruebas de contención y recuperación |
 | 2026-10-29 | create-expo-app (plantilla `blank-typescript@sdk-58`) | 5.0.0 | Esqueleto inicial |
 | 2026-10-29 | expo | ~58.0.21 | SDK 58 (RN 0.88.1, React 19.3) |
 | 2026-10-29 | expo-router y dependencias (screens, safe-area, linking, constants) | versiones de SDK 58 | Navegación por archivos (`spec-arquitectura.md` §4) |

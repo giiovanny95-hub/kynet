@@ -32,6 +32,9 @@ try {
   const branch = git(['rev-parse', '--abbrev-ref', 'HEAD']) || '?';
   const dirty = git(['status', '--porcelain']).split('\n').filter(Boolean).length;
   out.push(`Rama: ${branch} · archivos con cambios sin commit: ${dirty}`);
+  out.push(`Checkout: ${root}`);
+  out.push('Lee docs/colaboracion-agentes.md y la tarea completa; este resumen no asigna trabajo ni reserva recursos.');
+  out.push('Antes de delegar: consultar tareas/reservas con scripts/agent-coordination.mjs (ayuda en docs/agent-coordination-cli.md).');
   const log = git(['log', '--oneline', '-5']);
   if (log) out.push('Últimos commits:', log);
 
@@ -43,6 +46,7 @@ try {
   }
   const next = section(estado, 'Siguiente paso', 6);
   if (next) out.push('Siguiente paso (docs/estado.md):', next);
+  if (next) out.push('(Resumen recortado: leer la sección completa antes de ejecutar.)');
   const decide = section(estado, 'Para decidir (usuario)', 6);
   if (decide) out.push('Pendiente de decisión del usuario:', decide);
 
