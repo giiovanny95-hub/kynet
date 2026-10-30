@@ -9,7 +9,7 @@ describe('grabación de fixtures reales', () => {
     const frames = genSquat({ reps: 1, bottomsDeg: 88, periodS: 2, sigma: 0.004, seed: 1, fps: 30 }).slice(0, 3);
     let rec = createRecording();
     for (const f of frames) rec = appendFrame(rec, f);
-    const json = JSON.parse(toFixtureJson(rec, { exercise: 'squat', realReps: 12 })) as {
+    const json = JSON.parse(toFixtureJson(rec, { exercise: 'squat', view: 'lateral', profile: null, realReps: 12 })) as {
       schemaVersion: number; exercise: string; model: string; width: number; height: number; fps: number;
       frames: { t: number; p: number[] }[]; labels: { realReps: number };
     };
@@ -29,6 +29,6 @@ describe('grabación de fixtures reales', () => {
   });
 
   it('una grabación vacía no falla', () => {
-    expect(JSON.parse(toFixtureJson(createRecording(), { exercise: 'pushUp', realReps: 0 })).frames).toEqual([]);
+    expect(JSON.parse(toFixtureJson(createRecording(), { exercise: 'pushUp', view: 'lateral', profile: null, realReps: 0 })).frames).toEqual([]);
   });
 });

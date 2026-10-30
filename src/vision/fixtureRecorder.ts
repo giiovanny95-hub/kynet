@@ -1,3 +1,4 @@
+import type { CalibrationProfile } from '@/kinematics/calibration/profile';
 import type { EngineExercise } from '@/kinematics/engine';
 import type { PoseFrame } from '@/kinematics/types';
 
@@ -34,7 +35,27 @@ export function appendFrame(rec: Recording, frame: PoseFrame): Recording {
   return rec;
 }
 
-export function toFixtureJson(rec: Recording, labels: { readonly exercise: EngineExercise; readonly realReps: number }): string {
+export interface FixtureLabels {
+  readonly exercise: EngineExercise;
+  readonly view: 'lateral' | 'frontal';
+  /** Perfil de calibración con el que corría el motor (`null` = umbrales genéricos). */
+  readonly profile: CalibrationProfile | null;
+  /** Conteo a mano; -1 hasta que lo rellena quien grabó. */
+  readonly realReps: number;
+}
+
+/** Solo desarrollo: la colocación arma la grabación y la pantalla en vivo la arranca en su primer cuadro. */
+let armed = false;
+export function armRecording(on: boolean): void {
+  armed = on;
+}
+export function takeArmedRecording(): boolean {
+  const a = armed;
+  armed = false;
+  return a;
+}
+
+export function toFixtureJson(rec: Recording, labels: FixtureLabels): string {
   'worklet';
   const n = rec.frames.length;
   const first = rec.frames[0];
@@ -44,7 +65,8 @@ export function toFixtureJson(rec: Recording, labels: { readonly exercise: Engin
     schemaVersion: 1,
     exercise: labels.exercise,
     model: rec.model,
-    view: labels.exercise === 'jumpingJack' ? 'frontal' : 'lateral',
+    view: labels.view,
+    profile: labels.profile,
     fps,
     width: rec.width,
     height: rec.height,

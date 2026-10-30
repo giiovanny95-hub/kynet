@@ -18,6 +18,7 @@ import { CameraGate } from '@/ui/CameraGate';
 import { silhouetteFor } from '@/ui/silhouettes';
 import { Skeleton } from '@/ui/Skeleton';
 import { fonts, tokens } from '@/ui/tokens';
+import { armRecording } from '@/vision/fixtureRecorder';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
 // El modelo de colocación espera 1,5 s, más que el segundo que el motor tarda en pausar por vista incorrecta.
@@ -52,6 +53,11 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
   const fails = useRef(0);
   const { onEvents: cues, playTone } = useFeedbackCues();
   const [tick, setTick] = useState<PlacementTick | null>(null);
+  const [armed, setArmed] = useState(false);
+  const toggleArmed = () => {
+    armRecording(!armed);
+    setArmed(!armed);
+  };
   const { say } = useVoice();
   const { height: windowHeight } = useWindowDimensions();
   useKeepAwake();
@@ -154,6 +160,11 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
           {stage === 'failed' ? (
             <Pressable style={styles.button} onPress={useStandard}>
               <Text style={styles.buttonText}>{t('setup.useStandard')}</Text>
+            </Pressable>
+          ) : null}
+          {__DEV__ ? (
+            <Pressable onPress={toggleArmed}>
+              <Text style={styles.link}>{armed ? t('workout.dev.armed') : t('workout.dev.arm')}</Text>
             </Pressable>
           ) : null}
           {stage !== 'failed' ? (

@@ -67,7 +67,8 @@
     "i18n:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/i18n-check.ts",
     "postinstall": "bash scripts/fetch-pose-model.sh",
     "test:benchmark": "vitest run src/kinematics/__tests__/benchmark.test.ts src/kinematics/__tests__/heelLift.robust.test.ts",
-    "test:sql": "bash scripts/test-sql.sh"
+    "test:sql": "bash scripts/test-sql.sh",
+    "replay": "node scripts/replay.mjs"
   },
   "private": true
 }

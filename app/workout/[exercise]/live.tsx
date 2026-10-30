@@ -19,6 +19,7 @@ import { CameraGate } from '@/ui/CameraGate';
 import { Skeleton } from '@/ui/Skeleton';
 import { toneBadge, toneColor } from '@/ui/toneColor';
 import { fonts, tokens } from '@/ui/tokens';
+import { takeArmedRecording } from '@/vision/fixtureRecorder';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
 const MESSAGE_MS = 3000;
@@ -94,6 +95,8 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
       for (const e of events) {
         tone.current = toneStep(tone.current, e, nowMs);
         if (e.type === 'FEEDBACK') setMessage(e.code);
+        // Solo desarrollo: la causa de cada pausa en el registro de Metro (C1 de B3, F0.3).
+        if (__DEV__ && e.type === 'PAUSE') console.log(`[kynet] PAUSE ${e.cause ?? '?'} t=${Math.round(e.tMs)}`);
       }
       cues(events);
       // El reductor aún no ha contado este lote: se suman aquí sus repeticiones válidas.
@@ -126,6 +129,13 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
     pipeline.recording.value = !recording;
     setRecording(!recording);
   };
+  // Solo desarrollo: si la colocación armó la grabación, empieza con el primer cuadro (antes de la primera repetición).
+  useEffect(() => {
+    if (__DEV__ && takeArmedRecording()) {
+      pipeline.recording.value = true;
+      setRecording(true);
+    }
+  }, [pipeline.recording]);
   const cameraOn = session.phase === 'active' || session.phase === 'rest' || session.phase === 'fatigue';
   const critical = pipeline.stats.targetFps === 0;
 

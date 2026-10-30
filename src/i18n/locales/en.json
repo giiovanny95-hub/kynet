@@ -79,6 +79,8 @@
     },
     "dev": {
       "record": "Record landmarks",
+      "arm": "Arm recording",
+      "armed": "Recording armed",
       "stopRecording": "Stop and share",
       "saved": "Saved {{name}} ({{kb}} KB). Pull it with adb (see docs/fixtures.md).",
       "saveFailed": "Could not save: {{error}}"

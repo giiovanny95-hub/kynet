@@ -71,7 +71,7 @@ export interface EngineState {
   readonly heelStand: { readonly l: readonly HeelPoint[]; readonly r: readonly HeelPoint[] };
 }
 
-type PauseCause = 'VIS_LOW' | 'VIEW' | 'OUT_OF_FRAME' | 'POSTURE';
+export type PauseCause = 'VIS_LOW' | 'VIEW' | 'OUT_OF_FRAME' | 'POSTURE';
 
 interface FrameCheck {
   readonly viewBadSinceMs: number | null;
@@ -134,7 +134,9 @@ export type ScoredRep = RepEvent & {
 export type EngineEvent =
   | ScoredRep
   | FeedbackEvent
-  | { readonly type: 'PAUSE' | 'RESUME' | 'REP_ABANDONED' | 'SUBJECT_CHANGED'; readonly tMs: number };
+  /** `cause` solo informa (registro de desarrollo, reproductor); la UI decide por el código de feedback. */
+  | { readonly type: 'PAUSE'; readonly tMs: number; readonly cause?: PauseCause }
+  | { readonly type: 'RESUME' | 'REP_ABANDONED' | 'SUBJECT_CHANGED'; readonly tMs: number };
 
 export interface Hud {
   readonly phase: string;
@@ -454,7 +456,7 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   const paused = isPaused(s);
   const cause: PauseCause | null = vis.paused ? 'VIS_LOW' : frameCheck.issue;
   s = { ...s, pausedSinceMs: paused ? (s.pausedSinceMs ?? tMs) : null };
-  if (paused !== wasPaused) events.push({ type: paused ? 'PAUSE' : 'RESUME', tMs });
+  if (paused !== wasPaused) events.push(paused ? { type: 'PAUSE', tMs, cause: cause ?? undefined } : { type: 'RESUME', tMs });
   if (cause !== null && cause !== prevCause) {
     const fb = arbiterStep(s.arbiter, [pauseCode(cause, s.cfg.exercise, s.cfg.view)], tMs, null);
     s = { ...s, arbiter: fb.a };

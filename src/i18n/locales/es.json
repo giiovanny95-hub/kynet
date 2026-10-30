@@ -79,6 +79,8 @@
     },
     "dev": {
       "record": "Grabar landmarks",
+      "arm": "Armar grabación",
+      "armed": "Grabación armada",
       "stopRecording": "Detener y compartir",
       "saved": "Guardado {{name}} ({{kb}} KB). Sácalo con adb (ver docs/fixtures.md).",
       "saveFailed": "No se pudo guardar: {{error}}"

@@ -146,7 +146,7 @@ export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
           st.rec = appendFrame(st.rec ?? createRecording(), poseFrame);
         } else if (st.rec !== null) {
           // El conteo real lo añade a mano quien graba (labels.realReps = -1 hasta entonces).
-          scheduleOnRN(emitRecording, toFixtureJson(st.rec, { exercise, realReps: -1 }));
+          scheduleOnRN(emitRecording, toFixtureJson(st.rec, { exercise, view: exercise === 'jumpingJack' ? 'frontal' : 'lateral', profile, realReps: -1 }));
           st.rec = null;
         }
         const r = step(st.engine, poseFrame);
