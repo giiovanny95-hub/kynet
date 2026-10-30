@@ -36,7 +36,7 @@ export default function MissionsScreen() {
         <H2>{t('missions.weekly')}</H2>
         {weekly.map(row)}
       </Card>
-      <Body tone="muted">{t('today.provisional')}</Body>
+      {data.confirmed ? null : <Body tone="muted">{t('today.provisional')}</Body>}
     </Screen>
   );
 }

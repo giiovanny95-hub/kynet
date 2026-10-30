@@ -22,6 +22,8 @@ export interface LocalStore {
   getSession(id: string): Promise<SessionSummary | null>;
   dueOutbox(nowMs: number): Promise<OutboxItem[]>;
   updateOutbox(item: OutboxItem): Promise<void>;
+  /** Elementos por subir (pendientes o en espera de reintento) de un dueño. */
+  pendingCount(userId: string | null): Promise<number>;
   /** Asigna al usuario las sesiones locales sin dueño y las marca como importación inicial. */
   claimLocalSessions(userId: string): Promise<number>;
   getKv(key: string): Promise<string | null>;

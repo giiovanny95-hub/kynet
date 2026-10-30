@@ -194,9 +194,6 @@
   },
   "profile": {
     "title": "Perfil",
-    "account": "Cuenta local",
-    "saveProgress": "Guarda tu progreso con Google",
-    "soon": "Disponible pronto",
     "fitnessLevel": "Nivel de dificultad",
     "weeklyGoal": "Días por semana (meta orientativa)",
     "voice": "Voz durante el entrenamiento",
@@ -239,6 +236,27 @@
     "xp": "+{{n}} XP",
     "streak": "Racha: {{n}}",
     "missionDone": "Misión cumplida: {{title}}",
-    "savedLocal": "Guardado en el teléfono"
+    "savedLocal": "Guardado en el teléfono",
+    "savePrompt": "Guarda tu progreso para no perderlo si cambias de teléfono."
+  },
+  "account": {
+    "title": "Cuenta",
+    "local": "Cuenta local: tus datos solo están en este teléfono.",
+    "signIn": "Guardar mi progreso con Google",
+    "signedInAs": "Sesión iniciada: {{email}}",
+    "pending_one": "{{count}} sesión por subir",
+    "pending_other": "{{count}} sesiones por subir",
+    "synced": "Todo sincronizado",
+    "sync": "Sincronizar ahora",
+    "export": "Exportar mis datos",
+    "signOut": "Cerrar sesión",
+    "delete": "Eliminar cuenta",
+    "deleteTitle": "¿Eliminar tu cuenta?",
+    "deleteBody": "Se borran tus sesiones, XP y racha del servidor y de este teléfono. No se puede deshacer.",
+    "cancel": "Cancelar",
+    "confirmDelete": "Eliminar",
+    "unavailable": "El inicio de sesión aún no está configurado en esta versión.",
+    "error": "No se pudo completar. Inténtalo de nuevo.",
+    "syncError": "Algunas sesiones no se pudieron subir; se reintentará."
   }
 }

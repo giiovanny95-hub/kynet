@@ -8,6 +8,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'react-native';
 
+import { useSyncTriggers } from '@/sync/useSyncTriggers';
 import { tokens } from '@/ui/tokens';
 
 // Importar cada peso por su ruta: el índice del paquete metería en el bundle las 18 variantes.
@@ -22,6 +23,7 @@ const FONTS = {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(FONTS);
+  useSyncTriggers();
   // Si las fuentes fallan, la app sigue con las del sistema en lugar de quedarse en blanco.
   if (!loaded && error === null) return null;
   return (

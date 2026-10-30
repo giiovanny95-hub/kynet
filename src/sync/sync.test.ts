@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createMemoryStore } from '@/data/memoryStore';
 import type { SessionSummary } from '@/gamification/types';
 import { classifyError, retryDelayMs, toRpcArgs } from './outbox';
+import { parseServerState } from './serverState';
 import { syncOnce, type SyncRpc } from './syncWorker';
 
 const session = (id: string): SessionSummary => ({
@@ -101,5 +102,15 @@ describe('syncOnce', () => {
     };
     await syncOnce(store, rpc, { userId: U, nowMs: 0, rand: () => 1 });
     expect(flag).toBe(true);
+  });
+});
+
+describe('estado del servidor', () => {
+  it('lee total_xp (bigint como texto o número), nivel y rachas; ignora JSON roto', () => {
+    const json = JSON.stringify({ state: { total_xp: '115', level: 2, current_streak: 1, longest_streak: 3 }, assignments: [] });
+    expect(parseServerState(json)).toEqual({ totalXp: 115, level: 2, currentStreak: 1, longestStreak: 3 });
+    expect(parseServerState(null)).toBeNull();
+    expect(parseServerState('{')).toBeNull();
+    expect(parseServerState(JSON.stringify({ state: null }))).toBeNull();
   });
 });

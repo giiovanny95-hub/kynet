@@ -25,6 +25,9 @@ export function createMemoryStore(): LocalStore {
     async updateOutbox(item) {
       outbox.set(item.id, item);
     },
+    async pendingCount(userId) {
+      return [...outbox.values()].filter((o) => o.status === 'pending' && o.userId === userId).length;
+    },
     async claimLocalSessions(userId) {
       let n = 0;
       for (const o of outbox.values()) {

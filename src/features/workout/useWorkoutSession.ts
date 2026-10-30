@@ -4,6 +4,7 @@ import { AppState } from 'react-native';
 import { uuidv4 } from '@/core/uuid';
 import { deviceTimeZone, USER_ID_KEY } from '@/data/account';
 import { getStore } from '@/data/storeProvider';
+import { runSync } from '@/sync/syncService';
 
 import { createSession, sessionReducer, type SessionAction, type SessionState } from './sessionModel';
 import { shouldSave, toSessionSummary } from './sessionSummary';
@@ -34,6 +35,10 @@ function finish(state: SessionState): FinishedSession {
   const saved = store
     .getKv(USER_ID_KEY)
     .then((userId) => store.saveSession(summary, userId, Date.now()))
+    .then(() => {
+      // Subida en segundo plano: el resumen no espera a la red.
+      void runSync().catch(() => undefined);
+    })
     .catch(() => undefined);
   return { state, savedId: id, saved };
 }

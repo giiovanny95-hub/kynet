@@ -62,7 +62,7 @@ export default function TodayScreen() {
         ))}
         <Body tone="muted">{t('missions.bonusHint', { xp: DAILY_ALL_BONUS })}</Body>
       </Card>
-      <Body tone="muted">{t('today.provisional')}</Body>
+      {data.confirmed ? null : <Body tone="muted">{t('today.provisional')}</Body>}
     </Screen>
   );
 }

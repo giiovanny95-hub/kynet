@@ -3,10 +3,13 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { deviceTimeZone } from '@/data/account';
 import { getStore } from '@/data/storeProvider';
+import { AccountCard } from '@/features/profile/AccountCard';
 import { useGameState } from '@/features/progress/useGameState';
 import type { FitnessLevel, Prefs } from '@/features/profile/prefs';
 import { savePrefs } from '@/features/profile/prefsStore';
+import { pushProfile } from '@/sync/syncService';
 import { levelProgress } from '@/gamification/xp';
 import { Body, Button, Card, Choice, H1, H2, ProgressBar, Screen } from '@/ui/kit';
 
@@ -20,7 +23,10 @@ export default function ProfileScreen() {
   const { data, refresh } = useGameState();
   if (data === null) return <Screen />;
   const lp = levelProgress(data.game.totalXp);
-  const set = (patch: Partial<Prefs>) => void savePrefs(getStore(), patch).then(refresh);
+  const set = (patch: Partial<Prefs>) =>
+    void savePrefs(getStore(), patch)
+      .then((p) => pushProfile(p, deviceTimeZone()).catch(() => undefined))
+      .then(refresh);
   return (
     <Screen>
       <H1>{t('profile.title')}</H1>
@@ -29,11 +35,7 @@ export default function ProfileScreen() {
         <ProgressBar value={lp.current} max={lp.span} />
         <Body tone="muted">{t('level.xp', { cur: lp.current, next: lp.span })}</Body>
       </Card>
-      <Card>
-        <H2>{t('profile.account')}</H2>
-        <Body>{t('profile.saveProgress')}</Body>
-        <Body tone="muted">{t('profile.soon')}</Body>
-      </Card>
+      <AccountCard pending={data.pending} onChange={() => void refresh()} />
       <Card>
         <H2>{t('profile.fitnessLevel')}</H2>
         {LEVELS.map((l) => (

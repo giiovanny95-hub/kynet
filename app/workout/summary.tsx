@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { loginAvailable, signInWithGoogle } from '@/auth/accountService';
 import { LOCAL_USER } from '@/data/account';
 import { useGameState } from '@/features/progress/useGameState';
 import { getLastSession } from '@/features/workout/useWorkoutSession';
@@ -61,6 +62,14 @@ export default function SummaryScreen() {
           <Text style={styles.muted}>{t('summaryGame.savedLocal')}</Text>
         </View>
       ) : null}
+      {data !== null && data.userId === null && loginAvailable() ? (
+        <View style={styles.game}>
+          <Text style={styles.line}>{t('summaryGame.savePrompt')}</Text>
+          <Pressable style={styles.secondary} onPress={() => void signInWithGoogle().then(refresh)}>
+            <Text style={styles.secondaryText}>{t('account.signIn')}</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <Pressable style={styles.button} onPress={() => router.replace('/')}>
         <Text style={styles.buttonText}>{t('summary.done')}</Text>
       </Pressable>
@@ -78,6 +87,8 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   xp: { fontFamily: fonts.display, color: tokens.accent, fontSize: 28 },
   streak: { fontFamily: fonts.strong, color: tokens.warn, fontSize: 18 },
+  secondary: { borderWidth: 1, borderColor: tokens.accent, padding: 14, borderRadius: tokens.radiusButton, alignItems: 'center' },
+  secondaryText: { fontFamily: fonts.strong, color: tokens.accent, fontSize: 16 },
   mission: { fontFamily: fonts.body, color: tokens.success, fontSize: 16 },
   button: { backgroundColor: tokens.accent, padding: 16, borderRadius: tokens.radiusButton, alignItems: 'center', marginTop: 24 },
   buttonText: { fontFamily: fonts.strong, color: tokens.onAccent, fontSize: 17 },

@@ -194,9 +194,6 @@
   },
   "profile": {
     "title": "Profile",
-    "account": "Local account",
-    "saveProgress": "Save your progress with Google",
-    "soon": "Coming soon",
     "fitnessLevel": "Difficulty level",
     "weeklyGoal": "Days per week (guideline)",
     "voice": "Voice during workouts",
@@ -239,6 +236,27 @@
     "xp": "+{{n}} XP",
     "streak": "Streak: {{n}}",
     "missionDone": "Mission complete: {{title}}",
-    "savedLocal": "Saved on this phone"
+    "savedLocal": "Saved on this phone",
+    "savePrompt": "Save your progress so you don't lose it if you change phones."
+  },
+  "account": {
+    "title": "Account",
+    "local": "Local account: your data is only on this phone.",
+    "signIn": "Save my progress with Google",
+    "signedInAs": "Signed in: {{email}}",
+    "pending_one": "{{count}} session to upload",
+    "pending_other": "{{count}} sessions to upload",
+    "synced": "All synced",
+    "sync": "Sync now",
+    "export": "Export my data",
+    "signOut": "Sign out",
+    "delete": "Delete account",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "Your sessions, XP and streak are deleted from the server and this phone. This can't be undone.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete",
+    "unavailable": "Sign-in isn't set up in this build yet.",
+    "error": "That didn't work. Please try again.",
+    "syncError": "Some sessions couldn't be uploaded; we'll retry."
   }
 }
