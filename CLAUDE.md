@@ -23,6 +23,16 @@ Estado: MVP en construcción (partes 0-6 con código; el estado vivo está en `d
   informa en `para-nube/` con la evidencia y espera el plan corregido, o pregunta al usuario si es urgente.
 - **Traspaso:** la nube avisa en `para-local/` con `tipo: plan` y la ruta del plan. La PC responde en `para-nube/`
   con `tipo: estado` (commit, verificación y lo que no pudo medir). Las dos leen `docs/estado.md` al empezar.
+- **Codex en la PC = diseño y pantallas** (decisión del usuario, 2026-10-30). Hace el plan de diseño (E2-E3) y las
+  tareas marcadas `[codex]`; sus instrucciones están en `AGENTS.md`. Claude Code en la PC se queda con la lógica
+  (cinemática, motor, datos, nativo y mediciones) y **coordina a Codex**:
+  1. Comprueba las opciones de su versión con `codex exec --help`; no las supongas.
+  2. Lanza `codex exec` en el repo con un prompt corto: leer `AGENTS.md`, la tarea X del plan Y, sin commit.
+  3. No lances a Codex sobre archivos que tú tengas con cambios sin subir: serializa `app/workout/*` y los
+     `locales`.
+  4. Revisa el diff como una revisión de código (spec, tokens, i18n, sin `any`) y pasa `herramientas/verificar.sh`.
+  5. Haz el commit con `Co-Authored-By: Codex <noreply@openai.com>` y súbelo.
+  6. Si Codex pide facturación por API o algo de pago, para y pregunta al usuario.
 
 ## Memoria del proyecto (dónde vive cada cosa)
 | Qué | Dónde |

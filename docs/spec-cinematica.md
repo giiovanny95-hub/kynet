@@ -60,7 +60,7 @@ Precondiciones del adaptador (documentadas y con tests):
 - Estado `PAUSED` (flag ortogonal a la FSM): congela estado y temporizadores (el tiempo en pausa no cuenta en la duración de la repetición). Si la pausa dura > 3 s con repetición en curso: se abandona (sin evento de repetición, evento `REP_ABANDONED`) y vuelve a IDLE sin armar.
 - Causas de pausa (códigos): `VIS_LOW`, `OUT_OF_FRAME` (articulación requerida a menos de 2 % del borde), `VIEW_INVALID`, `SUBJECT_CHANGED`.
 - **Persona distinta / dos personas**: los modelos son de una sola pose y pueden saltar a otra persona. Se rechaza el cuadro como outlier si la longitud de torso (punto medio hombros a punto medio caderas) cambia > 30 % entre cuadros aceptados, o el centro de caderas salta > 0.5 longitudes de torso en un cuadro (7 m/s, imposible). 3 rechazos seguidos: se acepta como sujeto nuevo, se reinicia filtros y FSM y se emite `SUBJECT_CHANGED`.
-- **Validación de vista** (cociente `r = anchoHombros2D / longitudTorso2D`; frontal teórico ≈ 0.8, `r = 0.8·cos(guiñada)`): frontal válida si `r >= 0.60` (guiñada <= 41°), lateral válida si `r <= 0.35` (guiñada >= 64°) [V]. Entre ambos: `VIEW_AMBIGUOUS` (aviso, sigue contando). Jumping jack exige frontal; sentadilla y flexión, lateral.
+- **Validación de vista** (cociente `r = anchoHombros2D / longitudTorso2D`; frontal teórico ≈ 0.8, `r = 0.8·cos(guiñada)`): frontal válida si `r >= 0.60` (guiñada <= 41°), lateral válida si `r <= 0.35` (guiñada >= 64°) [V]. Entre ambos: `VIEW_AMBIGUOUS` (aviso, sigue contando). Jumping jack exige frontal; sentadilla y flexión, la vista que elija el usuario (frontal por defecto desde 2026-10-30, ver `spec-vista-frontal.md`).
 
 ## 3. Filtro One-Euro
 
@@ -145,6 +145,8 @@ Reglas generales:
 Tres resultados de repetición: **válida** (cuenta), **incompleta** (no cuenta, avisa de la causa) y **falta de forma** crítica (`fault`, no cuenta). Las faltas suaves no cambian el conteo.
 
 ### 4.3 Sentadilla (lateral, lado cercano) [V sim. en geometría 2D]
+La sentadilla y la flexión **de frente** se definen en `spec-vista-frontal.md` (decisión del usuario, 2026-10-30).
+
 Señal principal `θk` = ángulo cadera–rodilla–tobillo. Secundarias: `τ` = inclinación del tronco respecto a la vertical (vector cadera→hombro, 0° erguido); `ρ` en el modo frontal.
 
 | Transición | Condición inicial | Notas |
@@ -370,9 +372,9 @@ Riesgos
 
 Decisiones abiertas
 - D1 ¿Pausa de visibilidad sobre cuadros consecutivos (como se especifica) o con ventana mínima en ms (para 20 FPS térmico)?
-- D2 ¿Activar 3D (z de MediaPipe) para vistas oblicuas, o exigir vista estricta?
+- D2 ¿Activar 3D (z de MediaPipe) para vistas oblicuas, o exigir vista estricta? **Parcial (2026-10-30):** vista estricta; el 3D solo como spike para la cadera en flexión de frente (`spec-vista-frontal.md` §6).
 - D3 Tolerancia de guiñada: ¿rechazar o solo avisar cuando el móvil no está a 90° del usuario en sentadilla/flexión?
-- D4 Sentadilla frontal: ¿soportarla en el MVP (modo degradado con ρ) o solo lateral?
+- D4 Sentadilla frontal: ¿soportarla en el MVP (modo degradado con ρ) o solo lateral? **Resuelta (2026-10-30):** sí, de frente por defecto y como modo completo, con la vista elegible por el usuario (`spec-vista-frontal.md`).
 - D5 Adaptación de umbrales en vivo por fatiga (etapa 2) frente a calibración fija.
 - D6 `Miss` también para repeticiones contadas con `Q < 0.25`: ¿se acepta que "cuenta pero es Miss"?
 - D7 Faltas suaves leves/graves: los pesos `p_i` y los umbrales `τ`, `θb` son [H] y deben ajustarse con un entrenador.
