@@ -12,6 +12,7 @@ import { savePrefs } from '@/features/profile/prefsStore';
 import { pushProfile } from '@/sync/syncService';
 import { levelProgress } from '@/gamification/xp';
 import { Body, Button, Card, Choice, H1, H2, ProgressBar, Screen } from '@/ui/kit';
+import { LoadingSkeleton } from '@/ui/LoadingSkeleton';
 
 const LEVELS: readonly FitnessLevel[] = ['beginner', 'regular', 'advanced'];
 const GOALS = [2, 3, 4, 5] as const;
@@ -21,7 +22,7 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { data, refresh } = useGameState();
-  if (data === null) return <Screen />;
+  if (data === null) return <LoadingSkeleton />;
   const lp = levelProgress(data.game.totalXp);
   const set = (patch: Partial<Prefs>) =>
     void savePrefs(getStore(), patch)

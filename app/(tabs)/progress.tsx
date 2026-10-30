@@ -6,13 +6,14 @@ import { useGameState } from '@/features/progress/useGameState';
 import { addDays } from '@/gamification/localDate';
 import { aggregateDays, isQualified } from '@/gamification/streak';
 import { Body, Card, H1, H2, Screen } from '@/ui/kit';
+import { LoadingSkeleton } from '@/ui/LoadingSkeleton';
 import { fonts, tokens } from '@/ui/tokens';
 
 /** Progreso (producto §3.6), versión MVP: rachas, totales, últimos 7 días y forma media por ejercicio. */
 export default function ProgressScreen() {
   const { t } = useTranslation();
   const { data } = useGameState();
-  if (data === null) return <Screen />;
+  if (data === null) return <LoadingSkeleton />;
   const { game, sessions, today } = data;
   const byDay = new Map(aggregateDays(sessions).map((d) => [d.date, d]));
   const last7 = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));

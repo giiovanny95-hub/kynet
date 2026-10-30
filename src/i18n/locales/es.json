@@ -1,7 +1,8 @@
 {
   "common": {
     "appName": "KYNET",
-    "descriptor": "INTELLIGENT FITNESS"
+    "descriptor": "INTELLIGENT FITNESS",
+    "loading": "Cargando"
   },
   "home": {
     "openSpike": "Abrir prueba de cámara",

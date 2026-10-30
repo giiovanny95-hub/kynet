@@ -8,6 +8,7 @@ import { DAILY_ALL_BONUS } from '@/gamification/missions';
 import { aggregateDays, isQualified, QUALIFY_REPS, QUALIFY_SECONDS } from '@/gamification/streak';
 import { levelProgress } from '@/gamification/xp';
 import { Body, Button, Card, H2, MissionRow, ProgressBar, Screen } from '@/ui/kit';
+import { LoadingSkeleton } from '@/ui/LoadingSkeleton';
 import { fonts, tokens } from '@/ui/tokens';
 
 /** Hoy (producto §3.1): racha, nivel, meta del día, entreno sugerido y misiones diarias. */
@@ -15,7 +16,7 @@ export default function TodayScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { data } = useGameState();
-  if (data === null) return <Screen />;
+  if (data === null) return <LoadingSkeleton />;
   const { game, prefs, sessions, today } = data;
   const lp = levelProgress(game.totalXp);
   const day = aggregateDays(sessions).find((d) => d.date === today) ?? { date: today, validReps: 0, activeSeconds: 0 };

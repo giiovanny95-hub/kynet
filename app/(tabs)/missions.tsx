@@ -4,12 +4,13 @@ import { useGameState } from '@/features/progress/useGameState';
 import { DAILY_ALL_BONUS } from '@/gamification/missions';
 import type { AssignmentView } from '@/gamification/provisional';
 import { Body, Card, H1, H2, MissionRow, Screen } from '@/ui/kit';
+import { LoadingSkeleton } from '@/ui/LoadingSkeleton';
 
 /** Misiones (producto §3.7): diarias y semanales con progreso y recompensa. */
 export default function MissionsScreen() {
   const { t } = useTranslation();
   const { data } = useGameState();
-  if (data === null) return <Screen />;
+  if (data === null) return <LoadingSkeleton />;
   const daily = data.game.assignments.filter((a) => a.scope === 'daily');
   const weekly = data.game.assignments.filter((a) => a.scope === 'weekly');
   const row = (a: AssignmentView) => (

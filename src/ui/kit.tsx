@@ -69,6 +69,7 @@ export { StreakFlame } from './StreakFlame';
 export { XpToast } from './XpToast';
 export { Confetti } from './Confetti';
 export { Segmented } from './Segmented';
+export { LoadingSkeleton, SkeletonBlock } from './LoadingSkeleton';
 
 /** Fila de misión: título, progreso y recompensa. */
 export function MissionRow({ title, value, target, label, reward, done }: { title: string; value: number; target: number; label: string; reward: string; done: boolean }) {
