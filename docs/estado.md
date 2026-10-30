@@ -36,6 +36,10 @@
 | `dispose()` del landmarker al desmontar | El recolector de JS no ve la memoria nativa y de GPU | Ninguno |
 
 ## Para decidir (usuario)
+- **Marca KYNET** (manual en `docs/marca/`, resumen en `docs/marca/kynet.md`): el usuario la fijó como identidad,
+  estilo y nombre. Hay diferencias con las specs: nombre e identificadores, navegación (Hoy/Misiones frente a
+  Inicio/Entreno), alcance (nutrición, bienestar, web) y tipografías (requieren paquetes). Ver la sección final de
+  `kynet.md`. Stitch MCP está configurado, pero espera la clave del usuario y la orden de diseñar.
 - S26 Ultra: ¿probar GPU con carga sostenida y, si aguanta, re-evaluar el delegado durante el uso?
 - Resumen con 0 repeticiones: dice "¡Buen trabajo!" y "Sigue así". Propuesto a la nube cambiar el texto.
 
