@@ -65,14 +65,13 @@
 - S26 Ultra: ¿probar GPU con carga sostenida y, si aguanta, re-evaluar el delegado durante el uso?
 
 ## Siguiente paso
-1. Aclarar el "6/12" del entrenamiento con persona: ¿se contaron 6 de 12 repeticiones reales? Si es así, el conteo
-   falla: hay que depurarlo con una grabación (fixture).
-2. Tras el OAuth: probar el login, la subida, la exportación y el borrado de cuenta en el Pixel.
-3. Con una persona: 10 min del S26 con GPU y prueba de 15 min de la parte 3 contando repeticiones.
+Ejecutar (PC) `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
+1. A1 `SQ_HEELS_LIFT` y A2 descarga de sesiones de otros dispositivos.
+2. B2 sin conexión y B4 15 min de la parte 3 (solo teléfono).
+3. B3 precisión con persona; B1 login cuando exista el OAuth; B5 S26 con GPU.
 
 ## Pendiente que requiere la PC o un teléfono
 - Pruebas con persona: S26 con GPU, conteo real de los tres ejercicios, voz y vibración, 15 min de la parte 3.
 
 ## Pendiente que puede hacer la sesión remota
-- Descargar sesiones de otros dispositivos (pull con cursor, spec-datos-supabase §4.4).
-- `SQ_HEELS_LIFT` con el umbral de talones acordado.
+- Revisar lo que entregue la PC del plan de cierre y actualizar los criterios cumplidos en `docs/requirements.md`.
