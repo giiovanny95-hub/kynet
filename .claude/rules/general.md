@@ -13,7 +13,7 @@ Si una lección es de un área concreta, va en su archivo (`vision-cinematica.md
 
 ## Permisos y límites
 - **Nunca toques el Supabase del CRM de Verse (`iqxwrfjfdvixidsnfwja`).** KYNET es `kynet-dev` (`eqdjmaarjfsdfomkducz`, organización Personal); comprueba ref y organización antes de cualquier cambio. (CLAUDE.md)
-- **Confirmación previa** para: recursos en la nube, migraciones, builds, push/PR (salvo autorización permanente para `feat/*` y `coordinacion`; nunca `main`, ni merge, ni reescribir historia), paquetes nuevos y cualquier cosa de pago. (CLAUDE.md, 2026-10-29)
+- **Autorización permanente del usuario (2026-10-30): todo lo que no cueste dinero se hace sin pedir confirmación**, en esta y en futuras sesiones: paquetes, skills y plugins gratuitos, migraciones en `kynet-dev`, funciones de Supabase, builds locales, push a `feat/*` y `coordinacion`, y PR en borrador. **Siempre se pregunta antes de:** cualquier cosa de pago (planes, builds de pago, dominios, servicios), y además se mantienen estas salvaguardas: no tocar el proyecto del CRM, no hacer push a `main`, no fusionar, no reescribir historia y no borrar datos de usuarios reales. Cada paquete o decisión se anota en `docs/decisions.md`. (2026-10-30)
 - **Secretos solo por variables de entorno** (`.env.local`, EAS, `setx` en Windows); nunca en el repo, en `.mcp.json` ni en el chat. (2026-10-30)
 - **Nada de `npx …@latest` ni paquetes sin versión fija;** versiones publicadas hace al menos 2 semanas. `@expo/agent-cli` está bloqueado en `.claude/settings.json`. (2026-10-30)
 - **El único nombre es KYNET; no uses el nombre provisional anterior en nada** (repo `giiovanny95-hub/kynet`, slug EAS `kynet`). (2026-10-30, 44b0bea)
