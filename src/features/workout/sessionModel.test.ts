@@ -144,3 +144,23 @@ describe('correcciones de la revisión final', () => {
     expect(paused.phase).toBe('paused');
   });
 });
+
+describe('registro para guardar la sesión (parte 5)', () => {
+  it('guarda la hora de inicio, cada intento (válido o no) y las series completas', () => {
+    const miss: ScoredRep = { ...rep(9000, 0), outcome: 'incomplete', quality: 'Miss', formScore: undefined, q: undefined, durationMs: 1500, faults: ['SQ_DEPTH_SHALLOW'] };
+    const s = reduce([
+      { type: 'start', exercise: 'squat', sets: 2, repsPerSet: 2, nowMs: 500 },
+      eng(rep(5000, 85), 5000),
+      eng(miss, 9000),
+      eng(rep(13000, 70), 13000),
+    ]);
+    expect(s.startedAtMs).toBe(500);
+    expect(s.setsCompleted).toBe(1);
+    // tStartMs: ms desde el inicio de la sesión hasta el comienzo de la repetición (reloj de pared, nunca negativo).
+    expect(s.attempts).toEqual([
+      { valid: true, formScore: 85, durationMs: 2000, tStartMs: 2500, faults: [] },
+      { valid: false, formScore: 0, durationMs: 1500, tStartMs: 7000, faults: ['SQ_DEPTH_SHALLOW'] },
+      { valid: true, formScore: 70, durationMs: 2000, tStartMs: 10500, faults: [] },
+    ]);
+  });
+});

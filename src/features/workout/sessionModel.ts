@@ -14,6 +14,15 @@ export interface RepSummary {
   readonly durationMs: number;
 }
 
+export interface AttemptRow {
+  readonly valid: boolean;
+  readonly formScore: number;
+  readonly durationMs: number;
+  /** Ms desde el inicio de la sesión hasta el comienzo de la repetición (reloj de pared). */
+  readonly tStartMs: number;
+  readonly faults: readonly FeedbackCode[];
+}
+
 export interface SessionState {
   readonly phase: SessionPhase;
   readonly exercise: EngineExercise | null;
@@ -29,6 +38,10 @@ export interface SessionState {
   readonly warnings: readonly SessionWarning[];
   readonly topFault: FeedbackCode | null;
   readonly reps: readonly RepSummary[];
+  /** Todos los intentos (válidos, incompletos y faltas) para guardar la sesión; sin landmarks. */
+  readonly attempts: readonly AttemptRow[];
+  readonly startedAtMs: number | null;
+  readonly setsCompleted: number;
   readonly error: 'permission' | 'busy' | null;
   /** Internos: último instante contado, pausa del motor, fase a la que volver, faltas y racha de Miss. */
   readonly lastMs: number | null;
@@ -70,7 +83,7 @@ const MISS_STREAK = 3;
 export function createSession(): SessionState {
   return {
     phase: 'idle', exercise: null, sets: 0, repsPerSet: 0, set: 0, repsInSet: 0, validReps: 0, cleanReps: 0, activeMs: 0,
-    restEndsAtMs: null, warnings: [], topFault: null, reps: [], error: null, lastMs: null, enginePaused: false,
+    restEndsAtMs: null, warnings: [], topFault: null, reps: [], attempts: [], startedAtMs: null, setsCompleted: 0, error: null, lastMs: null, enginePaused: false,
     resumePhase: null, pausedAtMs: null, faultCounts: {}, missStreak: 0, fatigueShownInSet: false, restResumesSet: false, manualPause: false,
   };
 }
@@ -110,7 +123,8 @@ function fatigued(s: SessionState): boolean {
 }
 
 /** Fin de serie: descanso, o fin de la sesión si era la última. */
-function endSet(s: SessionState, nowMs: number): SessionState {
+function endSet(s0: SessionState, nowMs: number): SessionState {
+  const s = s0.repsInSet >= s0.repsPerSet ? { ...s0, setsCompleted: s0.setsCompleted + 1 } : s0;
   if (s.set >= s.sets) return { ...s, phase: 'done' };
   return { ...s, phase: 'rest', restEndsAtMs: nowMs + REST_MS };
 }
@@ -128,7 +142,14 @@ function onEngine(s: SessionState, e: EngineEvent, nowMs: number): SessionState 
   if (e.type !== 'REP') return s;
   const counts = { ...s.faultCounts };
   for (const f of e.faults) counts[f] = (counts[f] ?? 0) + 1;
-  let next: SessionState = { ...s, faultCounts: counts, topFault: topOf(counts), missStreak: e.quality === 'Miss' ? s.missStreak + 1 : 0 };
+  const attempt: AttemptRow = {
+    valid: e.outcome === 'valid',
+    formScore: e.outcome === 'valid' ? (e.formScore ?? 0) : 0,
+    durationMs: e.durationMs,
+    tStartMs: Math.max(0, nowMs - (s.startedAtMs ?? nowMs) - e.durationMs),
+    faults: e.faults,
+  };
+  let next: SessionState = { ...s, attempts: [...s.attempts, attempt], faultCounts: counts, topFault: topOf(counts), missStreak: e.quality === 'Miss' ? s.missStreak + 1 : 0 };
   if (e.outcome === 'valid') {
     const formScore = e.formScore ?? 0;
     next = {
@@ -146,7 +167,7 @@ function onEngine(s: SessionState, e: EngineEvent, nowMs: number): SessionState 
 
 export function sessionReducer(s0: SessionState, a: SessionAction): SessionState {
   if (a.type === 'start') {
-    return { ...createSession(), phase: 'active', exercise: a.exercise, sets: a.sets, repsPerSet: a.repsPerSet, set: 1, lastMs: a.nowMs };
+    return { ...createSession(), phase: 'active', exercise: a.exercise, sets: a.sets, repsPerSet: a.repsPerSet, set: 1, lastMs: a.nowMs, startedAtMs: a.nowMs };
   }
   if (a.type === 'cameraError') {
     // En pausa la cámara está apagada a propósito: su error no cuenta. El error guarda la fase para Reintentar.
