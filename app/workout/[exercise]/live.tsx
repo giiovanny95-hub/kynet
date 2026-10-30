@@ -149,7 +149,14 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
           constraints={CAMERA_CONSTRAINTS}
           onError={() => dispatch({ type: 'cameraError', reason: 'busy' })}
         />
-        <Skeleton landmarks={pipeline.landmarks} frameAspect={pipeline.frameAspect} width={size.width} height={size.height} mirror={MIRROR_PREVIEW} />
+        <Skeleton
+          landmarks={pipeline.landmarks}
+          frameAspect={pipeline.frameAspect}
+          width={size.width}
+          height={size.height}
+          mirror={MIRROR_PREVIEW}
+          color={formColor === 'transparent' ? tokens.accent : formColor}
+        />
         <View pointerEvents="none" style={[styles.toneBorder, { borderColor: formColor }]} />
 
         <View style={styles.top}>
