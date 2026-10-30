@@ -1,35 +1,31 @@
-import { Redirect } from 'expo-router';
+import { Redirect, usePathname } from 'expo-router';
 import { TabList, TabSlot, TabTrigger, Tabs } from 'expo-router/ui';
+import { Award, ChartLine, Flame, UserRound } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import '@/i18n';
 import { AGE_BLOCKED_KEY } from '@/data/account';
 import { getStore } from '@/data/storeProvider';
 import { loadPrefs } from '@/features/profile/prefsStore';
-import { fonts, tokens } from '@/ui/tokens';
+import { TabBarButton, TabIndicator } from '@/ui/TabBar';
+import { space, tokens } from '@/ui/tokens';
 
 type Gate = 'loading' | 'onboarding' | 'ready';
 
+// Iconos Lucide equivalentes a los Material Symbols de Stitch (spec-diseno §3).
 const TABS = [
-  { name: 'index', href: '/', label: 'tabs.today' },
-  { name: 'progress', href: '/progress', label: 'tabs.progress' },
-  { name: 'missions', href: '/missions', label: 'tabs.missions' },
-  { name: 'profile', href: '/profile', label: 'tabs.profile' },
+  { name: 'index', href: '/', label: 'tabs.today', Icon: Flame },
+  { name: 'progress', href: '/progress', label: 'tabs.progress', Icon: ChartLine },
+  { name: 'missions', href: '/missions', label: 'tabs.missions', Icon: Award },
+  { name: 'profile', href: '/profile', label: 'tabs.profile', Icon: UserRound },
 ] as const;
-
-function TabButton({ label, isFocused, ...props }: { label: string; isFocused?: boolean; onPress?: () => void }) {
-  return (
-    <Pressable {...props} style={styles.tab}>
-      <Text style={[styles.tabText, isFocused === true && styles.tabTextOn]}>{label}</Text>
-    </Pressable>
-  );
-}
 
 /** Navegación inferior Hoy · Progreso · Misiones · Perfil (producto §3). Sin onboarding terminado, va al onboarding. */
 export default function TabsLayout() {
   const { t } = useTranslation();
+  const pathname = usePathname();
   const [gate, setGate] = useState<Gate>('loading');
   useEffect(() => {
     const store = getStore();
@@ -39,13 +35,16 @@ export default function TabsLayout() {
   }, []);
   if (gate === 'loading') return null;
   if (gate === 'onboarding') return <Redirect href="/onboarding" />;
+  const active = TABS.findIndex((tab) => tab.href === pathname);
   return (
+    // `TabList` tiene que ser hijo directo de `Tabs`: así registra los `TabTrigger` (envuelto en un View no navega).
     <Tabs style={styles.root}>
       <TabSlot />
       <TabList style={styles.bar}>
-        {TABS.map((tab) => (
+        <TabIndicator index={active} count={TABS.length} />
+        {TABS.map((tab, i) => (
           <TabTrigger key={tab.name} name={tab.name} href={tab.href} asChild>
-            <TabButton label={t(tab.label)} />
+            <TabBarButton label={t(tab.label)} Icon={tab.Icon} focused={i === active} />
           </TabTrigger>
         ))}
       </TabList>
@@ -55,8 +54,5 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: tokens.bg },
-  bar: { flexDirection: 'row', backgroundColor: tokens.surface, borderTopWidth: 1, borderTopColor: tokens.border, paddingBottom: 24 },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 14 },
-  tabText: { fontFamily: fonts.label, color: tokens.muted, fontSize: 13 },
-  tabTextOn: { color: tokens.accent },
+  bar: { flexDirection: 'row', backgroundColor: tokens.surface, borderTopWidth: 1, borderTopColor: tokens.border, paddingBottom: space.xl },
 });
