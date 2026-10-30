@@ -6,6 +6,8 @@ export interface Prefs {
   /** Meta orientativa de días por semana (2-5); alimenta la misión semanal de constancia. */
   readonly weeklyGoalDays: number;
   readonly voice: boolean;
+  /** Vibración en la interfaz y en el entrenamiento (spec-diseno, E0.4). */
+  readonly haptics: boolean;
   readonly birthDate: string | null;
   readonly onboardedAt: string | null;
   readonly medicalAcceptedAt: string | null;
@@ -15,6 +17,7 @@ export const DEFAULT_PREFS: Prefs = {
   fitnessLevel: 'beginner',
   weeklyGoalDays: 3,
   voice: true,
+  haptics: true,
   birthDate: null,
   onboardedAt: null,
   medicalAcceptedAt: null,
@@ -36,6 +39,7 @@ export function parsePrefs(json: string | null): Prefs {
     fitnessLevel: LEVELS.includes(raw.fitnessLevel as FitnessLevel) ? (raw.fitnessLevel as FitnessLevel) : DEFAULT_PREFS.fitnessLevel,
     weeklyGoalDays: typeof goal === 'number' && Number.isInteger(goal) && goal >= 2 && goal <= 5 ? goal : DEFAULT_PREFS.weeklyGoalDays,
     voice: typeof raw.voice === 'boolean' ? raw.voice : DEFAULT_PREFS.voice,
+    haptics: typeof raw.haptics === 'boolean' ? raw.haptics : DEFAULT_PREFS.haptics,
     birthDate: str('birthDate'),
     onboardedAt: str('onboardedAt'),
     medicalAcceptedAt: str('medicalAcceptedAt'),

@@ -13,6 +13,11 @@ describe('preferencias del perfil (onboarding)', () => {
       ...DEFAULT_PREFS, voice: false, onboardedAt: '2026-10-30',
     });
   });
+  it('vibración activada por defecto; respeta un false guardado e ignora valores no booleanos', () => {
+    expect(DEFAULT_PREFS.haptics).toBe(true);
+    expect(parsePrefs(JSON.stringify({ haptics: false })).haptics).toBe(false);
+    expect(parsePrefs(JSON.stringify({ haptics: 'no' })).haptics).toBe(true);
+  });
 });
 
 describe('plan por nivel (producto §4.6)', () => {
