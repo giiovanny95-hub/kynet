@@ -24,3 +24,6 @@ Si una lección es de un área concreta, va en su archivo (`vision-cinematica.md
 - **Nube: `gh` sin GraphQL;** usa `gh api repos/<owner>/<repo>/...` (REST), p. ej. `.../commits/<sha>/check-runs`. (2026-10-30)
 - **Metro en la PC con `NODE_OPTIONS=--max-old-space-size=4096`;** el build se hace en local (EAS gratuito no termina en 45 min). (2026-10-29)
 - **Windows: `setx` solo afecta a ventanas nuevas;** comprueba variables en una ventana nueva. (2026-10-30)
+- **Los checks antes de un push se encadenan por código de salida, nunca con `| grep` al final:** el grep da éxito y oculta un test fallido (pasó dos veces). En la PC: `herramientas/verificar.sh`; en general, `set -o pipefail`. (2026-10-29)
+- **Tras un pull que añade o mueve rutas de `app/`, regenera las rutas tipadas** (borra `.expo/types/router.d.ts` y arranca Metro o `expo start`): con las viejas, `typecheck` falla con `"/"` no asignable. (2026-10-30, 8702cff)
+- **Los mensajes del buzón se escriben con la herramienta de escritura de archivos, no con heredoc:** un heredoc con comillas invertidas se cortó y dejó vacío un informe ya subido. (2026-10-30)
