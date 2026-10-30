@@ -68,8 +68,10 @@
 
 ## Siguiente paso
 0. **Diseño premium (prioridad del usuario, 2026-10-30):**
-   - D0: la PC exporta el mockup de Stitch a `docs/diseno/stitch/`. Después la nube escribe la spec de diseño y el
-     plan.
+   - D0 hecho (`52927a6`, 4 pantallas de Stitch). D1 `docs/spec-diseno.md` y D2
+     `docs/superpowers/plans/2026-10-30-diseno-premium.md` escritos. **Siguiente: la PC ejecuta E0 → E3.**
+   - Decisiones del usuario: títulos de nivel (solo visuales), Progreso combinado (métricas + historial) y detalle
+     de sesión simple.
    - Investigación en `docs/diseno/investigacion-animacion.md`. Los 5 paquetes están aprobados.
    - El bloque C de B3 (instrumentación) queda en pausa.
 Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
