@@ -3,23 +3,30 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Camera } from 'react-native-vision-camera';
 
 import { useFeedbackCues } from '@/audio/useFeedbackCues';
+import { useVoice } from '@/audio/useVoice';
+import { pickUtterance } from '@/audio/voicePolicy';
 import { getProfile } from '@/features/workout/calibrationStore';
+import { createToneState, toneAt, toneStep } from '@/features/workout/formTone';
 import { DEFAULT_PLAN, isExercise } from '@/features/workout/plans';
 import { useWorkoutSession } from '@/features/workout/useWorkoutSession';
 import type { EngineEvent, EngineExercise } from '@/kinematics/engine';
 import type { FeedbackCode } from '@/kinematics/feedback/codes';
 import { CameraGate } from '@/ui/CameraGate';
 import { Skeleton } from '@/ui/Skeleton';
+import { toneColor } from '@/ui/toneColor';
 import { tokens } from '@/ui/tokens';
 import { useWorkoutPipeline } from '@/vision/useWorkoutPipeline';
 
 const MESSAGE_MS = 3000;
 const HUD_POLL_MS = 250;
 const MIRROR_PREVIEW = true;
+/** El contador ocupa el 20 % del alto de la pantalla: legible a 3 m (benchmark 2026-10-29). */
+const COUNT_HEIGHT_RATIO = 0.2;
+const TONE_BORDER = 8;
 /** Sin esto la cámara frontal del Pixel 7 Pro entrega 24 FPS con luz de interior (medido el 2026-10-29). */
 const CAMERA_CONSTRAINTS = [{ fps: 30 }];
 
@@ -44,9 +51,15 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [now, setNow] = useState(Date.now());
   const [pauseCode, setPauseCode] = useState<FeedbackCode | null>(null);
+  const [hudNow, setHudNow] = useState(Date.now());
+  const tone = useRef(createToneState());
+  const { height: windowHeight } = useWindowDimensions();
   const phaseRef = useRef(session.phase);
   phaseRef.current = session.phase;
-  const cues = useFeedbackCues();
+  const setRef = useRef({ repsInSet: session.repsInSet, repsPerSet: session.repsPerSet });
+  setRef.current = { repsInSet: session.repsInSet, repsPerSet: session.repsPerSet };
+  const voice = useVoice();
+  const { onEvents: cues } = useFeedbackCues();
   // La pantalla no debe apagarse durante el entrenamiento: apagarla manda la app a segundo plano y pausa la sesión.
   useKeepAwake();
 
@@ -78,10 +91,17 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
       const nowMs = Date.now();
       for (const e of events) dispatch({ type: 'engine', event: e, nowMs });
       if (phaseRef.current !== 'active') return;
-      for (const e of events) if (e.type === 'FEEDBACK') setMessage(e.code);
+      for (const e of events) {
+        tone.current = toneStep(tone.current, e, nowMs);
+        if (e.type === 'FEEDBACK') setMessage(e.code);
+      }
       cues(events);
+      // El reductor aún no ha contado este lote: se suman aquí sus repeticiones válidas.
+      const valid = events.filter((e) => e.type === 'REP' && e.outcome === 'valid').length;
+      const u = pickUtterance(events, { repsInSet: setRef.current.repsInSet + valid, repsPerSet: setRef.current.repsPerSet });
+      if (u !== null) voice.say(u);
     },
-    [cues, dispatch],
+    [cues, dispatch, voice],
   );
 
   // Solo desarrollo: el JSON se guarda en los documentos de la app y se saca con adb (ver docs/fixtures.md); nunca se sube.
@@ -117,11 +137,15 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   // La causa de la pausa del motor se muestra mientras dura (el HUD del worklet solo cambia cuando cambia algo).
   const { hud } = pipeline;
   useEffect(() => {
-    const id = setInterval(() => setPauseCode(hud.value.pauseCode), HUD_POLL_MS);
+    const id = setInterval(() => {
+      setPauseCode(hud.value.pauseCode);
+      setHudNow(Date.now());
+    }, HUD_POLL_MS);
     return () => clearInterval(id);
   }, [hud]);
   const last = session.reps[session.reps.length - 1];
   const warning = session.warnings[session.warnings.length - 1];
+  const formColor = toneColor(toneAt(tone.current, hudNow, session.phase));
 
   return (
     <CameraGate onBack={() => router.back()}>
@@ -134,11 +158,22 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
           constraints={CAMERA_CONSTRAINTS}
           onError={() => dispatch({ type: 'cameraError', reason: 'busy' })}
         />
-        <Skeleton landmarks={pipeline.landmarks} frameAspect={pipeline.frameAspect} width={size.width} height={size.height} mirror={MIRROR_PREVIEW} />
+        <Skeleton
+          landmarks={pipeline.landmarks}
+          frameAspect={pipeline.frameAspect}
+          width={size.width}
+          height={size.height}
+          mirror={MIRROR_PREVIEW}
+          color={formColor === 'transparent' ? tokens.accent : formColor}
+        />
+        <View pointerEvents="none" style={[styles.toneBorder, { borderColor: formColor }]} />
 
         <View style={styles.top}>
           <Pressable style={styles.chip} onPress={() => dispatch({ type: 'pause', nowMs: Date.now() })}>
             <Text style={styles.chipText}>{t('workout.pause')}</Text>
+          </Pressable>
+          <Pressable style={styles.chip} onPress={() => voice.setEnabled(!voice.enabled)}>
+            <Text style={styles.chipText}>{voice.enabled ? t('voice.on') : t('voice.off')}</Text>
           </Pressable>
           <Text style={styles.topText}>{t(`exercise.${exercise}`)}</Text>
           <Text style={styles.topText}>{t('workout.set', { set: session.set, sets: session.sets })}</Text>
@@ -159,7 +194,13 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
           ) : message !== null ? (
             <Text style={styles.message}>{t(`feedback.${message}`)}</Text>
           ) : null}
-          <Text style={styles.count}>{t('workout.reps', { reps: session.repsInSet, target: session.repsPerSet })}</Text>
+          <Text
+            style={[styles.count, { fontSize: Math.round(COUNT_HEIGHT_RATIO * windowHeight), lineHeight: Math.round(COUNT_HEIGHT_RATIO * windowHeight * 1.1) }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {t('workout.reps', { reps: session.repsInSet, target: session.repsPerSet })}
+          </Text>
           <View style={styles.row}>
             <Text style={styles.small}>{t('workout.form')}</Text>
             <View style={styles.bar}>
@@ -229,7 +270,8 @@ const styles = StyleSheet.create({
   banner: { alignSelf: 'center', marginTop: 96, color: tokens.onAccent, backgroundColor: tokens.warn, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, overflow: 'hidden' },
   bottom: { position: 'absolute', left: 16, right: 16, bottom: 32, gap: 8, alignItems: 'center' },
   message: { color: tokens.onAccent, backgroundColor: tokens.warn, fontSize: 18, fontWeight: '700', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, overflow: 'hidden' },
-  count: { color: tokens.text, fontSize: 64, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  count: { color: tokens.text, fontWeight: '800', fontVariant: ['tabular-nums'], alignSelf: 'stretch', textAlign: 'center' },
+  toneBorder: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: TONE_BORDER },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'stretch' },
   small: { color: tokens.text, fontSize: 15 },
   bar: { flex: 1, height: 10, backgroundColor: tokens.overlay, borderRadius: 5, overflow: 'hidden' },

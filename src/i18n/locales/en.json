@@ -115,5 +115,13 @@
     "noTip": "Keep it up",
     "short": "It counts as an active day at 20 reps",
     "done": "Done"
+  },
+  "voice": {
+    "count": "{{n}}",
+    "setDone": "Set complete",
+    "tick": "{{n}}",
+    "go": "Go!",
+    "on": "Voice: on",
+    "off": "Voice: off"
   }
 }
