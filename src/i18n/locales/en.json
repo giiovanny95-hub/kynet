@@ -154,7 +154,21 @@
   },
   "level": {
     "label": "Level {{n}}",
-    "xp": "{{cur}}/{{next}} XP"
+    "xp": "{{cur}}/{{next}} XP",
+    "title": {
+      "novice": "Rookie",
+      "explorer": "Explorer",
+      "athlete": "Athlete",
+      "elite": "Elite",
+      "legend": "Legend"
+    },
+    "rank": {
+      "bronze": "Bronze rank",
+      "silver": "Silver rank",
+      "gold": "Gold rank",
+      "platinum": "Platinum rank",
+      "diamond": "Diamond rank"
+    }
   },
   "missions": {
     "title": "Missions",
