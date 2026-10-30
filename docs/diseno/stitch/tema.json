@@ -1,0 +1,192 @@
+{
+  "designSystems": [
+    {
+      "name": "assets/7a3722fa22a14f45a60efc7376b2a8c7",
+      "designSystem": {
+        "displayName": "Intelligent Biomechanical Athletic System",
+        "styleGuidelines": "## Brand & Style\n\nThis design system establishes a high-performance, engineering-first mobile environment tailored specifically for native Android platforms. It draws aesthetic and philosophical inspiration from elite telemetry and developer tools—synthesizing the disciplined dark minimalism of Linear with the precision bio-metrics of WHOOP and Apple Fitness. \n\nThe core visual signature balances austere, battery-efficient dark surfaces with bioluminescent cyan telemetry accents. It rejects decorative skeuomorphism, unnecessary drop shadows, and ornamental graphics in favor of surgical clarity, high tonal contrast, and real-time biomechanical feedback. The system is architected for athletes whose cognitive and physical bandwidth is pushed to peak capacity; every visual affordance communicates instant state awareness, movement kinematics, and objective performance truth.\n\nKey personality attributes:\n- **Surgical & Authoritative:** Interfaces act as diagnostic instrumentation rather than casual tracking sheets.\n- **Bioluminescent High-Contrast:** Vivid signals burst forth from pure OLED depths, ensuring full legibility from 2 to 3 meters away during active sets.\n- **Restrained & Intentional:** Color is reserved strictly for interactive affordances and physiological validation. Uncalibrated states remain neutral until verified.\n\n## Layout & Spacing\n\nThe layout is grounded on a strict 4px/8px modular rhythm engineered for native Android viewports, respecting system status bars, display cutouts, and bottom navigation gesture handles.\n\n### Mobile Grid & Margins\n- **Canvas Margins:** Fixed at 16px (`1rem`) on standard smartphones ($360\\text{dp} - 430\\text{dp}$), expanding to 24px (`1.5rem`) on foldable devices and tablets.\n- **Vertical Rhythm:** Modular components adhere to a 12px gap between adjacent cards and a 24px gap between functional content sections.\n- **Safe Zone Allocation:** In live camera workouts, the central 70% of the viewport remains strictly transparent and unencumbered by opaque panels, allowing uninterrupted visual tracking of human pose landmarks.\n\n### Touch Targets\nAll interactive targets maintain a mandatory minimum touch box of $48 \\times 48\\text{dp}$, exceeding standard tap requirements to ensure reliability for users with sweat-slicked fingers or dynamic movement.\n\n## Elevation & Depth\n\nVisual depth is achieved through an authentic dark-mode tiered surface model rather than artificial drop shadows, maximizing contrast against pure black OLED panels.\n\n### Surface Tiers\n1. **Tier 0 (Root Canvas):** Midnight (`#080F14`) — Represents absolute foundation.\n2. **Tier 1 (Resting Cards):** Deep Card Surface (`#101A22`) + 1px hairline border (`#263640`).\n3. **Tier 2 (Docked Bars & Sheets):** Slate Surface (`#1E2C3A`) + 1px hairline border (`#263640`).\n4. **Tier 3 (Active HUD Badges):** Semi-translucent Slate (`rgba(30, 44, 58, 0.85)`) with an integrated backdrop blur of 12px, suspended directly over camera viewports.\n\n### Outlines and Borders\nDrop shadows with blurred radii are prohibited. Edge separation is maintained entirely via a precise 1px solid stroke using the `Border Hairline` token (`#263640`). Focused or active states transition this 1px stroke into pure `Electric Teal` (`#00E5C8`) with zero glow distortion.\n\n## Components\n\n### Buttons\n- **Primary Action (CTA):**\n  - Background: Solid Electric Teal (`#00E5C8`).\n  - Text: Montserrat 700 / Inter 600 in Midnight (`#080F14`).\n  - Height: Fixed 52px for primary screen triggers; border-radius 12px.\n  - Interaction: 0.98x scale compression and 90% opacity on press.\n- **Secondary Action:**\n  - Background: Slate Surface (`#1E2C3A`) or Transparent.\n  - Border: 1px hairline Border (`#263640`).\n  - Text: Ice White (`#EBEEF2`).\n  - Height: 48px; border-radius 12px.\n- **Ghost Utility Button:**\n  - Background: Transparent; zero border.\n  - Text: Muted Slate (`#8FA3B8`), switching to Electric Teal upon interaction.\n\n### Modular Cards\n- **Structure:** Deep Card Surface (`#101A22`) with 16px corner radius and 1px Border (`#263640`).\n- **Internal Padding:** 16px standard; 20px on hero workout launchers.\n- **Data Pairing:** Metric readouts group a large Montserrat figure directly above or alongside its Inter regular descriptor.\n\n### Bottom Navigation Bar (Android Native)\n- **Container:** Docked Slate Surface (`#1E2C3A`) with a single top border in `#263640` and system navigation bar insets.\n- **Destinations (4 Tabs):**\n  1. *Hoy* (Daily routine, streak indicator, immediate actions).\n  2. *Progreso* (Analytics, historical calendar, volume load).\n  3. *Misiones* (Gamified daily quests and XP milestones).\n  4. *Perfil* (Biometrics, preferences, device integrations).\n- **Tab State:** Active tab shows Electric Teal (`#00E5C8`) icon and label; inactive tabs render in Muted Slate (`#8FA3B8`).\n\n### Real-Time Biomechanical HUD (Computer Vision Engine)\n- **Landmark Render:** 33-point skeletal landmark vector paths rendered in 2px Electric Teal stroke with 45% default opacity, transitioning to 100% full luminance upon optimal execution.\n- **Repetition Counter:** Centered Montserrat ExtraBold numerals (`56px`) anchored near the lower third of the screen.\n- **Segmented Quality Gauge:** Horizontal segmented bar indicating the ratio of clean reps versus form degradation (`Forma limpia: 82%`).\n- **Kinematic Toast Pill:** Anchored beneath the target joint; high-contrast floating pill showing state glyph alongside short corrective prompts (e.g., Amber Warning with \"Alinea rodillas\").\n\n### Form Fields & Inputs\n- **Field Base:** Deep Card Surface (`#101A22`), 48px height, 12px radius, and 1px border (`#263640`).\n- **Text:** Values rendered in Ice White (`#EBEEF2`); placeholder in Muted Slate (`#8FA3B8`).\n- **Active State:** Border transitions cleanly to Electric Teal (`#00E5C8`).",
+        "theme": {
+          "colorMode": "DARK",
+          "font": "MONTSERRAT",
+          "roundness": "ROUND_EIGHT",
+          "customColor": "#00e5c8",
+          "headlineFont": "MONTSERRAT",
+          "bodyFont": "INTER",
+          "labelFont": "INTER",
+          "namedColors": {
+            "status-error": "#FF5C69",
+            "secondary": "#59dbc7",
+            "tertiary_fixed_dim": "#b4c9df",
+            "on_secondary": "#003731",
+            "primary": "#70ffe4",
+            "surface_container_highest": "#2f363b",
+            "on_primary_container": "#006154",
+            "surface_bright": "#333a40",
+            "border-hairline": "#263640",
+            "on_surface": "#dce3eb",
+            "on_primary": "#00382f",
+            "error": "#ffb4ab",
+            "on_tertiary_fixed_variant": "#35495b",
+            "secondary_fixed_dim": "#59dbc7",
+            "on_surface_variant": "#b9cac5",
+            "on_primary_fixed_variant": "#005045",
+            "status-warning": "#F5B942",
+            "surface_container": "#192026",
+            "error_container": "#93000a",
+            "tertiary_container": "#bacee4",
+            "surface": "#0d1419",
+            "surface_dim": "#0d1419",
+            "inverse_on_surface": "#2a3137",
+            "on_error_container": "#ffdad6",
+            "primary_fixed": "#41fcde",
+            "on_secondary_container": "#00332c",
+            "status-success": "#22C997",
+            "surface_container_low": "#151c22",
+            "tertiary": "#d7eaff",
+            "surface_tint": "#00dfc3",
+            "outline": "#84948f",
+            "primary_fixed_dim": "#00dfc3",
+            "secondary_container": "#00a694",
+            "surface-container-low": "#0C151C",
+            "on_tertiary_fixed": "#081d2e",
+            "slate-surface": "#1E2C3A",
+            "on_background": "#dce3eb",
+            "on_primary_fixed": "#00201b",
+            "deep-card-surface": "#101A22",
+            "outline_variant": "#3b4a46",
+            "secondary_fixed": "#79f7e3",
+            "inverse_surface": "#dce3eb",
+            "primary_container": "#00e5c8",
+            "surface_container_high": "#242b30",
+            "on_tertiary_container": "#45586b",
+            "on_secondary_fixed": "#00201c",
+            "on_tertiary": "#1f3243",
+            "surface_container_lowest": "#080f14",
+            "tertiary_fixed": "#d0e5fb",
+            "background": "#0d1419",
+            "inverse_primary": "#006b5c",
+            "surface-bright": "#263640",
+            "on_error": "#690005",
+            "ice-white": "#EBEEF2",
+            "on_secondary_fixed_variant": "#005047",
+            "surface_variant": "#2f363b"
+          },
+          "designMd": "---\nname: Intelligent Biomechanical Athletic System\ncolors:\n  surface: '#0d1419'\n  surface-dim: '#0d1419'\n  surface-bright: '#263640'\n  surface-container-lowest: '#080f14'\n  surface-container-low: '#0C151C'\n  surface-container: '#192026'\n  surface-container-high: '#242b30'\n  surface-container-highest: '#2f363b'\n  on-surface: '#dce3eb'\n  on-surface-variant: '#b9cac5'\n  inverse-surface: '#dce3eb'\n  inverse-on-surface: '#2a3137'\n  outline: '#84948f'\n  outline-variant: '#3b4a46'\n  surface-tint: '#00dfc3'\n  primary: '#70ffe4'\n  on-primary: '#00382f'\n  primary-container: '#00e5c8'\n  on-primary-container: '#006154'\n  inverse-primary: '#006b5c'\n  secondary: '#59dbc7'\n  on-secondary: '#003731'\n  secondary-container: '#00a694'\n  on-secondary-container: '#00332c'\n  tertiary: '#d7eaff'\n  on-tertiary: '#1f3243'\n  tertiary-container: '#bacee4'\n  on-tertiary-container: '#45586b'\n  error: '#ffb4ab'\n  on-error: '#690005'\n  error-container: '#93000a'\n  on-error-container: '#ffdad6'\n  primary-fixed: '#41fcde'\n  primary-fixed-dim: '#00dfc3'\n  on-primary-fixed: '#00201b'\n  on-primary-fixed-variant: '#005045'\n  secondary-fixed: '#79f7e3'\n  secondary-fixed-dim: '#59dbc7'\n  on-secondary-fixed: '#00201c'\n  on-secondary-fixed-variant: '#005047'\n  tertiary-fixed: '#d0e5fb'\n  tertiary-fixed-dim: '#b4c9df'\n  on-tertiary-fixed: '#081d2e'\n  on-tertiary-fixed-variant: '#35495b'\n  background: '#0d1419'\n  on-background: '#dce3eb'\n  surface-variant: '#2f363b'\n  slate-surface: '#1E2C3A'\n  deep-card-surface: '#101A22'\n  ice-white: '#EBEEF2'\n  border-hairline: '#263640'\n  status-success: '#22C997'\n  status-warning: '#F5B942'\n  status-error: '#FF5C69'\ntypography:\n  display-hero:\n    fontFamily: Montserrat\n    fontSize: 56px\n    fontWeight: '800'\n    lineHeight: 64px\n    letterSpacing: -0.03em\n  display-lg:\n    fontFamily: Montserrat\n    fontSize: 44px\n    fontWeight: '800'\n    lineHeight: 52px\n    letterSpacing: -0.02em\n  display-md:\n    fontFamily: Montserrat\n    fontSize: 32px\n    fontWeight: '700'\n    lineHeight: 40px\n    letterSpacing: -0.02em\n  headline-lg:\n    fontFamily: Montserrat\n    fontSize: 24px\n    fontWeight: '700'\n    lineHeight: 32px\n    letterSpacing: -0.01em\n  headline-md:\n    fontFamily: Montserrat\n    fontSize: 20px\n    fontWeight: '600'\n    lineHeight: 28px\n    letterSpacing: -0.01em\n  title-sm:\n    fontFamily: Montserrat\n    fontSize: 16px\n    fontWeight: '600'\n    lineHeight: 22px\n    letterSpacing: 0em\n  body-base:\n    fontFamily: Inter\n    fontSize: 16px\n    fontWeight: '400'\n    lineHeight: 24px\n    letterSpacing: 0em\n  body-bold:\n    fontFamily: Inter\n    fontSize: 16px\n    fontWeight: '600'\n    lineHeight: 24px\n    letterSpacing: 0em\n  body-sm:\n    fontFamily: Inter\n    fontSize: 14px\n    fontWeight: '400'\n    lineHeight: 20px\n    letterSpacing: 0em\n  body-sm-medium:\n    fontFamily: Inter\n    fontSize: 14px\n    fontWeight: '500'\n    lineHeight: 20px\n    letterSpacing: 0em\n  label-caps:\n    fontFamily: Inter\n    fontSize: 12px\n    fontWeight: '700'\n    lineHeight: 16px\n    letterSpacing: 0.06em\n  metric-stat-lg:\n    fontFamily: Montserrat\n    fontSize: 48px\n    fontWeight: '800'\n    lineHeight: 52px\n    letterSpacing: -0.03em\n  metric-stat-md:\n    fontFamily: Montserrat\n    fontSize: 28px\n    fontWeight: '700'\n    lineHeight: 34px\n    letterSpacing: -0.02em\nrounded:\n  sm: 0.25rem\n  DEFAULT: 0.5rem\n  md: 0.75rem\n  lg: 1rem\n  xl: 1.5rem\n  full: 9999px\nspacing:\n  gutter: 1rem\n  margin: 1rem\n  margin-tablet: 1.5rem\n  space-xs: 0.25rem\n  space-sm: 0.5rem\n  space-md: 1rem\n  space-lg: 1.5rem\n  space-xl: 2rem\n---\n\n## Brand & Style\n\nThis design system establishes a high-performance, engineering-first mobile environment tailored specifically for native Android platforms. It draws aesthetic and philosophical inspiration from elite telemetry and developer tools—synthesizing the disciplined dark minimalism of Linear with the precision bio-metrics of WHOOP and Apple Fitness. \n\nThe core visual signature balances austere, battery-efficient dark surfaces with bioluminescent cyan telemetry accents. It rejects decorative skeuomorphism, unnecessary drop shadows, and ornamental graphics in favor of surgical clarity, high tonal contrast, and real-time biomechanical feedback. The system is architected for athletes whose cognitive and physical bandwidth is pushed to peak capacity; every visual affordance communicates instant state awareness, movement kinematics, and objective performance truth.\n\nKey personality attributes:\n- **Surgical & Authoritative:** Interfaces act as diagnostic instrumentation rather than casual tracking sheets.\n- **Bioluminescent High-Contrast:** Vivid signals burst forth from pure OLED depths, ensuring full legibility from 2 to 3 meters away during active sets.\n- **Restrained & Intentional:** Color is reserved strictly for interactive affordances and physiological validation. Uncalibrated states remain neutral until verified.\n\n## Colors\n\nThe color architecture is built exclusively for native Android dark mode. It centers on an OLED power-saving foundation while providing extreme contrast ratios for dynamic movement telemetry.\n\n### Tonal Architecture\n- **Midnight (`#080F14`):** Canvas root and lowest spatial background. Eliminates peripheral glare and maximizes perceived edge acuity.\n- **Deep Card Surface (`#101A22`):** Primary elevated surface tier for modular metric widgets, exercise cards, and grouped task containers.\n- **Slate Surface (`#1E2C3A`):** Secondary container surface dedicated to docked bottom bars, modal sheets, and system toolbars.\n- **Border Hairline (`#263640`):** Crisp 1px structural boundary defining components without spatial shadow bleed.\n\n### Telemetry & Accents\n- **Electric Teal (`#00E5C8`):** The primary kinetic signal. Reserved for active joint vector overlays, primary call-to-actions, live telemetry counts, and active navigation indicators. Primary interactive buttons set on Electric Teal always use Midnight (`#080F14`) typography for maximum readability.\n- **Deep Teal (`#00A896`):** Secondary brand tier for comparative analytics, historical trend lines, and secondary visual states.\n- **Ice White (`#EBEEF2`):** Primary foreground text and high-contrast counters, providing a minimum 15.8:1 contrast ratio against the Midnight base.\n- **Muted Slate (`#8FA3B8`):** Secondary meta-information, technical metric units (`reps`, `bpm`, `°`, `XP`), and inactive structural icons.\n\n### Semantic Telemetry Logic\n- **Success (`#22C997`):** Flawless form execution (Clean Reps $\\ge$ 80%), target achievement, and stable tracking locks.\n- **Warning (`#F5B942`):** Kinematic deviation requiring immediate correction (\"Alinea rodillas\", \"Baja un poco más\") or streak expiration notices.\n- **Error (`#FF5C69`):** Dangerous movement patterns, ballistic rep speeds ($<0.8$s), or system disconnects.\n- **Neutral / Occluded (`#8FA3B8`):** When vision confidence falls below $0.65$, all color states disengage into neutral outlines to prevent inaccurate biomechanical grading.\n\n## Typography\n\nThe typographic hierarchy pairs the geometric power of **Montserrat** with the functional, clinical legibility of **Inter**.\n\n### Roles & Execution\n1. **Montserrat (Display & Performance Numerals):** Utilized for workout timers, dynamic HUD rep counts, and screen anchors. The tight negative tracking (`-0.02em` to `-0.03em`) on heavy weights (`700` and `800`) creates a dense, muscular presence designed to cut through blurred vision and physical exertion.\n2. **Inter (Interface & Telemetry Data):** Serves all contextual reading levels, metric units, dynamic guidance tooltips, and table configurations. High x-height ensures immediate decipherability at small scale.\n\n### Ergonomic Rules\n- **At-a-Distance Telemetry:** During active camera-tracked exercises, rep counters must utilize `display-hero` or `display-lg`. Micro-copy is forbidden during active sets.\n- **Numerical Unit Coupling:** Performance figures rendered in Montserrat must bind directly to their units (e.g., `kg`, `reps`, `bpm`) set in Inter Muted Slate with a strict 4px spacing interval and aligned on the visual baseline.\n- **Coaching Phrasing:** Live feedback cues must never exceed 4 words in Spanish (e.g., \"Mantén el pecho arriba\", \"Profundiza la flexión\").\n\n## Layout & Spacing\n\nThe layout is grounded on a strict 4px/8px modular rhythm engineered for native Android viewports, respecting system status bars, display cutouts, and bottom navigation gesture handles.\n\n### Mobile Grid & Margins\n- **Canvas Margins:** Fixed at 16px (`1rem`) on standard smartphones ($360\\text{dp} - 430\\text{dp}$), expanding to 24px (`1.5rem`) on foldable devices and tablets.\n- **Vertical Rhythm:** Modular components adhere to a 12px gap between adjacent cards and a 24px gap between functional content sections.\n- **Safe Zone Allocation:** In live camera workouts, the central 70% of the viewport remains strictly transparent and unencumbered by opaque panels, allowing uninterrupted visual tracking of human pose landmarks.\n\n### Touch Targets\nAll interactive targets maintain a mandatory minimum touch box of $48 \\times 48\\text{dp}$, exceeding standard tap requirements to ensure reliability for users with sweat-slicked fingers or dynamic movement.\n\n## Elevation & Depth\n\nVisual depth is achieved through an authentic dark-mode tiered surface model rather than artificial drop shadows, maximizing contrast against pure black OLED panels.\n\n### Surface Tiers\n1. **Tier 0 (Root Canvas):** Midnight (`#080F14`) — Represents absolute foundation.\n2. **Tier 1 (Resting Cards):** Deep Card Surface (`#101A22`) + 1px hairline border (`#263640`).\n3. **Tier 2 (Docked Bars & Sheets):** Slate Surface (`#1E2C3A`) + 1px hairline border (`#263640`).\n4. **Tier 3 (Active HUD Badges):** Semi-translucent Slate (`rgba(30, 44, 58, 0.85)`) with an integrated backdrop blur of 12px, suspended directly over camera viewports.\n\n### Outlines and Borders\nDrop shadows with blurred radii are prohibited. Edge separation is maintained entirely via a precise 1px solid stroke using the `Border Hairline` token (`#263640`). Focused or active states transition this 1px stroke into pure `Electric Teal` (`#00E5C8`) with zero glow distortion.\n\n## Shapes\n\nThe design uses a clean geometry that conveys mechanical and athletic precision. Overly round, bubbly shapes are avoided to keep the interface looking technical rather than casual.\n\n### Corner Radii\n- **Interactive Controls (Buttons, Inputs, Selectors):** `12px` border radius. Delivers a tactile, engineered feel while keeping distinct boundary definitions.\n- **Cards & Data Modules:** `16px` border radius. Encapsulates structured information with cohesive outer contours.\n- **Micro Badges & Stat Chips:** `4px` to `8px` corner radius for metric labels and technical difficulty tags.\n- **Floating HUD Guidance Pills:** Fully rounded / capsule (`9999px`) to visually differentiate ephemeral feedback from persistent screen structure.\n\n## Components\n\n### Buttons\n- **Primary Action (CTA):**\n  - Background: Solid Electric Teal (`#00E5C8`).\n  - Text: Montserrat 700 / Inter 600 in Midnight (`#080F14`).\n  - Height: Fixed 52px for primary screen triggers; border-radius 12px.\n  - Interaction: 0.98x scale compression and 90% opacity on press.\n- **Secondary Action:**\n  - Background: Slate Surface (`#1E2C3A`) or Transparent.\n  - Border: 1px hairline Border (`#263640`).\n  - Text: Ice White (`#EBEEF2`).\n  - Height: 48px; border-radius 12px.\n- **Ghost Utility Button:**\n  - Background: Transparent; zero border.\n  - Text: Muted Slate (`#8FA3B8`), switching to Electric Teal upon interaction.\n\n### Modular Cards\n- **Structure:** Deep Card Surface (`#101A22`) with 16px corner radius and 1px Border (`#263640`).\n- **Internal Padding:** 16px standard; 20px on hero workout launchers.\n- **Data Pairing:** Metric readouts group a large Montserrat figure directly above or alongside its Inter regular descriptor.\n\n### Bottom Navigation Bar (Android Native)\n- **Container:** Docked Slate Surface (`#1E2C3A`) with a single top border in `#263640` and system navigation bar insets.\n- **Destinations (4 Tabs):**\n  1. *Hoy* (Daily routine, streak indicator, immediate actions).\n  2. *Progreso* (Analytics, historical calendar, volume load).\n  3. *Misiones* (Gamified daily quests and XP milestones).\n  4. *Perfil* (Biometrics, preferences, device integrations).\n- **Tab State:** Active tab shows Electric Teal (`#00E5C8`) icon and label; inactive tabs render in Muted Slate (`#8FA3B8`).\n\n### Real-Time Biomechanical HUD (Computer Vision Engine)\n- **Landmark Render:** 33-point skeletal landmark vector paths rendered in 2px Electric Teal stroke with 45% default opacity, transitioning to 100% full luminance upon optimal execution.\n- **Repetition Counter:** Centered Montserrat ExtraBold numerals (`56px`) anchored near the lower third of the screen.\n- **Segmented Quality Gauge:** Horizontal segmented bar indicating the ratio of clean reps versus form degradation (`Forma limpia: 82%`).\n- **Kinematic Toast Pill:** Anchored beneath the target joint; high-contrast floating pill showing state glyph alongside short corrective prompts (e.g., Amber Warning with \"Alinea rodillas\").\n\n### Form Fields & Inputs\n- **Field Base:** Deep Card Surface (`#101A22`), 48px height, 12px radius, and 1px border (`#263640`).\n- **Text:** Values rendered in Ice White (`#EBEEF2`); placeholder in Muted Slate (`#8FA3B8`).\n- **Active State:** Border transitions cleanly to Electric Teal (`#00E5C8`).",
+          "colorVariant": "FIDELITY",
+          "overridePrimaryColor": "#00e5c8",
+          "overrideSecondaryColor": "#00a896",
+          "overrideTertiaryColor": "#8fa3b8",
+          "overrideNeutralColor": "#080f14",
+          "spacingScale": 2,
+          "typography": {
+            "body-sm-medium": {
+              "fontFamily": "Inter",
+              "fontSize": "14px",
+              "fontWeight": "500",
+              "lineHeight": "20px",
+              "letterSpacing": "0em"
+            },
+            "display-hero": {
+              "fontFamily": "Montserrat",
+              "fontSize": "56px",
+              "fontWeight": "800",
+              "lineHeight": "64px",
+              "letterSpacing": "-0.03em"
+            },
+            "metric-stat-md": {
+              "fontFamily": "Montserrat",
+              "fontSize": "28px",
+              "fontWeight": "700",
+              "lineHeight": "34px",
+              "letterSpacing": "-0.02em"
+            },
+            "body-base": {
+              "fontFamily": "Inter",
+              "fontSize": "16px",
+              "fontWeight": "400",
+              "lineHeight": "24px",
+              "letterSpacing": "0em"
+            },
+            "headline-md": {
+              "fontFamily": "Montserrat",
+              "fontSize": "20px",
+              "fontWeight": "600",
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em"
+            },
+            "body-bold": {
+              "fontFamily": "Inter",
+              "fontSize": "16px",
+              "fontWeight": "600",
+              "lineHeight": "24px",
+              "letterSpacing": "0em"
+            },
+            "display-lg": {
+              "fontFamily": "Montserrat",
+              "fontSize": "44px",
+              "fontWeight": "800",
+              "lineHeight": "52px",
+              "letterSpacing": "-0.02em"
+            },
+            "label-caps": {
+              "fontFamily": "Inter",
+              "fontSize": "12px",
+              "fontWeight": "700",
+              "lineHeight": "16px",
+              "letterSpacing": "0.06em"
+            },
+            "body-sm": {
+              "fontFamily": "Inter",
+              "fontSize": "14px",
+              "fontWeight": "400",
+              "lineHeight": "20px",
+              "letterSpacing": "0em"
+            },
+            "title-sm": {
+              "fontFamily": "Montserrat",
+              "fontSize": "16px",
+              "fontWeight": "600",
+              "lineHeight": "22px",
+              "letterSpacing": "0em"
+            },
+            "display-md": {
+              "fontFamily": "Montserrat",
+              "fontSize": "32px",
+              "fontWeight": "700",
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em"
+            },
+            "headline-lg": {
+              "fontFamily": "Montserrat",
+              "fontSize": "24px",
+              "fontWeight": "700",
+              "lineHeight": "32px",
+              "letterSpacing": "-0.01em"
+            },
+            "metric-stat-lg": {
+              "fontFamily": "Montserrat",
+              "fontSize": "48px",
+              "fontWeight": "800",
+              "lineHeight": "52px",
+              "letterSpacing": "-0.03em"
+            }
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "gutter": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "margin-tablet": "1.5rem",
+            "margin": "1rem",
+            "space-md": "1rem"
+          },
+          "headlineFontFamily": "Montserrat",
+          "bodyFontFamily": "Inter",
+          "labelFontFamily": "Inter"
+        }
+      },
+      "version": "1"
+    }
+  ]
+}

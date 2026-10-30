@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "surface-container-low": "#0C151C", "on-primary": "#00382f", "status-success": "#22C997", "surface-container-lowest": "#080f14", "outline-variant": "#3b4a46", "status-error": "#FF5C69", "on-error-container": "#ffdad6", "on-tertiary": "#1f3243", "on-primary-fixed": "#00201b", "primary-fixed-dim": "#00dfc3", "secondary-fixed": "#79f7e3", "tertiary-fixed-dim": "#b4c9df", "on-tertiary-container": "#45586b", "status-warning": "#F5B942", "on-primary-fixed-variant": "#005045", "secondary-container": "#00a694", "on-secondary": "#003731", "inverse-surface": "#dce3eb", "on-surface": "#dce3eb", "on-secondary-fixed-variant": "#005047", "tertiary-container": "#bacee4", "border-hairline": "#263640", "secondary-fixed-dim": "#59dbc7", "ice-white": "#EBEEF2", "tertiary-fixed": "#d0e5fb", "primary-fixed": "#41fcde", "inverse-on-surface": "#2a3137", "surface-bright": "#333a40", "slate-surface": "#1E2C3A", "background": "#0d1419", "on-tertiary-fixed": "#081d2e", "error": "#ffb4ab", "surface-container-high": "#242b30", "primary": "#70ffe4", "secondary": "#59dbc7", "on-secondary-fixed": "#00201c", "primary-container": "#00e5c8", "surface-tint": "#00dfc3", "surface-dim": "#0d1419", "on-tertiary-fixed-variant": "#35495b", "on-surface-variant": "#b9cac5", "surface": "#0d1419", "deep-card-surface": "#101A22", "on-background": "#dce3eb", "on-error": "#690005", "on-secondary-container": "#00332c", "tertiary": "#d7eaff", "inverse-primary": "#006b5c", "surface-variant": "#2f363b", "outline": "#84948f", "surface-container": "#192026", "on-primary-container": "#006154", "error-container": "#93000a", "surface-container-highest": "#2f363b" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "margin": "1rem", "space-lg": "1.5rem", "margin-tablet": "1.5rem", "gutter": "1rem", "space-md": "1rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-xl": "2rem" }, fontFamily: { "body-sm-medium": ["Inter"], "title-sm": ["Montserrat"], "label-caps": ["Inter"], "body-base": ["Inter"], "metric-stat-lg": ["Montserrat"], "display-lg": ["Montserrat"], "display-md": ["Montserrat"], "headline-lg": ["Montserrat"], "headline-md": ["Montserrat"], "display-hero": ["Montserrat"], "body-sm": ["Inter"], "metric-stat-md": ["Montserrat"], "body-bold": ["Inter"] }, fontSize: { "body-sm-medium": ["14px", { lineHeight: "20px", letterSpacing: "0em", fontWeight: "500" }], "title-sm": ["16px", { lineHeight: "22px", letterSpacing: "0em", fontWeight: "600" }], "label-caps": ["12px", { lineHeight: "16px", letterSpacing: "0.06em", fontWeight: "700" }], "body-base": ["16px", { lineHeight: "24px", letterSpacing: "0em", fontWeight: "400" }], "metric-stat-lg": ["48px", { lineHeight: "52px", letterSpacing: "-0.03em", fontWeight: "800" }], "display-lg": ["44px", { lineHeight: "52px", letterSpacing: "-0.02em", fontWeight: "800" }], "display-md": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }], "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "700" }], "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }], "display-hero": ["56px", { lineHeight: "64px", letterSpacing: "-0.03em", fontWeight: "800" }], "body-sm": ["14px", { lineHeight: "20px", letterSpacing: "0em", fontWeight: "400" }], "metric-stat-md": ["28px", { lineHeight: "34px", letterSpacing: "-0.02em", fontWeight: "700" }], "body-bold": ["16px", { lineHeight: "24px", letterSpacing: "0em", fontWeight: "600" }] } } } };</script><style>@layer base { html, body { width: 100vw; margin: 0; padding: 0; background-color: #080f14; } body { overscroll-behavior: none; } .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); } .pt-safe { padding-top: env(safe-area-inset-top, 0px); } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style></head><body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen flex flex-col"><header class="fixed top-0 w-full z-40 pt-safe bg-surface-container-lowest/90 backdrop-blur-xl border-b border-border-hairline/60 shadow-[0_1px_8px_rgba(0,0,0,0.35)]"><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-primary-container text-[24px]">fitness_center</span><h1 class="font-headline-md text-headline-md text-ice-white tracking-wide uppercase">Historial</h1></div><div class="flex items-center gap-space-md"><div class="w-8 h-8 rounded-full bg-slate-surface border border-border-hairline flex items-center justify-center text-on-surface-variant hover:text-ice-white transition-colors" title="Perfil"><span class="material-symbols-outlined text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full pt-14 pb-20 bg-surface-container-lowest"><div class="flex flex-col w-full px-margin pb-space-xl">
+<!-- Screen Header & Interactive Telemetry Sync Status -->
+<div class="pt-space-md pb-space-sm flex flex-col gap-1.5"><div class="flex items-center justify-between"><button class="flex items-center gap-2 bg-slate-surface/70 hover:bg-slate-surface px-3 py-1.5 rounded-full border border-border-hairline/80 cursor-pointer select-none transition-all active:scale-[0.98]" id="sync-banner" title="Simulación de sincronización local"><span class="inline-flex items-center justify-center text-status-success" id="sync-status-icon"><span class="inline-block w-2 h-2 rounded-full bg-status-success animate-pulse" id="sync-indicator-dot"></span></span><span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider" id="sync-status-text">Guardado en este dispositivo</span><span class="material-symbols-outlined text-[14px] text-outline ml-0.5">touch_app</span></button><button aria-label="Sincronizar ahora" class="w-8 h-8 rounded-full bg-slate-surface flex items-center justify-center text-outline hover:text-primary transition-colors active:scale-95 border border-border-hairline" id="refresh-sync-btn"><span class="material-symbols-outlined text-[18px]">sync</span></button></div><div class="mt-space-xs flex items-baseline justify-between"><h2 class="font-headline-lg text-headline-lg text-ice-white tracking-tight">Historial</h2><span class="font-label-caps text-[11px] text-outline uppercase tracking-wider">Modo local offline</span></div><p class="font-body-sm text-body-sm text-on-surface-variant">Tus entrenamientos, tu progreso continuo</p></div>
+<!-- Dynamic Summary Metrics Bar -->
+<div class="grid grid-cols-3 gap-2.5 my-space-md"><div class="bg-deep-card-surface border border-border-hairline/60 rounded-xl p-3 flex flex-col justify-between shadow-sm"><div class="flex items-center justify-between text-outline"><span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant">Sesiones</span><span class="material-symbols-outlined text-[16px] text-primary">fitness_center</span></div><div class="mt-2"><span class="font-metric-stat-md text-metric-stat-md text-ice-white tracking-tight" id="summary-sessions">0</span></div></div><div class="bg-deep-card-surface border border-border-hairline/60 rounded-xl p-3 flex flex-col justify-between shadow-sm"><div class="flex items-center justify-between text-outline"><span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant">Reps totales</span><span class="material-symbols-outlined text-[16px] text-secondary">repeat</span></div><div class="mt-2"><span class="font-metric-stat-md text-metric-stat-md text-ice-white tracking-tight" id="summary-reps">0</span></div></div><div class="bg-deep-card-surface border border-border-hairline/60 rounded-xl p-3 flex flex-col justify-between shadow-sm"><div class="flex items-center justify-between text-outline"><span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant">Forma media</span><span class="material-symbols-outlined text-[16px] text-status-success">verified</span></div><div class="mt-2"><span class="font-metric-stat-md text-metric-stat-md text-primary-container tracking-tight" id="summary-form">0%</span></div></div></div>
+<!-- Dual Filter Controls -->
+<div class="flex flex-col gap-space-sm mb-space-md">
+<!-- Period Filters -->
+<div class="flex items-center gap-1.5 p-1 bg-surface-container-low border border-border-hairline/50 rounded-lg w-full">
+<button class="filter-period-btn flex-1 py-1.5 rounded-md text-center font-label-caps text-label-caps transition-all bg-slate-surface text-primary shadow-sm" data-period="semana">
+        Esta semana
+      </button>
+<button class="filter-period-btn flex-1 py-1.5 rounded-md text-center font-label-caps text-label-caps transition-all text-on-surface-variant hover:text-ice-white" data-period="mes">
+        Este mes
+      </button>
+<button class="filter-period-btn flex-1 py-1.5 rounded-md text-center font-label-caps text-label-caps transition-all text-on-surface-variant hover:text-ice-white" data-period="trimestre">
+        Últimos 3 meses
+      </button>
+</div>
+<!-- Exercise Filters (Chips) -->
+<div class="flex items-center gap-2 overflow-x-auto py-1 no-scrollbar">
+<button class="filter-chip px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-caps text-label-caps whitespace-nowrap active:scale-95 transition-all" data-exercise="all">Todos</button>
+<button class="filter-chip px-3 py-1.5 rounded-full bg-slate-surface text-ice-white font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-bright active:scale-95 transition-all" data-exercise="sentadilla">
+        Sentadilla
+      </button>
+<button class="filter-chip px-3 py-1.5 rounded-full bg-slate-surface text-ice-white font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-bright active:scale-95 transition-all" data-exercise="jumping-jack">
+        Jumping jack
+      </button>
+<button class="filter-chip px-3 py-1.5 rounded-full bg-slate-surface text-ice-white font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-bright active:scale-95 transition-all" data-exercise="flexion">
+        Flexión
+      </button>
+</div>
+</div>
+<!-- Dynamic Session List Container -->
+<div class="flex flex-col gap-space-lg" id="session-feed">
+<!-- Populated by JavaScript -->
+</div>
+<!-- Empty state fallback container -->
+<div class="hidden flex-col items-center justify-center p-8 text-center bg-deep-card-surface border border-border-hairline/60 rounded-xl my-4" id="filter-empty-state">
+<div class="w-12 h-12 rounded-full bg-slate-surface flex items-center justify-center text-outline mb-3">
+<span class="material-symbols-outlined text-[28px]">search_off</span>
+</div>
+<h4 class="font-headline-md text-[18px] text-ice-white font-semibold">Sin entrenamientos para este filtro</h4>
+<p class="font-body-sm text-body-sm text-outline mt-1 max-w-xs">No se encontraron sesiones registradas con los criterios seleccionados.</p>
+<button class="mt-4 px-4 py-2 rounded-lg bg-slate-surface text-primary font-label-caps text-label-caps hover:bg-surface-bright active:scale-95 transition-all border border-border-hairline" id="reset-filter-btn">
+      Restablecer filtros
+    </button>
+</div>
+<!-- Floating Action Trigger: + Nuevo Entreno -->
+<div class="sticky bottom-4 mt-space-lg w-full flex justify-center z-30 pointer-events-none">
+<button class="pointer-events-auto h-[52px] px-6 rounded-xl bg-primary-container text-on-primary-container font-headline-md text-[16px] font-bold flex items-center justify-center gap-2 shadow-xl hover:brightness-110 active:scale-95 transition-all w-full max-w-sm" id="new-workout-btn" type="button"><span class="material-symbols-outlined text-[22px]">add_circle</span><span>+ Nuevo entreno</span></button>
+</div>
+</div>
+<!-- Interactive Session Detail Modal (Bottom Sheet) -->
+<div class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-2 flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-surface border border-border-hairline text-ice-white shadow-xl text-body-sm" id="app-toast"><span class="material-symbols-outlined text-primary text-[18px]" id="toast-icon">check_circle</span><span class="font-medium text-[13px]" id="toast-message">Acción completada</span></div><div class="fixed inset-0 z-50 hidden items-end justify-center bg-black/75 backdrop-blur-sm transition-opacity duration-300" id="session-modal">
+<div class="bg-deep-card-surface border-t border-border-hairline w-full max-w-lg rounded-t-2xl p-5 pb-safe shadow-2xl flex flex-col gap-4 transform translate-y-full transition-transform duration-300 max-h-[85vh] overflow-y-auto" id="modal-container">
+<div class="flex items-center justify-between border-b border-border-hairline pb-3">
+<div class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-xl bg-slate-surface flex items-center justify-center text-primary-container" id="modal-icon-container">
+<span class="material-symbols-outlined text-[24px]" id="modal-icon">fitness_center</span>
+</div>
+<div class="flex flex-col">
+<h3 class="font-headline-md text-headline-md text-ice-white font-bold leading-tight" id="modal-title">Sentadilla</h3>
+<span class="font-body-sm text-[13px] text-outline" id="modal-timestamp">Hoy · 08:42 · 06:24 min</span>
+</div>
+</div>
+<button aria-label="Cerrar detalles" class="w-9 h-9 rounded-full bg-slate-surface flex items-center justify-center text-on-surface-variant hover:text-ice-white active:scale-95 transition-colors" id="close-modal-btn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Key Metrics -->
+<div class="grid grid-cols-3 gap-2">
+<div class="bg-surface-container-low p-3 rounded-xl flex flex-col border border-border-hairline/40">
+<span class="font-label-caps text-[11px] text-on-surface-variant uppercase">Reps totales</span>
+<span class="font-metric-stat-md text-[24px] text-ice-white mt-1" id="modal-total-reps">20</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded-xl flex flex-col border border-border-hairline/40">
+<span class="font-label-caps text-[11px] text-on-surface-variant uppercase">Reps válidas</span>
+<span class="font-metric-stat-md text-[24px] text-status-success mt-1" id="modal-valid-reps">18</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded-xl flex flex-col border border-border-hairline/40">
+<span class="font-label-caps text-[11px] text-on-surface-variant uppercase">Forma media</span>
+<span class="font-metric-stat-md text-[24px] text-primary-container mt-1" id="modal-form-pct">86%</span>
+</div>
+</div>
+<!-- XP & Duration pill -->
+<div class="flex items-center justify-between bg-slate-surface/40 p-3 rounded-xl border border-border-hairline/60">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-secondary">schedule</span>
+<span class="font-body-sm text-body-sm text-ice-white">Duración total: <strong id="modal-duration">06:24 min</strong></span>
+</div>
+<span class="bg-primary/10 text-primary-container px-2.5 py-1 rounded-md font-title-sm text-[13px] font-bold flex items-center gap-1" id="modal-xp">
+<span class="material-symbols-outlined text-[15px]">bolt</span> +94 XP
+      </span>
+</div>
+<!-- Technique Insight Section -->
+<div class="p-3.5 rounded-xl border border-border-hairline bg-slate-surface/30 flex flex-col gap-1.5" id="modal-insight-box"><div class="flex items-center gap-2 text-status-warning"><span class="material-symbols-outlined text-[18px]">info</span><span class="font-label-caps text-label-caps uppercase tracking-wider">Observación de técnica</span></div><p class="font-body-sm text-body-sm text-ice-white leading-relaxed" id="modal-insight-text">Falta de profundidad en la flexión en las reps finales.</p><div class="mt-2 pt-2 border-t border-border-hairline/40 flex items-center justify-between text-on-surface-variant font-label-caps text-[11px]"><span>Desglose por serie: 12 valid / 2 corregidas</span><span class="text-primary-container font-semibold">Cadencia 2.4s</span></div></div>
+<button class="w-full py-3 rounded-xl bg-slate-surface text-ice-white hover:bg-surface-bright font-title-sm text-title-sm font-semibold transition-colors mt-1 active:scale-[0.99] border border-border-hairline" id="modal-primary-action">
+      Volver al historial
+    </button>
+</div>
+</div>
+<script>
+  // Sample dataset calibrated with period, exercise, and grounded technique faults
+  const WORKOUT_SESSIONS = [
+    {
+      id: "s1",
+      exerciseId: "sentadilla",
+      name: "Sentadilla",
+      icon: "airline_seat_recline_extra",
+      iconColor: "text-primary-container",
+      dateGroup: "HOY · 29 OCT",
+      period: "semana", // week & month & quarter
+      time: "Hoy · 08:42",
+      duration: "06:24 min",
+      totalReps: 20,
+      validReps: 18,
+      formPct: 86,
+      xp: 94,
+      faultInsight: "Insight técnico: Falta de profundidad en la flexión en las reps finales."
+    },
+    {
+      id: "s2",
+      exerciseId: "flexion",
+      name: "Flexión",
+      icon: "fitness_center",
+      iconColor: "text-secondary",
+      dateGroup: "AYER · 28 OCT",
+      period: "semana",
+      time: "Ayer · 19:15",
+      duration: "04:50 min",
+      totalReps: 12,
+      validReps: 10,
+      formPct: 79,
+      xp: 60,
+      faultInsight: "Insight técnico: Mantén el tronco alineado sin curvar la espalda."
+    },
+    {
+      id: "s3",
+      exerciseId: "jumping-jack",
+      name: "Jumping jack",
+      icon: "directions_run",
+      iconColor: "text-primary",
+      dateGroup: "26 OCT",
+      period: "semana",
+      time: "26 Oct · 17:30",
+      duration: "08:10 min",
+      totalReps: 45,
+      validReps: 45,
+      formPct: 94,
+      xp: 120,
+      faultInsight: null // No technique fault -> no insight badge per specification
+    },
+    {
+      id: "s4",
+      exerciseId: "sentadilla",
+      name: "Sentadilla",
+      icon: "airline_seat_recline_extra",
+      iconColor: "text-primary-container",
+      dateGroup: "20 OCT",
+      period: "mes",
+      time: "20 Oct · 09:15",
+      duration: "07:30 min",
+      totalReps: 25,
+      validReps: 22,
+      formPct: 82,
+      xp: 110,
+      faultInsight: "Insight técnico: Rodillas convergen ligeramente hacia adentro al subir."
+    },
+    {
+      id: "s5",
+      exerciseId: "flexion",
+      name: "Flexión",
+      icon: "fitness_center",
+      iconColor: "text-secondary",
+      dateGroup: "14 OCT",
+      period: "mes",
+      time: "14 Oct · 18:40",
+      duration: "05:15 min",
+      totalReps: 16,
+      validReps: 15,
+      formPct: 88,
+      xp: 85,
+      faultInsight: null // Execution clean
+    },
+    {
+      id: "s6",
+      exerciseId: "jumping-jack",
+      name: "Jumping jack",
+      icon: "directions_run",
+      iconColor: "text-primary",
+      dateGroup: "28 SEP",
+      period: "trimestre",
+      time: "28 Sep · 11:00",
+      duration: "10:00 min",
+      totalReps: 60,
+      validReps: 55,
+      formPct: 87,
+      xp: 150,
+      faultInsight: "Insight técnico: Ritmo irregular en la fase de descenso de brazos."
+    },
+    {
+      id: "s7",
+      exerciseId: "sentadilla",
+      name: "Sentadilla",
+      icon: "airline_seat_recline_extra",
+      iconColor: "text-primary-container",
+      dateGroup: "15 AGO",
+      period: "trimestre",
+      time: "15 Ago · 08:00",
+      duration: "08:00 min",
+      totalReps: 30,
+      validReps: 28,
+      formPct: 90,
+      xp: 130,
+      faultInsight: null // Clean execution
+    }
+  ];
+
+  let currentPeriod = "semana";
+  let currentExercise = "all";
+
+  // Check if session qualifies for period
+  function sessionMatchesPeriod(sessionPeriod, selectedPeriod) {
+    if (selectedPeriod === "trimestre") return true; // everything in last 3 months
+    if (selectedPeriod === "mes") return sessionPeriod === "semana" || sessionPeriod === "mes";
+    if (selectedPeriod === "semana") return sessionPeriod === "semana";
+    return true;
+  }
+
+  function renderFeedAndMetrics() {
+    const feed = document.getElementById("session-feed");
+    const emptyState = document.getElementById("filter-empty-state");
+    const summarySessions = document.getElementById("summary-sessions");
+    const summaryReps = document.getElementById("summary-reps");
+    const summaryForm = document.getElementById("summary-form");
+
+    // Filter sessions
+    const filtered = WORKOUT_SESSIONS.filter(s => {
+      const matchPeriod = sessionMatchesPeriod(s.period, currentPeriod);
+      const matchEx = currentExercise === "all" || s.exerciseId === currentExercise;
+      return matchPeriod && matchEx;
+    });
+
+    // Update dynamic summary metrics
+    const totalSessions = filtered.length;
+    const totalReps = filtered.reduce((acc, s) => acc + s.totalReps, 0);
+    const avgForm = totalSessions > 0 ? Math.round(filtered.reduce((acc, s) => acc + s.formPct, 0) / totalSessions) : 0;
+
+    summarySessions.textContent = totalSessions;
+    summaryReps.textContent = totalReps;
+    summaryForm.textContent = totalSessions > 0 ? `${avgForm}%` : "0%";
+
+    if (totalSessions === 0) {
+      feed.innerHTML = "";
+      emptyState.classList.remove("hidden");
+      emptyState.classList.add("flex");
+      return;
+    }
+
+    emptyState.classList.add("hidden");
+    emptyState.classList.remove("flex");
+
+    // Group filtered items by dateGroup
+    const groups = {};
+    filtered.forEach(session => {
+      if (!groups[session.dateGroup]) groups[session.dateGroup] = [];
+      groups[session.dateGroup].push(session);
+    });
+
+    let html = "";
+    Object.keys(groups).forEach(date => {
+      const list = groups[date];
+      html += `
+        <div class="session-group flex flex-col gap-2.5">
+          <div class="flex items-center justify-between px-1">
+            <span class="font-label-caps text-label-caps ${date.includes('HOY') ? 'text-primary' : 'text-on-surface-variant'} tracking-widest uppercase">${date}</span>
+            <span class="font-body-sm text-[12px] text-outline">${list.length} ${list.length === 1 ? 'sesión computada' : 'sesiones computadas'}</span>
+          </div>
+      `;
+
+      list.forEach(item => {
+        const formColor = item.formPct >= 85 ? 'text-status-success' : (item.formPct >= 75 ? 'text-status-warning' : 'text-status-error');
+        html += `
+          <div class="session-card bg-deep-card-surface border border-border-hairline/60 rounded-xl p-4 flex flex-col gap-3 shadow-md hover:border-primary-container/40 transition-all cursor-pointer active:scale-[0.99]" data-id="${item.id}">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-slate-surface flex items-center justify-center ${item.iconColor}">
+                  <span class="material-symbols-outlined text-[24px]">${item.icon}</span>
+                </div>
+                <div class="flex flex-col">
+                  <h3 class="font-headline-md text-[18px] text-ice-white font-bold leading-tight">${item.name}</h3>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span class="font-body-sm text-body-sm text-outline">${item.time} · ${item.duration}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col items-end">
+                <span class="bg-primary/10 text-primary-container px-2 py-0.5 rounded-md font-title-sm text-[13px] tracking-tight flex items-center gap-1 font-bold">
+                  <span class="material-symbols-outlined text-[14px]">bolt</span> +${item.xp} XP
+                </span>
+              </div>
+            </div>
+            <div class="bg-surface-container-low p-2.5 rounded-lg flex items-center justify-between border border-border-hairline/40">
+              <span class="font-body-sm text-body-sm text-ice-white">Repeticiones totales: <strong>${item.totalReps}</strong> · <span class="${formColor} font-semibold">${item.validReps} válidas</span></span>
+              <span class="font-body-sm text-body-sm text-on-surface-variant">Forma media <span class="${formColor} font-bold">${item.formPct}%</span></span>
+            </div>
+            ${item.faultInsight ? `
+              <div class="flex items-center justify-between text-[13px] bg-slate-surface/40 border border-status-warning/20 px-3 py-2 rounded-lg">
+                <div class="flex items-center gap-1.5 text-status-warning">
+                  <span class="material-symbols-outlined text-[18px]">info</span>
+                  <span class="font-body-sm-medium text-body-sm-medium text-ice-white">${item.faultInsight}</span>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+    });
+
+    feed.innerHTML = html;
+
+    // Attach click events for session modal
+    document.querySelectorAll(".session-card").forEach(card => {
+      card.addEventListener("click", () => {
+        const id = card.getAttribute("data-id");
+        const session = WORKOUT_SESSIONS.find(s => s.id === id);
+        if (session) openModal(session);
+      });
+    });
+  }
+
+  // Filter interaction handlers
+  const periodButtons = document.querySelectorAll('.filter-period-btn');
+  const chipButtons = document.querySelectorAll('.filter-chip');
+
+  periodButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      periodButtons.forEach(b => {
+        b.classList.remove('bg-slate-surface', 'text-primary', 'shadow-sm');
+        b.classList.add('text-on-surface-variant');
+      });
+      btn.classList.add('bg-slate-surface', 'text-primary', 'shadow-sm');
+      btn.classList.remove('text-on-surface-variant');
+      currentPeriod = btn.getAttribute('data-period');
+      renderFeedAndMetrics();
+    });
+  });
+
+  chipButtons.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chipButtons.forEach(c => {
+        c.classList.remove('bg-primary-container', 'text-on-primary-container');
+        c.classList.add('bg-slate-surface', 'text-ice-white');
+      });
+      chip.classList.remove('bg-slate-surface', 'text-ice-white');
+      chip.classList.add('bg-primary-container', 'text-on-primary-container');
+
+      currentExercise = chip.getAttribute('data-exercise');
+      renderFeedAndMetrics();
+    });
+  });
+
+  const resetBtn = document.getElementById('reset-filter-btn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      currentPeriod = "trimestre";
+      currentExercise = "all";
+
+      periodButtons.forEach(b => {
+        b.classList.remove('bg-slate-surface', 'text-primary', 'shadow-sm');
+        b.classList.add('text-on-surface-variant');
+        if (b.getAttribute('data-period') === "trimestre") {
+          b.classList.add('bg-slate-surface', 'text-primary', 'shadow-sm');
+          b.classList.remove('text-on-surface-variant');
+        }
+      });
+
+      chipButtons.forEach(c => {
+        c.classList.remove('bg-primary-container', 'text-on-primary-container');
+        c.classList.add('bg-slate-surface', 'text-ice-white');
+        if (c.getAttribute('data-exercise') === "all") {
+          c.classList.add('bg-primary-container', 'text-on-primary-container');
+          c.classList.remove('bg-slate-surface', 'text-ice-white');
+        }
+      });
+
+      renderFeedAndMetrics();
+    });
+  }
+
+  // Interactive Synchronization Cycle
+  // States: 0 = 'Guardado en este dispositivo', 1 = 'Sincronización completada', 2 = 'No se pudo sincronizar · Reintentar'
+  let syncState = 0;
+  const syncBanner = document.getElementById('sync-banner');
+  const syncIcon = document.getElementById('sync-status-icon');
+  const syncText = document.getElementById('sync-status-text');
+  const refreshBtn = document.getElementById('refresh-sync-btn');
+
+  function triggerSync() {
+    // Show spinner & text
+    syncIcon.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin text-primary">sync</span>`;
+    syncText.textContent = "Sincronizando...";
+    syncBanner.classList.add('border-primary/50');
+
+    const topSyncIcon = refreshBtn.querySelector('.material-symbols-outlined');
+    if (topSyncIcon) topSyncIcon.classList.add('animate-spin');
+
+    setTimeout(() => {
+      if (topSyncIcon) topSyncIcon.classList.remove('animate-spin');
+      syncBanner.classList.remove('border-primary/50');
+
+      if (syncState === 0) {
+        // Success
+        syncIcon.innerHTML = `<span class="material-symbols-outlined text-[16px] text-status-success">check_circle</span>`;
+        syncText.textContent = "Sincronización completada";
+        syncBanner.classList.add('border-status-success/40');
+        syncState = 1;
+      } else if (syncState === 1) {
+        // Error state for testing
+        syncIcon.innerHTML = `<span class="material-symbols-outlined text-[16px] text-status-error">error</span>`;
+        syncText.textContent = "No se pudo sincronizar · Reintentar";
+        syncBanner.classList.remove('border-status-success/40');
+        syncBanner.classList.add('border-status-error/40');
+        syncState = 2;
+      } else {
+        // Return to saved locally
+        syncIcon.innerHTML = `<span id="sync-indicator-dot" class="inline-block w-2 h-2 rounded-full bg-status-success animate-pulse"></span>`;
+        syncText.textContent = "Guardado en este dispositivo";
+        syncBanner.classList.remove('border-status-error/40');
+        syncState = 0;
+      }
+    }, 1200);
+  }
+
+  if (syncBanner) syncBanner.addEventListener('click', triggerSync);
+  if (refreshBtn) refreshBtn.addEventListener('click', triggerSync);
+
+  // Modal logic
+  const modal = document.getElementById("session-modal");
+  const modalContainer = document.getElementById("modal-container");
+  const closeModalBtn = document.getElementById("close-modal-btn");
+  const modalPrimaryAction = document.getElementById("modal-primary-action");
+
+  function openModal(session) {
+    document.getElementById("modal-title").textContent = session.name;
+    document.getElementById("modal-icon").textContent = session.icon;
+    document.getElementById("modal-icon-container").className = `w-11 h-11 rounded-xl bg-slate-surface flex items-center justify-center ${session.iconColor}`;
+    document.getElementById("modal-timestamp").textContent = `${session.dateGroup} · ${session.time} · ${session.duration}`;
+    document.getElementById("modal-total-reps").textContent = session.totalReps;
+    document.getElementById("modal-valid-reps").textContent = session.validReps;
+    document.getElementById("modal-form-pct").textContent = `${session.formPct}%`;
+    document.getElementById("modal-duration").textContent = session.duration;
+    document.getElementById("modal-xp").innerHTML = `<span class="material-symbols-outlined text-[15px]">bolt</span> +${session.xp} XP`;
+
+    const insightBox = document.getElementById("modal-insight-box");
+    const insightText = document.getElementById("modal-insight-text");
+    if (session.faultInsight) {
+      insightBox.classList.remove("hidden");
+      insightText.textContent = session.faultInsight.replace('Insight técnico: ', '');
+    } else {
+      insightBox.classList.remove("hidden");
+      insightText.textContent = "Técnica óptima ejecutada. No se registraron desviaciones posturales ni faltas de rango.";
+    }
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    setTimeout(() => {
+      modalContainer.classList.remove("translate-y-full");
+    }, 10);
+  }
+
+  function closeModal() {
+    modalContainer.classList.add("translate-y-full");
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }, 280);
+  }
+
+  if (closeModalBtn) closeModalBtn.addEventListener("click", closeModal);
+  if (modalPrimaryAction) modalPrimaryAction.addEventListener("click", closeModal);
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  // Initial render
+  renderFeedAndMetrics();
+</script></main><nav class="fixed bottom-0 w-full z-40 pb-safe bg-slate-surface/95 backdrop-blur-xl border-t border-border-hairline shadow-[0_-4px_16px_rgba(0,0,0,0.4)]" data-active-classes="text-primary-container font-semibold"><div class="flex justify-around items-center h-16 px-space-xs"><button class="nav-tab flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] text-outline hover:text-ice-white transition-colors" data-tab="hoy" type="button"><span class="material-symbols-outlined text-[24px]">local_fire_department</span><span class="font-label-caps text-label-caps tracking-wider">Hoy</span></button><button aria-current="page" class="nav-tab flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] transition-colors text-primary-container font-semibold" data-tab="progreso" type="button"><span class="material-symbols-outlined text-[24px]">query_stats</span><span class="font-label-caps text-label-caps tracking-wider">Progreso</span></button><button class="nav-tab flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] text-outline hover:text-ice-white transition-colors" data-tab="misiones" type="button"><span class="material-symbols-outlined text-[24px]">military_tech</span><span class="font-label-caps text-label-caps tracking-wider">Misiones</span></button><button class="nav-tab flex flex-col items-center justify-center gap-0.5 min-w-[64px] min-h-[48px] text-outline hover:text-ice-white transition-colors" data-tab="perfil" type="button"><span class="material-symbols-outlined text-[24px]">tune</span><span class="font-label-caps text-label-caps tracking-wider">Perfil</span></button></div></nav>
+</body></html>
