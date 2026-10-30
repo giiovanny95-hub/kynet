@@ -18,7 +18,7 @@ import { DEFAULT_T, DEFAULT_TTOP, qRomJJ, qRomSquat } from './scoring/rom';
 import { qTempo, tempoPlateau } from './scoring/tempo';
 import { jjSignals } from './signals/jumpingJack';
 import { pushUpSignals } from './signals/pushUp';
-import { squatSignals } from './signals/squat';
+import { squatSignals, type HeelSample } from './signals/squat';
 import type { JointId, ModelSpec, Pose, PoseFrame } from './types';
 
 export type EngineExercise = 'squat' | 'jumpingJack' | 'pushUp';
@@ -67,6 +67,8 @@ export interface EngineState {
   readonly pu: PushUpTrack;
   /** Señales secundarias de la repetición en curso: `τ` en el extremo (sentadilla) y asimetría máxima en el pico (jumping jack). */
   readonly acc: RepAcc;
+  /** Sentadilla: últimas muestras válidas del talón de pie, por lado (base de SQ_HEELS_LIFT; sobrevive entre repeticiones). */
+  readonly heelStand: { readonly l: readonly HeelPoint[]; readonly r: readonly HeelPoint[] };
 }
 
 type PauseCause = 'VIS_LOW' | 'VIEW' | 'OUT_OF_FRAME' | 'POSTURE';
@@ -88,14 +90,36 @@ const EDGE_FRAMES = 3;
 const RESUME_FRAMES = 5;
 const EDGE_MARGIN = 0.02;
 
+/** Una muestra de la altura del talón respecto al tobillo (unidades de alto de cuadro). */
+interface HeelPoint {
+  readonly tMs: number;
+  readonly h: number;
+}
+
+/**
+ * Talón de un lado durante la repetición (SQ_HEELS_LIFT, plan A1 rev. 2): base de pie (mediana, `null` = lado
+ * desactivado), últimas muestras de la fase, muestras alrededor del fondo, visibilidad mínima y si fue visible siempre.
+ */
+interface HeelTrack {
+  readonly base: number | null;
+  readonly recent: readonly HeelPoint[];
+  readonly peak: readonly HeelPoint[];
+  readonly tExtremeMs: number | null;
+  readonly minV: number;
+  readonly ok: boolean;
+}
+
 interface RepAcc {
   readonly tauBottom: number | null;
   readonly asymMax: number | null;
   /** Flexión: θb con signo de la peor alineación en el fondo y la subida. */
   readonly bodySigned: number | null;
+  /** Sentadilla: talones izquierdo y derecho para SQ_HEELS_LIFT. */
+  readonly heelL: HeelTrack | null;
+  readonly heelR: HeelTrack | null;
 }
 
-const EMPTY_ACC: RepAcc = { tauBottom: null, asymMax: null, bodySigned: null };
+const EMPTY_ACC: RepAcc = { tauBottom: null, asymMax: null, bodySigned: null, heelL: null, heelR: null };
 
 export type ScoredRep = RepEvent & {
   readonly q?: number;
@@ -166,6 +190,7 @@ export function createEngine(cfg: EngineConfig): EngineState {
     attempts: 0,
     pu: PUSHUP_TRACK0,
     acc: EMPTY_ACC,
+    heelStand: { l: [], r: [] },
   };
 }
 
@@ -219,6 +244,81 @@ const JJ_ASYM_DEG = 35;
 const P_SOFT_MILD = 0.1;
 const P_SOFT_SEVERE = 0.25;
 const PU_HIPS_DEG = 160;
+/** SQ_HEELS_LIFT: subida del talón respecto al tobillo, en fracción del alto del cuadro (spec §7). */
+const HEEL_LIFT_MIN = 0.02;
+// Medianas en ventanas de tiempo, no en cuadros: con térmica la cámara baja a 20-25 FPS (plan A1, rev. 2).
+const HEEL_BASE_WINDOW_MS = 500;
+const HEEL_PEAK_HALF_WINDOW_MS = 150;
+const HEEL_MIN_SAMPLES = 3;
+/** Tamaño máximo de cada búfer: en el worklet nada crece sin límite. */
+const HEEL_RING = 16;
+
+function median(xs: readonly number[]): number {
+  'worklet';
+  const a = [...xs].sort((x, y) => x - y);
+  const m = a.length >> 1;
+  return a.length % 2 === 1 ? (a[m] ?? 0) : ((a[m - 1] ?? 0) + (a[m] ?? 0)) / 2;
+}
+
+function pushRing(ring: readonly HeelPoint[], p: HeelPoint): HeelPoint[] {
+  'worklet';
+  const next = [...ring, p];
+  return next.length > HEEL_RING ? next.slice(next.length - HEEL_RING) : next;
+}
+
+/** De pie: guarda solo las muestras con talón y tobillo visibles. */
+function heelStandStep(ring: readonly HeelPoint[], sample: HeelSample | null, tMs: number): readonly HeelPoint[] {
+  'worklet';
+  return sample === null ? ring : pushRing(ring, { tMs, h: sample.h });
+}
+
+/** Base de pie: mediana de los últimos 500 ms antes de la bajada; `null` con menos de 3 muestras. */
+function heelBase(ring: readonly HeelPoint[], tMs: number): number | null {
+  'worklet';
+  const hs: number[] = [];
+  for (const p of ring) if (tMs - p.tMs <= HEEL_BASE_WINDOW_MS) hs.push(p.h);
+  return hs.length >= HEEL_MIN_SAMPLES ? median(hs) : null;
+}
+
+/**
+ * Un cuadro de la repetición. El primero fija la base de pie; cada fondo nuevo (`newExtreme`) reinicia la ventana del
+ * pico con las muestras de los 150 ms previos, y las siguientes entran hasta 150 ms después. Un talón no visible en
+ * cualquier cuadro desactiva el lado para toda la repetición.
+ */
+function heelTrackStep(
+  t: HeelTrack | null,
+  sample: HeelSample | null,
+  tMs: number,
+  stand: readonly HeelPoint[],
+  newExtreme: boolean,
+): HeelTrack {
+  'worklet';
+  const cur: HeelTrack = t ?? { base: heelBase(stand, tMs), recent: [], peak: [], tExtremeMs: null, minV: 1, ok: true };
+  if (sample === null) return { ...cur, ok: false };
+  const p = { tMs, h: sample.h };
+  const recent = pushRing(cur.recent, p);
+  let peak = cur.peak;
+  let tExtremeMs = cur.tExtremeMs;
+  if (newExtreme) {
+    tExtremeMs = tMs;
+    peak = recent.filter((q) => q.tMs >= tMs - HEEL_PEAK_HALF_WINDOW_MS);
+  } else if (tExtremeMs !== null && tMs <= tExtremeMs + HEEL_PEAK_HALF_WINDOW_MS) {
+    peak = pushRing(peak, p);
+  }
+  return { base: cur.base, recent, peak, tExtremeMs, minV: Math.min(cur.minV, sample.v), ok: cur.ok };
+}
+
+/** Elevación (mediana en el fondo − base de pie) del lado válido mejor visible; `null` si ningún lado cumple. */
+function heelLift(acc: RepAcc): number | null {
+  'worklet';
+  let best: HeelTrack | null = null;
+  for (const t of [acc.heelL, acc.heelR]) {
+    if (t === null || !t.ok || t.base === null || t.peak.length < HEEL_MIN_SAMPLES) continue;
+    if (best === null || t.minV > best.minV) best = t;
+  }
+  if (best === null || best.base === null) return null;
+  return median(best.peak.map((p) => p.h)) - best.base;
+}
 
 /** Faltas suaves de una repetición válida (spec §7) y sus penalizaciones para P_form. */
 function softFaults(exercise: EngineExercise, rep: RepEvent, acc: RepAcc, tauCal: number): { faults: FeedbackCode[]; penalties: number[] } {
@@ -228,6 +328,11 @@ function softFaults(exercise: EngineExercise, rep: RepEvent, acc: RepAcc, tauCal
   if (exercise === 'squat') {
     if (acc.tauBottom !== null && acc.tauBottom > Math.max(TRUNK_LEAN_MIN_DEG, tauCal + TRUNK_LEAN_MARGIN_DEG)) {
       faults.push('SQ_TRUNK_LEAN');
+      penalties.push(P_SOFT_MILD);
+    }
+    const lift = heelLift(acc);
+    if (lift !== null && lift > HEEL_LIFT_MIN) {
+      faults.push('SQ_HEELS_LIFT');
       penalties.push(P_SOFT_MILD);
     }
     const [lo, hi] = tempoPlateau('squat');
@@ -393,6 +498,17 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
     // τ en el cuadro del extremo: se actualiza cada vez que la FSM registra un mínimo nuevo.
     const descending = r.s.phase === 'DESCENDING' || r.s.phase === 'INFLECTION';
     if (descending && r.s.tExtremeMs === tMs) acc = { ...acc, tauBottom: sig.tau };
+    // Talones: de pie se guardan muestras para la base; en la fase (bajada, fondo y subida) se sigue el pico.
+    if (!paused && (descending || r.s.phase === 'ASCENDING')) {
+      const newExtreme = descending && r.s.tExtremeMs === tMs;
+      acc = {
+        ...acc,
+        heelL: heelTrackStep(acc.heelL, sig.heelL, tMs, s.heelStand.l, newExtreme),
+        heelR: heelTrackStep(acc.heelR, sig.heelR, tMs, s.heelStand.r, newExtreme),
+      };
+    } else if (!paused && (r.s.phase === 'IDLE' || r.s.phase === 'COMPLETED')) {
+      s = { ...s, heelStand: { l: heelStandStep(s.heelStand.l, sig.heelL, tMs), r: heelStandStep(s.heelStand.r, sig.heelR, tMs) } };
+    }
   }
   s = { ...s, fsm: r.s, acc };
 

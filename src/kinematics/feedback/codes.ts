@@ -1,6 +1,7 @@
 export type FeedbackCode =
   | 'SQ_DEPTH_SHALLOW'
   | 'SQ_TRUNK_LEAN'
+  | 'SQ_HEELS_LIFT'
   | 'SQ_TOO_FAST'
   | 'SQ_TOO_SLOW'
   | 'JJ_ARMS_LOW'
@@ -27,6 +28,7 @@ export type Severity = 'low' | 'medium' | 'high' | 'pause';
 export const SEVERITY: Readonly<Record<FeedbackCode, Severity>> = {
   SQ_DEPTH_SHALLOW: 'high',
   SQ_TRUNK_LEAN: 'medium',
+  SQ_HEELS_LIFT: 'medium',
   SQ_TOO_FAST: 'low',
   SQ_TOO_SLOW: 'low',
   JJ_ARMS_LOW: 'high',

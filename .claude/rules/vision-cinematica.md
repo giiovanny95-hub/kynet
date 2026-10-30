@@ -18,3 +18,5 @@ paths:
 - **FPS, térmica y conteo solo valen medidos en dispositivo real** (Pixel 7 Pro, S26 Ultra), nunca en emulador. (CLAUDE.md)
 - **El reloj de la sesión sigue emitiendo estados tras `done`:** cualquier efecto "al terminar" necesita una guarda para ejecutarse una vez (se guardaban sesiones duplicadas). (2026-10-30)
 - **No cambies umbrales para que pase un fixture;** propón el cambio con la razón (`/benchmark-fsm`). (CLAUDE.md)
+- **Las faltas por umbral sobre señales ruidosas se miden con medianas en ventanas de tiempo (base de pie y pico), nunca con el máximo de la fase:** el máximo de ~75 cuadros con σ 0,008 dio un 3 % de avisos falsos de `SQ_HEELS_LIFT`; con medianas, 0/160. Las ventanas van en ms, no en cuadros (con térmica se baja a 20-25 FPS). (2026-10-30, A1)
+- **Un aviso falso es peor que uno perdido:** 0 falsos es obligatorio; la sensibilidad puede quedar por debajo de la meta con el ruido extremo hasta medir el ruido real (fixtures de B3). (2026-10-30, A1)

@@ -87,6 +87,7 @@
   "feedback": {
     "SQ_DEPTH_SHALLOW": "Go a bit lower",
     "SQ_TRUNK_LEAN": "Chest up",
+    "SQ_HEELS_LIFT": "Keep your heels down",
     "SQ_TOO_FAST": "Rise without bouncing",
     "SQ_TOO_SLOW": "Keep a steady pace",
     "JJ_ARMS_LOW": "Raise your arms higher",

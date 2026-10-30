@@ -15,6 +15,14 @@ export interface GenSquatOptions {
   readonly trunkLeanDeg?: number;
   /** Guiñada del cuerpo respecto a la cámara: 90 = de perfil (por defecto), 0 = de frente. */
   readonly yawDeg?: number;
+  /** Subida del talón en el fondo (fracción del alto del cuadro), proporcional a la profundidad. */
+  readonly heelLiftFrac?: number;
+  /** Visibilidad de los talones (por defecto 0,95, como el resto). */
+  readonly heelV?: number;
+  /** Visibilidad de los talones de pie y al iniciar la flexión (profundidad < 30 %, antes de que la FSM entre en la bajada); por defecto la de `heelV`. */
+  readonly heelVStanding?: number;
+  /** El talón empieza a subir estos ms antes que la rodilla (por defecto 0: a la vez). */
+  readonly heelLeadMs?: number;
 }
 
 const W = 720;
@@ -77,6 +85,11 @@ export function genSquat(o: GenSquatOptions): PoseFrame[] {
     const knee = kneeAt(tMs / 1000, o);
     const depth = Math.min(1, Math.max(0, (TOP_DEG - knee) / (TOP_DEG - 90)));
     const sk = skeleton(knee, (o.trunkLeanDeg ?? 0) * depth * DEG);
+    const kneeLead = kneeAt((tMs + (o.heelLeadMs ?? 0)) / 1000, o);
+    const heelDepth = Math.min(1, Math.max(0, (TOP_DEG - kneeLead) / (TOP_DEG - 90)));
+    const heel = sk.heel;
+    if (heel) sk.heel = { x: heel.x, y: heel.y - (o.heelLiftFrac ?? 0) * Math.max(depth, heelDepth) };
+    const heelV = depth < 0.3 ? (o.heelVStanding ?? o.heelV ?? 0.95) : (o.heelV ?? 0.95);
     const raw: Landmark[] = Array.from({ length: 33 }, () => ({ x: 0, y: 0, z: 0, v: 0 }));
     for (const [part, idx, dx] of PARTS) {
       const p = sk[part];
@@ -85,7 +98,7 @@ export function genSquat(o: GenSquatOptions): PoseFrame[] {
       const spread = (dx < 0 ? -0.12 : 0.12) * Math.cos((o.yawDeg ?? 90) * DEG);
       const xu = p.x + dx + spread + o.sigma * gaussian(rng);
       const yu = p.y + o.sigma * gaussian(rng);
-      raw[idx] = { x: xu / (W / H), y: yu, z: 0, v: 0.95 };
+      raw[idx] = { x: xu / (W / H), y: yu, z: 0, v: part === 'heel' ? heelV : 0.95 };
     }
     const meta: FrameMeta = { tMs, width: W, height: H, rotation: 0, mirrored: false };
     frames.push({ meta, model: 'blazepose33', raw });

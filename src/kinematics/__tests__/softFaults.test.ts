@@ -2,12 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { createEngine, step, type EngineEvent, type EngineExercise, type ScoredRep } from '../engine';
 import type { FeedbackEvent } from '../feedback/codes';
 import { BLAZEPOSE33 } from '../landmarks/models/blazepose33';
+import { MOVENET17 } from '../landmarks/models/movenet17';
 import { genJumpingJack } from '../tools/gen/jumpingJack';
 import { genSquat } from '../tools/gen/squat';
-import type { PoseFrame } from '../types';
+import type { ModelSpec, PoseFrame } from '../types';
 
-function run(frames: readonly PoseFrame[], exercise: EngineExercise = 'squat'): EngineEvent[] {
-  let s = createEngine({ exercise, model: BLAZEPOSE33 });
+function run(frames: readonly PoseFrame[], exercise: EngineExercise = 'squat', model: ModelSpec = BLAZEPOSE33): EngineEvent[] {
+  let s = createEngine({ exercise, model });
   const out: EngineEvent[] = [];
   for (const f of frames) {
     const r = step(s, f);
@@ -66,6 +67,62 @@ describe('faltas suaves y P_form', () => {
     const reps = valid(run(genJumpingJack({ reps: 5, periodS: 0.8, sigma: 0.004, seed: 2, fps: 30 }), 'jumpingJack'));
     expect(reps).toHaveLength(5);
     for (const r of reps) expect(r.faults).not.toContain('JJ_ASYMMETRY');
+  });
+});
+
+/** Mismos cuadros reducidos a los 17 puntos de MoveNet (sin talones). */
+function toMoveNet(frames: readonly PoseFrame[]): PoseFrame[] {
+  return frames.map((f) => {
+    const raw = Array.from({ length: 17 }, () => ({ x: 0, y: 0, z: 0, v: 0 }));
+    for (const [joint, idx] of Object.entries(MOVENET17.index)) {
+      const src = f.raw[BLAZEPOSE33.index[joint as keyof typeof BLAZEPOSE33.index] ?? -1];
+      if (src && idx !== undefined) raw[idx] = { ...src, z: 0 };
+    }
+    return { ...f, model: 'movenet17', raw };
+  });
+}
+
+describe('talones que se levantan en sentadilla (SQ_HEELS_LIFT)', () => {
+  it('el talón sube un 3 % del alto en el fondo con v 0,9: SQ_HEELS_LIFT y q × 0,9', () => {
+    const flat = valid(run(genSquat({ ...base, heelV: 0.9 })));
+    const lifted = valid(run(genSquat({ ...base, heelV: 0.9, heelLiftFrac: 0.03 })));
+    expect(flat).toHaveLength(3);
+    expect(lifted).toHaveLength(3);
+    for (let i = 0; i < 3; i++) {
+      expect(flat[i]!.faults).not.toContain('SQ_HEELS_LIFT');
+      expect(lifted[i]!.faults).toContain('SQ_HEELS_LIFT');
+      expect(lifted[i]!.q).toBeCloseTo((flat[i]!.q ?? 0) * 0.9, 6);
+    }
+  });
+
+  it('sin subida real, el ruido del benchmark (σ hasta 0,008) no lo dispara', () => {
+    for (const sigma of [0.004, 0.008]) {
+      for (const seed of [1, 2, 3, 4, 5]) {
+        const reps = valid(run(genSquat({ ...base, reps: 8, sigma, seed })));
+        expect(reps.length).toBeGreaterThan(0);
+        for (const r of reps) expect(r.faults).not.toContain('SQ_HEELS_LIFT');
+      }
+    }
+  });
+
+  it('una subida del 1 % no basta', () => {
+    const reps = valid(run(genSquat({ ...base, heelV: 0.9, heelLiftFrac: 0.01 })));
+    expect(reps).toHaveLength(3);
+    for (const r of reps) expect(r.faults).not.toContain('SQ_HEELS_LIFT');
+  });
+
+  it('con el talón poco visible (v 0,75) se desactiva sin aviso', () => {
+    const evs = run(genSquat({ ...base, heelV: 0.75, heelLiftFrac: 0.03 }));
+    const reps = valid(evs);
+    expect(reps).toHaveLength(3);
+    for (const r of reps) expect(r.faults).not.toContain('SQ_HEELS_LIFT');
+    expect(feedback(evs).some((e) => e.code === 'SQ_HEELS_LIFT')).toBe(false);
+  });
+
+  it('con MoveNet (sin talones) nunca aparece', () => {
+    const evs = run(toMoveNet(genSquat({ ...base, heelV: 0.9, heelLiftFrac: 0.03 })), 'squat', MOVENET17);
+    expect(valid(evs).length).toBeGreaterThan(0);
+    expect(evs.some((e) => (e.type === 'REP' && e.faults.includes('SQ_HEELS_LIFT')) || (e.type === 'FEEDBACK' && e.code === 'SQ_HEELS_LIFT'))).toBe(false);
   });
 });
 
