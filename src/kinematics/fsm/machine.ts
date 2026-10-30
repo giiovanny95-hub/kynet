@@ -165,6 +165,15 @@ export function armStep(s: FsmState, inStart: boolean, tEff: number, spec: Exerc
   return { ...s, armSinceMs, armed: s.armed || tEff - armSinceMs >= spec.armMs };
 }
 
+// Antes de fsmStep a propósito: el plugin de worklets captura el cierre al definir la función, y una declarada más
+// abajo llega como undefined al hilo de la cámara (ver tests/lint/workletOrder.test.ts).
+/** Cierra una repetición en `COMPLETED`: duración y tiempos al volver a la zona de inicio, `top` con el bloqueo final. */
+function finishCompleted(s: FsmState, spec: ExerciseSpec): { s: FsmState; events: RepEvent[] } {
+  'worklet';
+  const events = s.completedTEff - s.tStartEff >= spec.tNoiseMs ? [repEvent(s, 'valid', s.completedTMs, s.completedTEff, null)] : [];
+  return { s: toIdle(s, s.completedTEff, true), events };
+}
+
 /**
  * Paso de la máquina para señales que **bajan** hacia el extremo (sentadilla, flexión):
  * inicio = `value >= startThr`, ida = `value < exitThr`, extremo = `value <= extremeThr`.
@@ -231,11 +240,4 @@ export function fsmStep(s0: FsmState, sample: Sample, spec: ExerciseSpec): { s: 
     case 'FAULT':
       return { s: faultStep(s, inStart, t), events: [] };
   }
-}
-
-/** Cierra una repetición en `COMPLETED`: duración y tiempos al volver a la zona de inicio, `top` con el bloqueo final. */
-function finishCompleted(s: FsmState, spec: ExerciseSpec): { s: FsmState; events: RepEvent[] } {
-  'worklet';
-  const events = s.completedTEff - s.tStartEff >= spec.tNoiseMs ? [repEvent(s, 'valid', s.completedTMs, s.completedTEff, null)] : [];
-  return { s: toIdle(s, s.completedTEff, true), events };
 }

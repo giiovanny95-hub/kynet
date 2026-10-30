@@ -49,6 +49,12 @@ describe('toOverlayBones', () => {
     expect(toOverlayBones(f, 400, 800, false, 0.5, [[11, 13], [13, 15]])).toEqual([{ x: 100, y: 200 }, { x: 100, y: 400 }]);
   });
 
+  it('sin lista de huesos usa la de BlazePose33', () => {
+    const f = flatWith(11, 0.25, 0.25, 0.9);
+    f.set([0.75, 0.25, 0, 0.9], 12 * 4);
+    expect(toOverlayBones(f, 400, 800, false, 0.5)).toEqual([{ x: 100, y: 200 }, { x: 300, y: 200 }]);
+  });
+
   it('sin landmarks no hay huesos', () => {
     expect(toOverlayBones(undefined, 400, 800, false, 0.5, [[11, 13]])).toEqual([]);
   });

@@ -123,6 +123,31 @@ export interface Hud {
 
 const ABANDON_AFTER_MS = 3000;
 
+const CAL_EXTREME_THR = 115;
+const CAL_JJ_ALPHA = 110;
+const CAL_JJ_RHO = 1.2;
+
+// Las funciones auxiliares van antes del worklet que las usa: el plugin de worklets captura el cierre al definir la
+// función, y una declarada más abajo llegaba como undefined al hilo de la cámara (visto en el Pixel 7 Pro).
+function resolveConfig(cfg: EngineConfig): ResolvedConfig {
+  'worklet';
+  const profile = cfg.calibrating ? null : (cfg.profile ?? null);
+  const baseSpec = cfg.exercise === 'jumpingJack' ? JJ_SPEC : cfg.exercise === 'pushUp' ? PUSHUP_SPEC : SQUAT_SPEC;
+  let spec = baseSpec;
+  let zones: JJZones = JJ_ZONES;
+  if (cfg.calibrating) {
+    spec = { ...baseSpec, extremeThr: CAL_EXTREME_THR };
+    zones = { ...JJ_ZONES, openAlpha: CAL_JJ_ALPHA, openRho: CAL_JJ_RHO };
+  } else if (profile !== null) {
+    if (cfg.exercise === 'jumpingJack') zones = { ...JJ_ZONES, openAlpha: profile.alphaU ?? JJ_ZONES.openAlpha, openRho: profile.rhoU ?? JJ_ZONES.openRho };
+    else spec = applyProfile(baseSpec, profile);
+  }
+  return {
+    exercise: cfg.exercise, model: cfg.model, side: cfg.side ?? profile?.side ?? null, oneEuro: cfg.oneEuro ?? DEFAULT_ONE_EURO,
+    view: cfg.view ?? (cfg.exercise === 'jumpingJack' ? 'frontal' : 'lateral'), profile, spec, zones,
+  };
+}
+
 export function createEngine(cfg: EngineConfig): EngineState {
   'worklet';
   return {
@@ -144,28 +169,6 @@ export function createEngine(cfg: EngineConfig): EngineState {
   };
 }
 
-const CAL_EXTREME_THR = 115;
-const CAL_JJ_ALPHA = 110;
-const CAL_JJ_RHO = 1.2;
-
-function resolveConfig(cfg: EngineConfig): ResolvedConfig {
-  'worklet';
-  const profile = cfg.calibrating ? null : (cfg.profile ?? null);
-  const baseSpec = cfg.exercise === 'jumpingJack' ? JJ_SPEC : cfg.exercise === 'pushUp' ? PUSHUP_SPEC : SQUAT_SPEC;
-  let spec = baseSpec;
-  let zones: JJZones = JJ_ZONES;
-  if (cfg.calibrating) {
-    spec = { ...baseSpec, extremeThr: CAL_EXTREME_THR };
-    zones = { ...JJ_ZONES, openAlpha: CAL_JJ_ALPHA, openRho: CAL_JJ_RHO };
-  } else if (profile !== null) {
-    if (cfg.exercise === 'jumpingJack') zones = { ...JJ_ZONES, openAlpha: profile.alphaU ?? JJ_ZONES.openAlpha, openRho: profile.rhoU ?? JJ_ZONES.openRho };
-    else spec = applyProfile(baseSpec, profile);
-  }
-  return {
-    exercise: cfg.exercise, model: cfg.model, side: cfg.side ?? profile?.side ?? null, oneEuro: cfg.oneEuro ?? DEFAULT_ONE_EURO,
-    view: cfg.view ?? (cfg.exercise === 'jumpingJack' ? 'frontal' : 'lateral'), profile, spec, zones,
-  };
-}
 
 function requiredJoints(exercise: EngineExercise, side: 'l' | 'r'): readonly JointId[] {
   'worklet';
