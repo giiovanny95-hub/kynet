@@ -41,7 +41,7 @@ export function pushUpStep(
   s0: FsmState,
   t0: PushUpTrack,
   sample: PushUpSample,
-  spec: ExerciseSpec = PUSHUP_SPEC,
+  spec: ExerciseSpec,
 ): { s: FsmState; track: PushUpTrack; events: RepEvent[] } {
   'worklet';
   const plankOk = sample.iota !== null && sample.iota <= PU_MAX_IOTA && sample.thetaB !== null && sample.thetaB >= PU_MIN_BODY_ARM;

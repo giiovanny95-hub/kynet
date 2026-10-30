@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ONE_EURO } from '../filter/oneEuro';
 import { createFilterBank, filterPose } from '../filter/landmarkFilter';
-import { jjStep } from '../fsm/exercises/jumpingJack';
+import { JJ_SPEC, JJ_ZONES, jjStep } from '../fsm/exercises/jumpingJack';
 import { createFsm, type RepEvent } from '../fsm/machine';
 import { toPose } from '../landmarks/adapter';
 import { BLAZEPOSE33 } from '../landmarks/models/blazepose33';
@@ -17,7 +17,7 @@ function run(frames: readonly PoseFrame[]): RepEvent[] {
     const filtered = filterPose(bank, toPose(f, BLAZEPOSE33), DEFAULT_ONE_EURO, 0.3);
     bank = filtered.bank;
     const { alpha, rhoF } = jjSignals(filtered.pose);
-    const r = jjStep(fsm, { tMs: f.meta.tMs, alpha, rhoF, paused: false });
+    const r = jjStep(fsm, { tMs: f.meta.tMs, alpha, rhoF, paused: false }, JJ_SPEC, JJ_ZONES);
     fsm = r.s;
     events.push(...r.events);
   }

@@ -40,7 +40,7 @@ function trackPeak(s: FsmState, alpha: number, rhoF: number, tMs: number, tEff: 
 }
 
 /** Máquina de jumping jack: dos señales que **suben** hacia el abierto; reutiliza reloj, faltas y eventos de la máquina genérica. */
-export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec = JJ_SPEC, zones: JJZones = JJ_ZONES): { s: FsmState; events: RepEvent[] } {
+export function jjStep(s0: FsmState, sample: JJSample, spec: ExerciseSpec, zones: JJZones): { s: FsmState; events: RepEvent[] } {
   'worklet';
   const { alpha, rhoF } = sample;
   const clock = advanceClock(s0, { tMs: sample.tMs, paused: sample.paused, hasSignal: alpha !== null && rhoF !== null });

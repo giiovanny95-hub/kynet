@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createEngine, step, type EngineEvent, type EngineState } from '../engine';
-import { jjStep } from '../fsm/exercises/jumpingJack';
+import { JJ_SPEC, JJ_ZONES, jjStep } from '../fsm/exercises/jumpingJack';
 import { createFsm, type RepEvent } from '../fsm/machine';
 import { DEFAULT_ONE_EURO } from '../filter/oneEuro';
 import { createFilterBank, filterPose } from '../filter/landmarkFilter';
@@ -68,7 +68,7 @@ describe('pendientes menores de la revisión', () => {
       const fl = filterPose(bank, toPose(f, BLAZEPOSE33), DEFAULT_ONE_EURO, 0.3);
       bank = fl.bank;
       const { alpha, rhoF } = jjSignals(fl.pose);
-      const r = jjStep(fsm, { tMs: f.meta.tMs, alpha, rhoF, paused: false });
+      const r = jjStep(fsm, { tMs: f.meta.tMs, alpha, rhoF, paused: false }, JJ_SPEC, JJ_ZONES);
       fsm = r.s;
       reps.push(...r.events.filter((e) => e.outcome === 'valid'));
     }
