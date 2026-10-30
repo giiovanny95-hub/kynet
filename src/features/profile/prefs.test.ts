@@ -18,6 +18,12 @@ describe('preferencias del perfil (onboarding)', () => {
     expect(parsePrefs(JSON.stringify({ haptics: false })).haptics).toBe(false);
     expect(parsePrefs(JSON.stringify({ haptics: 'no' })).haptics).toBe(true);
   });
+  it('vista por ejercicio: frente por defecto, tolera prefs viejas y valores inválidos (F4.3)', () => {
+    expect(DEFAULT_PREFS.exerciseView).toEqual({ squat: 'frontal', pushUp: 'frontal' });
+    expect(parsePrefs(JSON.stringify({ voice: false })).exerciseView).toEqual({ squat: 'frontal', pushUp: 'frontal' });
+    expect(parsePrefs(JSON.stringify({ exerciseView: { squat: 'lateral', pushUp: 'diagonal' } })).exerciseView).toEqual({ squat: 'lateral', pushUp: 'frontal' });
+    expect(parsePrefs(JSON.stringify({ exerciseView: 'lateral' })).exerciseView).toEqual({ squat: 'frontal', pushUp: 'frontal' });
+  });
 });
 
 describe('plan por nivel (producto §4.6)', () => {

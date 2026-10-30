@@ -1,5 +1,11 @@
 /** Preferencias del onboarding y del perfil, guardadas en el almacén local (clave `prefs`). */
 export type FitnessLevel = 'beginner' | 'regular' | 'advanced';
+export type ExerciseView = 'frontal' | 'lateral';
+/** Vista elegida por ejercicio (spec-vista-frontal §5); el jumping jack es siempre de frente. */
+export interface ExerciseViews {
+  readonly squat: ExerciseView;
+  readonly pushUp: ExerciseView;
+}
 
 export interface Prefs {
   readonly fitnessLevel: FitnessLevel;
@@ -11,6 +17,7 @@ export interface Prefs {
   readonly birthDate: string | null;
   readonly onboardedAt: string | null;
   readonly medicalAcceptedAt: string | null;
+  readonly exerciseView: ExerciseViews;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -21,9 +28,17 @@ export const DEFAULT_PREFS: Prefs = {
   birthDate: null,
   onboardedAt: null,
   medicalAcceptedAt: null,
+  exerciseView: { squat: 'frontal', pushUp: 'frontal' },
 };
 
 const LEVELS: readonly FitnessLevel[] = ['beginner', 'regular', 'advanced'];
+const VIEWS: readonly ExerciseView[] = ['frontal', 'lateral'];
+
+function parseViews(v: unknown): ExerciseViews {
+  const o = v !== null && typeof v === 'object' ? (v as Record<string, unknown>) : {};
+  const pick = (k: keyof ExerciseViews) => (VIEWS.includes(o[k] as ExerciseView) ? (o[k] as ExerciseView) : DEFAULT_PREFS.exerciseView[k]);
+  return { squat: pick('squat'), pushUp: pick('pushUp') };
+}
 
 export function parsePrefs(json: string | null): Prefs {
   let raw: Record<string, unknown> = {};
@@ -43,5 +58,6 @@ export function parsePrefs(json: string | null): Prefs {
     birthDate: str('birthDate'),
     onboardedAt: str('onboardedAt'),
     medicalAcceptedAt: str('medicalAcceptedAt'),
+    exerciseView: parseViews(raw.exerciseView),
   };
 }
