@@ -30,55 +30,72 @@ supuestos) y cerrar las dos piezas de código que faltan.
 
 ## Bloque A: código (TDD, sin persona)
 
-### A1. Falta `SQ_HEELS_LIFT`
+### A1. Falta `SQ_HEELS_LIFT`: revisión 2 (2026-10-30)
+
+> **Revisión 2:** la versión 1 (base = primer cuadro de la bajada, pico = máximo de la fase) dio 5/160 avisos falsos
+> con σ 0,008 y solo un 83-87 % de detección con una subida del 3 %
+> (`para-nube/20261030T145000Z-a1-heels-lift-choca.md`). Se continúa sobre `wip/sq-heels-lift@7a2919a`.
 
 **Spec** (spec-cinematica §7):
-- Sentadilla.
-- El talón sube respecto al tobillo más de un **2 % del alto del cuadro**.
-- Solo se evalúa si el talón y el tobillo del mismo lado tienen `v >= 0.8` durante la fase. Si no, queda
-  desactivada en esa repetición, sin aviso.
-- Severidad media. La spec no fija la penalización: se usa `P_SOFT_MILD` = 0,10, igual que `SQ_TRUNK_LEAN`, la otra
-  falta media de sentadilla. Anótalo en `docs/decisions.md`.
-- Requiere los 33 puntos: con `movenet17` (`capabilities.heel = false`) no existe.
+- Sentadilla; el talón sube respecto al tobillo más de un **2 % del alto del cuadro**.
+- Solo con `v >= 0.8` en el talón y el tobillo del mismo lado durante la fase. Si no, queda desactivada en esa
+  repetición, sin aviso.
+- Severidad media → `P_SOFT_MILD` (0,10), anotado en `decisions.md`.
+- Sin talones (`movenet17`) no existe.
 
-**Medida propuesta:**
-- Coordenadas en unidades de alto de cuadro, con `y` hacia abajo.
-- Por lado: `h = ankle.y − heel.y`. Crece cuando el talón sube.
-- Elevación de la repetición: `max(h en la fase) − h al inicio del descenso`. Se toma el lado con mejor visibilidad
-  que cumpla `v >= 0.8` en todos los cuadros de la fase.
-- Si ningún lado cumple, el valor es `null` (desactivada).
+**Medida (por lado):** `h = ankle.y − heel.y`, en unidades de alto de cuadro, con `y` hacia abajo.
+1. **Base de pie:**
+   - Mediana de `h` en los últimos **500 ms** antes de entrar en DESCENDING, con estado de pie (IDLE o la fase
+     superior entre repeticiones).
+   - Solo muestras con `v >= 0,8` en talón y tobillo.
+   - Búfer circular por lado de **16 muestras como máximo**, con `{tMs, h}`: no hay arrays que crezcan en el worklet.
+   - Con menos de 3 muestras válidas, el lado queda desactivado.
+2. **Pico en el fondo:**
+   - Mediana de `h` en las muestras dentro de **±100 ms de `tExtremeMs`**, con un búfer de la fase.
+   - Con menos de 3 muestras válidas, el lado queda desactivado.
+3. **Elevación:** `pico − base`.
+   - Lado elegido: el que cumple todo con mayor `minV`.
+   - Umbral: **0,02**.
+4. Las ventanas se miden en **tiempo**, no en cuadros: la FSM usa tiempo real y con térmica la cámara baja a
+   20-25 FPS.
+5. Si `v` falla en cualquier cuadro de la fase, ese lado se desactiva.
 
 **Archivos:**
-- `src/kinematics/feedback/codes.ts`: nuevo código `SQ_HEELS_LIFT` con severidad `medium`, en el mismo patrón que
-  `SQ_TRUNK_LEAN`.
-- `src/kinematics/signals/squat.ts`: si las señales por cuadro se calculan aquí, añadir
-  `heelLift: number | null` con `optional: ['lHeel', 'rHeel']`.
 - `src/kinematics/engine.ts`:
-  - `RepAcc`: nuevo campo `heelLiftMax: number | null` y `heelBase` para el `h` inicial.
-  - Acumulación junto a `tauBottom` (cerca de la línea 395).
-  - Regla en `softFaults()`: `> HEEL_LIFT_MIN` (0,02) → `faults.push('SQ_HEELS_LIFT')` y
-    `penalties.push(P_SOFT_MILD)`.
-  - **Las constantes nuevas se declaran ANTES de los worklets que las usan** (regla
-    `.claude/rules/vision-cinematica.md`).
-- `src/i18n/locales/es.json` y `en.json`: `feedback.SQ_HEELS_LIFT`. Español: "Mantén los talones en el suelo".
-  Inglés: "Keep your heels down".
+  - `HeelTrack` con el anillo de pie, el búfer de la fase y `minV`;
+  - `heelLift()` con las dos medianas;
+  - `median()`, pura y con `'worklet'`;
+  - constantes `HEEL_BASE_WINDOW_MS` = 500, `HEEL_PEAK_HALF_WINDOW_MS` = 100, `HEEL_MIN_SAMPLES` = 3 y
+    `HEEL_RING` = 16;
+  - **todo declarado antes de los worklets que lo usan.**
+- `src/kinematics/signals/squat.ts`: sin cambios (`heelL` y `heelR`).
+- Tests en `src/kinematics/__tests__/softFaults.test.ts` y `src/kinematics/__tests__/heelLift.test.ts` (nuevo).
 
 **Pasos:**
-- [ ] 1. Tests que fallan en `src/kinematics/__tests__/softFaults.test.ts`, con el generador sintético que ya usan
-  los tests de `SQ_TRUNK_LEAN`:
-  - talón que sube un 3 % en el fondo, con `v` 0,9 → contiene `SQ_HEELS_LIFT` y `q` × 0,9;
-  - sube un 1 % → no la contiene;
-  - sube un 3 % pero con `v` del talón en 0,75 → no la contiene y no hay aviso;
-  - con el modelo `movenet17` → nunca aparece.
-- [ ] 2. Ejecuta `npm run test:kinematics`: los nuevos fallan por la razón esperada.
-- [ ] 3. Implementa la señal, el acumulador y la regla.
-- [ ] 4. Ejecuta `npm run test:kinematics`, `npx vitest run tests/lint/workletOrder.test.ts` y
-  `npm run i18n:check`: todo en verde.
-- [ ] 5. Ejecuta `/benchmark-fsm`: la precisión de conteo no baja en ningún fixture.
-- [ ] 6. Commit: `feat(cinemática): SQ_HEELS_LIFT con talón y tobillo visibles (spec §7)`.
+- [ ] 1. Tests que fallan:
+  - **Robustez:** tu tabla convertida en test determinista, con semillas fijas. Para σ 0,002, 0,004, 0,006 y
+    0,008, con 20 semillas × 8 repeticiones:
+    - subida 0 → **0/160** avisos;
+    - subida 3 % → **al menos 152/160** detectadas.
+  - **Talón que sube antes de la bajada:** empieza 200 ms antes de DESCENDING y llega al 3 % en el fondo → se
+    detecta.
+  - **Borde**, con σ 0,002: 1,5 % → no se detecta; 2,5 % → se detecta.
+  - **Pocas muestras:** con `v` del talón por debajo de 0,8 en la fase de pie → desactivada, sin aviso.
+  - Siguen los 4 tests de la versión 1: 3 %, 1 %, `v` 0,75 y `movenet17`.
+- [ ] 2. Comprueba que fallan por la razón esperada; implementa; comprueba que pasan.
+- [ ] 3. Ejecuta `npm run test:kinematics` (la suite debe seguir por debajo de 2 s), `workletOrder` e
+  `i18n:check`. Después `/benchmark-fsm`: sin regresión de conteo y 0 falsos positivos.
+- [ ] 4. Skill `aprender`, que añade a `vision-cinematica.md`:
+  "**Las faltas por umbral sobre señales ruidosas se miden con medianas en ventanas de tiempo (base de pie y pico),
+  nunca con el máximo de la fase;** el máximo de ~75 cuadros con σ 0,008 dio un 3 % de avisos falsos.
+  (2026-10-30, A1)".
+- [ ] 5. Commit `feat(cinemática): SQ_HEELS_LIFT robusto (mediana de pie y en el fondo)` en `feat/partes-0-1-2`,
+  y mensaje `tipo: estado` con la tabla final.
 
-**Criterio:** tests en verde, sin regresión del benchmark y sin avisos falsos en los fixtures de sentadilla
-correcta.
+**Criterio:** las dos filas de la tabla dentro del objetivo para σ ≤ 0,008, con el test de robustez en verde.
+
+Si no se llega al 95 % con una subida del 3 %, **no cambies el umbral**: informa con la tabla. Se decidirá con los
+fixtures reales de B3.
 
 ### A2. Descarga de sesiones de otros dispositivos
 
@@ -163,7 +180,10 @@ Para cada prueba, informa el commit probado, el teléfono, las cifras y las capt
   - El usuario cuenta a mano. Incluye en cada ejercicio una serie con 2-3 repeticiones a medias a propósito.
 - [ ] 2. Graba cada serie como fixture (`docs/fixtures.md`). Rellena `labels.realReps` y súbelas a
   `src/kinematics/fixtures/real/`, solo con landmarks, sin imagen.
-- [ ] 3. Ejecuta `/benchmark-fsm` con los fixtures reales.
+- [ ] 3. Talones: graba además 1 serie de 10 sentadillas correctas y 1 serie de 10 con los talones levantados a
+  propósito (marcadas en `labels`). Mide el σ real de `h` de pie en los índices 29 y 30. Si supera 0,008, la nube
+  replanifica el umbral de `SQ_HEELS_LIFT` con esos datos.
+- [ ] 4. Ejecuta `/benchmark-fsm` con los fixtures reales.
 
 **Criterio:**
 - Sentadilla y jumping jack ≥95 %; flexión ≥90 %.
