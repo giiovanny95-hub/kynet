@@ -23,3 +23,10 @@ export function toSessionSummary(s: SessionState, meta: { readonly id: string; r
     reps: s.attempts.map((a, index) => ({ index, tStartMs: a.tStartMs, durationMs: a.durationMs, formScore: a.formScore, valid: a.valid, faults: a.faults })),
   };
 }
+
+/** Sesiones de menos de 10 s activos y sin intentos no se guardan: suelen ser entradas por error. */
+const MIN_ACTIVE_MS = 10_000;
+
+export function shouldSave(s: SessionState): boolean {
+  return s.startedAtMs !== null && s.exercise !== null && (s.attempts.length > 0 || s.activeMs >= MIN_ACTIVE_MS);
+}

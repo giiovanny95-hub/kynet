@@ -4,6 +4,12 @@
 2026-10-29, 18:45 (hora local de la PC). Sesión **local** (PC con Windows; Pixel 7 Pro por USB, sin nadie delante).
 
 ## Estado
+- **Partes 5-6 (nube, 2026-10-30), sin probar en teléfono:** reglas de XP, nivel, racha y misiones en
+  `src/gamification` y en SQL (`supabase/migrations`, **sin aplicar**), probadas con los mismos vectores. Pantallas
+  nuevas: onboarding (18+ con bloqueo), pestañas Hoy · Progreso · Misiones · Perfil, aviso médico antes del primer
+  entrenamiento y XP/racha/misiones en el resumen. La sesión se guarda al terminar, pero el almacén aún es **en
+  memoria** (se pierde al cerrar la app) hasta aprobar `expo-sqlite`. Login con Google y sincronización esperan
+  paquetes, migraciones y OAuth (ver "Para decidir").
 - **Marca KYNET (2026-10-29):** app renombrada por completo (`com.kynet.app`, esquema `kynet`,
   `modules/kynet-native`) con los colores y tipografías del manual (`docs/marca/kynet.md`). La navegación y el
   alcance siguen las specs.
@@ -39,6 +45,9 @@
 | `dispose()` del landmarker al desmontar | El recolector de JS no ve la memoria nativa y de GPU | Ninguno |
 
 ## Para decidir (usuario)
+- Partes 5-6: aprobar `expo-sqlite`, `expo-crypto`, `expo-secure-store`, `@supabase/supabase-js` y
+  `@react-native-google-signin/google-signin`; aplicar las migraciones en `fitpose-dev`; desplegar `delete-account`;
+  crear los clientes OAuth de Google.
 - **Slug de EAS:** sigue siendo `fitpose`. Cambiarlo a `kynet` exige renombrar el proyecto en expo.dev.
 - **Diseño en Stitch:** el MCP está configurado, pero espera la clave del usuario y la orden de diseñar. Faltan
   el icono y el wordmark definitivos.

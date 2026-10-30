@@ -54,3 +54,10 @@ export function levelForXp(total: number): number {
   while (level > 1 && xpForLevel(level) > total) level--;
   return level;
 }
+
+/** Avance dentro del nivel actual, para la barra de nivel. */
+export function levelProgress(total: number): { readonly level: number; readonly current: number; readonly span: number } {
+  const level = levelForXp(total);
+  const base = xpForLevel(level);
+  return { level, current: total - base, span: xpForLevel(level + 1) - base };
+}

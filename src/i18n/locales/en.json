@@ -130,5 +130,115 @@
     "good": "Good",
     "warn": "Adjust",
     "bad": "Fix it"
+  },
+  "tabs": {
+    "today": "Today",
+    "progress": "Progress",
+    "missions": "Missions",
+    "profile": "Profile"
+  },
+  "today": {
+    "hello": "Hi",
+    "streak_one": "{{count}}-day streak",
+    "streak_other": "{{count}}-day streak",
+    "streakStart": "Start your streak today",
+    "atRisk": "You can still keep your streak today",
+    "dayDone": "Done. More tomorrow.",
+    "planTitle": "Today's workout",
+    "planLine": "{{sets}} × {{reps}} {{exercise}}",
+    "start": "Start",
+    "missionsTitle": "Today's missions {{done}}/{{total}}",
+    "provisional": "Provisional until synced",
+    "dayGoal": "Daily goal: {{reps}}/20 reps or {{min}}/3 min"
+  },
+  "level": {
+    "label": "Level {{n}}",
+    "xp": "{{cur}}/{{next}} XP"
+  },
+  "missions": {
+    "title": "Missions",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "reward": "+{{xp}} XP",
+    "progress": "{{cur}}/{{target}}",
+    "allDone": "Perfect day! +{{xp}} XP",
+    "bonusHint": "Finish all three today: +{{xp}} XP",
+    "code": {
+      "d_easy_squat15": "Do {{target}} squats",
+      "d_easy_active3": "Train for 3 minutes",
+      "d_easy_jj20": "Do {{target}} jumping jacks",
+      "d_med_squat25": "Do {{target}} squats",
+      "d_med_jj40": "Do {{target}} jumping jacks",
+      "d_med_pu10": "Do {{target}} push-ups",
+      "d_med_sessions2": "Do {{target}} sessions",
+      "d_q_clean": "One session with 80% clean reps",
+      "d_explore": "Try {{target}} different exercises",
+      "w_consistency": "Train {{target}} days this week",
+      "w_volume": "Reach {{target}} reps",
+      "w_variety": "Do all {{target}} exercises"
+    }
+  },
+  "progress": {
+    "title": "Progress",
+    "current": "Current streak",
+    "longest": "Longest streak",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "totalXp": "Total XP",
+    "totalReps": "Valid reps",
+    "sessions": "Sessions",
+    "last7": "Last 7 days",
+    "empty": "No sessions yet. Your first day starts today.",
+    "byExercise": "Average form by exercise",
+    "noData": "—"
+  },
+  "profile": {
+    "title": "Profile",
+    "account": "Local account",
+    "saveProgress": "Save your progress with Google",
+    "soon": "Coming soon",
+    "fitnessLevel": "Difficulty level",
+    "weeklyGoal": "Days per week (guideline)",
+    "voice": "Voice during workouts",
+    "on": "On",
+    "off": "Off",
+    "medical": "Medical notice",
+    "privacy": "Video and body points never leave your phone. Only a summary of each rep is stored.",
+    "version": "Version {{v}}",
+    "devSpike": "Open camera test"
+  },
+  "fitnessLevel": {
+    "beginner": "I'm just starting",
+    "regular": "I train now and then",
+    "advanced": "I train regularly"
+  },
+  "onboarding": {
+    "welcomeTitle": "Train with your camera",
+    "welcomeBody": "I count your reps and correct your form. Everything happens on your phone: the video never leaves it.",
+    "start": "Start",
+    "birthTitle": "What is your date of birth?",
+    "day": "Day",
+    "month": "Month",
+    "year": "Year",
+    "invalid": "Check the date",
+    "next": "Next",
+    "blockedTitle": "We can't offer KYNET to you yet",
+    "blockedBody": "This app is for adults only. Thanks for your interest.",
+    "levelTitle": "How do you feel about exercise?",
+    "goalTitle": "How many days a week do you want to train?",
+    "goalHint": "It's a guideline: it doesn't affect your streak.",
+    "finish": "Done"
+  },
+  "medical": {
+    "title": "Before you start",
+    "body": "KYNET is a training aid and does not replace advice from a health professional. Talk to your doctor before starting if you have a heart, breathing or joint condition, are pregnant, or haven't exercised in a while. Stop if you feel pain, dizziness, shortness of breath or chest tightness. Train in a space free of obstacles. Pose analysis is approximate and can be wrong: listen to your body.",
+    "accept": "I understand and accept",
+    "continue": "Continue"
+  },
+  "summaryGame": {
+    "xp": "+{{n}} XP",
+    "streak": "Streak: {{n}}",
+    "missionDone": "Mission complete: {{title}}",
+    "savedLocal": "Saved on this phone"
   }
 }

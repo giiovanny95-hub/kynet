@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createSession, type SessionState } from './sessionModel';
-import { toSessionSummary } from './sessionSummary';
+import { shouldSave, toSessionSummary } from './sessionSummary';
 
 const base = (o: Partial<SessionState>): SessionState => ({ ...createSession(), exercise: 'squat', phase: 'done', ...o });
 
@@ -27,5 +27,13 @@ describe('resumen de sesión para guardar y sincronizar', () => {
   it('sin series completas es abandoned y sin repeticiones la media es 0', () => {
     const r = toSessionSummary(base({ startedAtMs: 0, setsCompleted: 0 }), { id: 'a2', tz: 'UTC', endedAtMs: 1000 });
     expect(r).toMatchObject({ status: 'abandoned', avgFormScore: 0, repsTotal: 0 });
+  });
+
+  it('no guarda sesiones vacías de menos de 10 s ni las que no empezaron', () => {
+    const started: SessionState = { ...createSession(), exercise: 'squat', startedAtMs: 1000 };
+    expect(shouldSave(createSession())).toBe(false);
+    expect(shouldSave({ ...started, activeMs: 9000 })).toBe(false);
+    expect(shouldSave({ ...started, activeMs: 10_000 })).toBe(true);
+    expect(shouldSave({ ...started, attempts: [{ valid: false, formScore: 0, durationMs: 500, tStartMs: 0, faults: [] }] })).toBe(true);
   });
 });

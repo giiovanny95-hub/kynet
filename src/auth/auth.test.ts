@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isAdult, MIN_AGE } from './age';
+import { birthDateFrom, isAdult, MIN_AGE } from './age';
 import { createChunkedStorage, type KeyValueBackend } from './chunkedStorage';
 
 describe('edad mínima (18+)', () => {
@@ -60,5 +60,15 @@ describe('almacenamiento seguro por trozos (sesión de Supabase > 2 KB)', () => 
     const st = createChunkedStorage(be, 1800);
     await st.setItem('sb-abc-auth-token', 'v');
     expect([...be.data.keys()].every((k) => /^[\w.-]+$/.test(k))).toBe(true);
+  });
+});
+
+describe('fecha de nacimiento del formulario', () => {
+  it('acepta fechas reales y rechaza inexistentes, futuras o vacías', () => {
+    expect(birthDateFrom('5', '3', '1990', '2026-10-30')).toBe('1990-03-05');
+    expect(birthDateFrom('29', '2', '2001', '2026-10-30')).toBeNull();
+    expect(birthDateFrom('1', '1', '2027', '2026-10-30')).toBeNull();
+    expect(birthDateFrom('', '', '', '2026-10-30')).toBeNull();
+    expect(birthDateFrom('1', '1', '1850', '2026-10-30')).toBeNull();
   });
 });

@@ -130,5 +130,115 @@
     "good": "Bien",
     "warn": "Ajusta",
     "bad": "Corrige"
+  },
+  "tabs": {
+    "today": "Hoy",
+    "progress": "Progreso",
+    "missions": "Misiones",
+    "profile": "Perfil"
+  },
+  "today": {
+    "hello": "Hola",
+    "streak_one": "{{count}} día de racha",
+    "streak_other": "{{count}} días de racha",
+    "streakStart": "Empieza hoy tu racha",
+    "atRisk": "Aún puedes mantener tu racha hoy",
+    "dayDone": "Hecho. Mañana más.",
+    "planTitle": "Entreno de hoy",
+    "planLine": "{{sets}} × {{reps}} {{exercise}}",
+    "start": "Empezar",
+    "missionsTitle": "Misiones de hoy {{done}}/{{total}}",
+    "provisional": "Provisional hasta sincronizar",
+    "dayGoal": "Meta del día: {{reps}}/20 repeticiones o {{min}}/3 min"
+  },
+  "level": {
+    "label": "Nivel {{n}}",
+    "xp": "{{cur}}/{{next}} XP"
+  },
+  "missions": {
+    "title": "Misiones",
+    "daily": "Diarias",
+    "weekly": "Semanales",
+    "reward": "+{{xp}} XP",
+    "progress": "{{cur}}/{{target}}",
+    "allDone": "¡Día redondo! +{{xp}} XP",
+    "bonusHint": "Completa las tres de hoy: +{{xp}} XP",
+    "code": {
+      "d_easy_squat15": "Haz {{target}} sentadillas",
+      "d_easy_active3": "Entrena 3 minutos",
+      "d_easy_jj20": "Haz {{target}} jumping jacks",
+      "d_med_squat25": "Haz {{target}} sentadillas",
+      "d_med_jj40": "Haz {{target}} jumping jacks",
+      "d_med_pu10": "Haz {{target}} flexiones",
+      "d_med_sessions2": "Haz {{target}} sesiones",
+      "d_q_clean": "Una sesión con 80 % de repeticiones limpias",
+      "d_explore": "Prueba {{target}} ejercicios distintos",
+      "w_consistency": "Entrena {{target}} días esta semana",
+      "w_volume": "Suma {{target}} repeticiones",
+      "w_variety": "Haz los {{target}} ejercicios"
+    }
+  },
+  "progress": {
+    "title": "Progreso",
+    "current": "Racha actual",
+    "longest": "Racha máxima",
+    "days_one": "{{count}} día",
+    "days_other": "{{count}} días",
+    "totalXp": "XP total",
+    "totalReps": "Repeticiones válidas",
+    "sessions": "Sesiones",
+    "last7": "Últimos 7 días",
+    "empty": "Aún no hay sesiones. Tu primer día empieza hoy.",
+    "byExercise": "Forma media por ejercicio",
+    "noData": "—"
+  },
+  "profile": {
+    "title": "Perfil",
+    "account": "Cuenta local",
+    "saveProgress": "Guarda tu progreso con Google",
+    "soon": "Disponible pronto",
+    "fitnessLevel": "Nivel de dificultad",
+    "weeklyGoal": "Días por semana (meta orientativa)",
+    "voice": "Voz durante el entrenamiento",
+    "on": "Sí",
+    "off": "No",
+    "medical": "Aviso médico",
+    "privacy": "El vídeo y los puntos del cuerpo nunca salen del teléfono. Solo se guarda el resumen de cada repetición.",
+    "version": "Versión {{v}}",
+    "devSpike": "Abrir prueba de cámara"
+  },
+  "fitnessLevel": {
+    "beginner": "Estoy empezando",
+    "regular": "Entreno de vez en cuando",
+    "advanced": "Entreno con regularidad"
+  },
+  "onboarding": {
+    "welcomeTitle": "Entrena con tu cámara",
+    "welcomeBody": "Cuento tus repeticiones y te corrijo la postura. Todo ocurre en tu móvil: el vídeo nunca sale de aquí.",
+    "start": "Empezar",
+    "birthTitle": "¿Cuál es tu fecha de nacimiento?",
+    "day": "Día",
+    "month": "Mes",
+    "year": "Año",
+    "invalid": "Revisa la fecha",
+    "next": "Seguir",
+    "blockedTitle": "Por ahora no podemos ofrecerte KYNET",
+    "blockedBody": "Esta app es solo para mayores de edad. Gracias por tu interés.",
+    "levelTitle": "¿Cómo te sientes con el ejercicio?",
+    "goalTitle": "¿Cuántos días por semana quieres entrenar?",
+    "goalHint": "Es una meta orientativa: no afecta a la racha.",
+    "finish": "Listo"
+  },
+  "medical": {
+    "title": "Antes de empezar",
+    "body": "KYNET es una herramienta de apoyo para entrenar y no sustituye el consejo de un profesional sanitario. Consulta a tu médico antes de empezar si tienes una condición cardíaca, respiratoria, articular o embarazo, o si llevas tiempo sin hacer ejercicio. Detente si sientes dolor, mareo, falta de aire u opresión en el pecho. Entrena en un espacio libre de obstáculos. El análisis de postura es aproximado y puede fallar: tu cuerpo manda.",
+    "accept": "Entiendo y acepto",
+    "continue": "Continuar"
+  },
+  "summaryGame": {
+    "xp": "+{{n}} XP",
+    "streak": "Racha: {{n}}",
+    "missionDone": "Misión cumplida: {{title}}",
+    "savedLocal": "Guardado en el teléfono"
   }
 }

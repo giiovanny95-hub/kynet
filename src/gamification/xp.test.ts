@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ExerciseCode, RepRow, SessionSummary } from './types';
 import vectors from './vectors/xp.json';
-import { levelForXp, repXp, sessionXp, xpForLevel } from './xp';
+import { levelForXp, levelProgress, repXp, sessionXp, xpForLevel } from './xp';
 
 function session(reps: { clean: number; ok: number; bad: number }, status: 'completed' | 'abandoned'): SessionSummary {
   const rows: RepRow[] = [];
@@ -45,5 +45,13 @@ describe('nivel', () => {
     for (let l = 1; l <= 30; l++) expect(levelForXp(xpForLevel(l))).toBe(l);
     expect(xpForLevel(2)).toBe(100);
     expect(xpForLevel(5)).toBe(640);
+  });
+});
+
+describe('avance dentro del nivel', () => {
+  it('0 XP es nivel 1 con 0/100; 100 XP es nivel 2 con 0/140', () => {
+    expect(levelProgress(0)).toEqual({ level: 1, current: 0, span: 100 });
+    expect(levelProgress(100)).toEqual({ level: 2, current: 0, span: 140 });
+    expect(levelProgress(150)).toEqual({ level: 2, current: 50, span: 140 });
   });
 });

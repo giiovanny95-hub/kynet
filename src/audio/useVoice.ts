@@ -2,18 +2,19 @@ import * as Speech from 'expo-speech';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { getStore } from '@/data/storeProvider';
+import { cachedPrefs, savePrefs } from '@/features/profile/prefsStore';
+
 import { shouldSpeak, type Utterance, type VoicePriority } from './voicePolicy';
 
 /** Tope si el sistema no avisa del final de la frase. */
 const MAX_UTTERANCE_MS = 3000;
 
-/** Preferencia en memoria mientras la app está abierta (la parte 5 la guardará). */
-let voiceEnabled = true;
 
 /** Voz del sistema (`expo-speech`) en el idioma de la app. Si falla o no hay voz instalada, la app sigue con tonos. */
 export function useVoice(): { say: (u: Utterance) => void; enabled: boolean; setEnabled: (v: boolean) => void } {
   const { t, i18n } = useTranslation();
-  const [enabled, setEnabledState] = useState(voiceEnabled);
+  const [enabled, setEnabledState] = useState(() => cachedPrefs()?.voice ?? true);
   const current = useRef<{ priority: VoicePriority; untilMs: number } | null>(null);
   const language = i18n.language.startsWith('es') ? 'es-MX' : 'en-US';
 
@@ -25,7 +26,7 @@ export function useVoice(): { say: (u: Utterance) => void; enabled: boolean; set
   );
 
   const setEnabled = useCallback((v: boolean) => {
-    voiceEnabled = v;
+    void savePrefs(getStore(), { voice: v });
     setEnabledState(v);
     if (!v) Speech.stop().catch(() => undefined);
   }, []);

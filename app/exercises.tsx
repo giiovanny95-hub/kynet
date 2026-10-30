@@ -1,13 +1,17 @@
-import { Link } from 'expo-router';
+import { Link, Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DEFAULT_PLAN, EXERCISES } from '@/features/workout/plans';
+import { cachedPrefs } from '@/features/profile/prefsStore';
+import { currentPlan, EXERCISES } from '@/features/workout/plans';
 import { fonts, tokens } from '@/ui/tokens';
 
 /** Elegir ejercicio (producto §3.2): tres tarjetas con la posición del móvil. */
 export default function ExercisesScreen() {
   const { t } = useTranslation();
+  const plan = currentPlan();
+  // El aviso médico se acepta una vez, antes del primer entrenamiento (producto §2 y §5.4).
+  if (cachedPrefs()?.medicalAcceptedAt == null) return <Redirect href={{ pathname: '/medical', params: { next: 'exercises' } }} />;
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.title}>{t('exercise.choose')}</Text>
@@ -19,7 +23,7 @@ export default function ExercisesScreen() {
               {ex === 'pushUp' ? <Text style={styles.tag}>{t('exercise.sideTag')}</Text> : null}
             </View>
             <Text style={styles.muted}>{t(`exercise.position.${ex}`)}</Text>
-            <Text style={styles.muted}>{t('exercise.plan', { sets: DEFAULT_PLAN[ex].sets, reps: DEFAULT_PLAN[ex].reps })}</Text>
+            <Text style={styles.muted}>{t('exercise.plan', { sets: plan[ex].sets, reps: plan[ex].reps })}</Text>
             {ex === 'jumpingJack' ? <Text style={styles.warn}>{t('exercise.impact')}</Text> : null}
           </View>
         </Link>

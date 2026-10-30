@@ -1,14 +1,8 @@
-import type { FitnessLevel } from '@/features/profile/prefs';
+import { DEFAULT_PREFS, type FitnessLevel } from '@/features/profile/prefs';
+import { cachedPrefs } from '@/features/profile/prefsStore';
 import type { EngineExercise } from '@/kinematics/engine';
 
-/** Series y repeticiones por defecto del MVP (sin selector todavía). */
-export const DEFAULT_PLAN: Readonly<Record<EngineExercise, { readonly sets: number; readonly reps: number }>> = {
-  squat: { sets: 3, reps: 10 },
-  jumpingJack: { sets: 3, reps: 20 },
-  pushUp: { sets: 3, reps: 8 },
-};
-
-type Plan = Readonly<Record<EngineExercise, { readonly sets: number; readonly reps: number }>>;
+export type Plan = Readonly<Record<EngineExercise, { readonly sets: number; readonly reps: number }>>;
 
 /** Repeticiones por serie según el nivel del onboarding (producto §4.6): sentadilla / jumping jack / flexión. */
 const BY_LEVEL: Readonly<Record<FitnessLevel, readonly [number, number, number]>> = {
@@ -21,6 +15,11 @@ const SETS = 3;
 export function planFor(level: FitnessLevel): Plan {
   const [squat, jj, pu] = BY_LEVEL[level];
   return { squat: { sets: SETS, reps: squat }, jumpingJack: { sets: SETS, reps: jj }, pushUp: { sets: SETS, reps: pu } };
+}
+
+/** Plan del nivel guardado en el perfil (o el de principiante si aún no se cargaron las preferencias). */
+export function currentPlan(): Plan {
+  return planFor(cachedPrefs()?.fitnessLevel ?? DEFAULT_PREFS.fitnessLevel);
 }
 
 export const EXERCISES: readonly EngineExercise[] = ['squat', 'jumpingJack', 'pushUp'];

@@ -11,7 +11,7 @@ import { useVoice } from '@/audio/useVoice';
 import { pickUtterance } from '@/audio/voicePolicy';
 import { getProfile } from '@/features/workout/calibrationStore';
 import { createToneState, toneAt, toneStep } from '@/features/workout/formTone';
-import { DEFAULT_PLAN, isExercise } from '@/features/workout/plans';
+import { currentPlan, isExercise } from '@/features/workout/plans';
 import { useWorkoutSession } from '@/features/workout/useWorkoutSession';
 import type { EngineEvent, EngineExercise } from '@/kinematics/engine';
 import type { FeedbackCode } from '@/kinematics/feedback/codes';
@@ -64,7 +64,7 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   useKeepAwake();
 
   useEffect(() => {
-    const plan = DEFAULT_PLAN[exercise];
+    const plan = currentPlan()[exercise];
     dispatch({ type: 'start', exercise, sets: plan.sets, repsPerSet: plan.reps, nowMs: Date.now() });
   }, [dispatch, exercise]);
 

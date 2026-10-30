@@ -1,15 +1,41 @@
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import { AppState } from 'react-native';
 
+import { uuidv4 } from '@/core/uuid';
+import { deviceTimeZone, USER_ID_KEY } from '@/data/account';
+import { getStore } from '@/data/storeProvider';
+
 import { createSession, sessionReducer, type SessionAction, type SessionState } from './sessionModel';
+import { shouldSave, toSessionSummary } from './sessionSummary';
 
 const TICK_MS = 500;
 
-let lastSession: SessionState | null = null;
+export interface FinishedSession {
+  readonly state: SessionState;
+  /** Id de la sesión guardada, o `null` si no se guardó (vacía) o falló el guardado. */
+  readonly savedId: string | null;
+  /** Se resuelve cuando termina el guardado local. */
+  readonly saved: Promise<void>;
+}
 
-/** Última sesión terminada, para la pantalla de resumen (solo en memoria). */
-export function getLastSession(): SessionState | null {
+let lastSession: FinishedSession | null = null;
+
+/** Última sesión terminada, para la pantalla de resumen. */
+export function getLastSession(): FinishedSession | null {
   return lastSession;
+}
+
+/** Guarda la sesión terminada en local con su elemento en la cola de salida (sin landmarks ni vídeo). */
+function finish(state: SessionState): FinishedSession {
+  if (!shouldSave(state)) return { state, savedId: null, saved: Promise.resolve() };
+  const id = uuidv4();
+  const summary = toSessionSummary(state, { id, tz: deviceTimeZone(), endedAtMs: Date.now() });
+  const store = getStore();
+  const saved = store
+    .getKv(USER_ID_KEY)
+    .then((userId) => store.saveSession(summary, userId, Date.now()))
+    .catch(() => undefined);
+  return { state, savedId: id, saved };
 }
 
 /**
@@ -28,8 +54,12 @@ export function useWorkoutSession(): { session: SessionState; dispatch: (a: Sess
     };
   }, []);
 
+  // El reloj sigue creando estados nuevos tras terminar: se guarda una sola vez por sesión.
+  const finished = useRef(false);
   useEffect(() => {
-    if (session.phase === 'done') lastSession = session;
+    if (session.phase !== 'done' || finished.current) return;
+    finished.current = true;
+    lastSession = finish(session);
   }, [session]);
 
   return { session, dispatch };
