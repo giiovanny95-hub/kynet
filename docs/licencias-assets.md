@@ -93,5 +93,5 @@ licencias de terceros.
 - Se usa solo el recuadro de la animación (sin títulos ni consejos, que van por i18n), convertido en la PC con
   `sharp` 0.34.4 a WebP animado (calidad 82, bucle infinito). No se subieron a ningún servicio.
 - Jumping jack: 436×372, 65 cuadros. Sentadilla y flexión: 720×620, 72 y 73 cuadros. Las tres duran 4800 ms y
-  pesan menos de 250 KB.
+  pesan menos de 340 KB.
 - Los GIF de G1 (`assets/lottie/exercises/`) no se usan en la app.

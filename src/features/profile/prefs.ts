@@ -7,6 +7,12 @@ export interface ExerciseViews {
   readonly pushUp: ExerciseView;
 }
 
+export interface GuideSeen {
+  readonly squat: boolean;
+  readonly jumpingJack: boolean;
+  readonly pushUp: boolean;
+}
+
 export interface Prefs {
   readonly fitnessLevel: FitnessLevel;
   /** Meta orientativa de días por semana (2-5); alimenta la misión semanal de constancia. */
@@ -18,6 +24,10 @@ export interface Prefs {
   readonly onboardedAt: string | null;
   readonly medicalAcceptedAt: string | null;
   readonly exerciseView: ExerciseViews;
+  /** Guía "Así se hace" y ayuda tras 3 correcciones (plan diseño v2, H2-H5). */
+  readonly techniqueHelp: boolean;
+  /** Si ya se mostró la guía de la primera vez de cada ejercicio. */
+  readonly guideSeen: GuideSeen;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -29,15 +39,26 @@ export const DEFAULT_PREFS: Prefs = {
   onboardedAt: null,
   medicalAcceptedAt: null,
   exerciseView: { squat: 'frontal', pushUp: 'frontal' },
+  techniqueHelp: true,
+  guideSeen: { squat: false, jumpingJack: false, pushUp: false },
 };
 
 const LEVELS: readonly FitnessLevel[] = ['beginner', 'regular', 'advanced'];
 const VIEWS: readonly ExerciseView[] = ['frontal', 'lateral'];
 
+const isView = (v: unknown): v is ExerciseView => VIEWS.some((x) => x === v);
+const asRecord = (v: unknown): Record<string, unknown> => (v !== null && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
+
 function parseViews(v: unknown): ExerciseViews {
-  const o = v !== null && typeof v === 'object' ? (v as Record<string, unknown>) : {};
-  const pick = (k: keyof ExerciseViews) => (VIEWS.includes(o[k] as ExerciseView) ? (o[k] as ExerciseView) : DEFAULT_PREFS.exerciseView[k]);
+  const o = asRecord(v);
+  const pick = (k: keyof ExerciseViews) => { const x = o[k]; return isView(x) ? x : DEFAULT_PREFS.exerciseView[k]; };
   return { squat: pick('squat'), pushUp: pick('pushUp') };
+}
+
+function parseGuideSeen(v: unknown): GuideSeen {
+  const o = asRecord(v);
+  const pick = (k: keyof GuideSeen) => { const x = o[k]; return typeof x === 'boolean' ? x : DEFAULT_PREFS.guideSeen[k]; };
+  return { squat: pick('squat'), jumpingJack: pick('jumpingJack'), pushUp: pick('pushUp') };
 }
 
 export function parsePrefs(json: string | null): Prefs {
@@ -59,5 +80,7 @@ export function parsePrefs(json: string | null): Prefs {
     onboardedAt: str('onboardedAt'),
     medicalAcceptedAt: str('medicalAcceptedAt'),
     exerciseView: parseViews(raw.exerciseView),
+    techniqueHelp: typeof raw.techniqueHelp === 'boolean' ? raw.techniqueHelp : DEFAULT_PREFS.techniqueHelp,
+    guideSeen: parseGuideSeen(raw.guideSeen),
   };
 }

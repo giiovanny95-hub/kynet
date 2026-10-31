@@ -41,3 +41,16 @@ describe('uuidv4', () => {
     expect(uuidv4()).not.toBe(a);
   });
 });
+
+describe('ayudas de técnica (H2)', () => {
+  it('activadas y sin guías vistas por defecto', () => {
+    expect(DEFAULT_PREFS.techniqueHelp).toBe(true);
+    expect(DEFAULT_PREFS.guideSeen).toEqual({ squat: false, jumpingJack: false, pushUp: false });
+  });
+  it('respeta lo guardado e ignora valores no booleanos', () => {
+    const p = parsePrefs(JSON.stringify({ techniqueHelp: false, guideSeen: { squat: true, pushUp: 'sí' } }));
+    expect(p.techniqueHelp).toBe(false);
+    expect(p.guideSeen).toEqual({ squat: true, jumpingJack: false, pushUp: false });
+    expect(parsePrefs(JSON.stringify({ techniqueHelp: 1, guideSeen: [] })).techniqueHelp).toBe(true);
+  });
+});
