@@ -13,3 +13,16 @@ export const SQUAT_SPEC: ExerciseSpec = {
   tMaxMs: 12000,
   attemptMax: 130,
 };
+
+/**
+ * Sentadilla de frente (spec-vista-frontal §3): señal = ρ escalada a 0-100 sobre la referencia de pie, así que los
+ * umbrales y `revDeg` son puntos. Valores iniciales [H] de la spec; pendientes del punto de control F1.4.
+ */
+export const SQUAT_FRONTAL_SPEC: ExerciseSpec = {
+  ...SQUAT_SPEC,
+  startThr: 95,
+  exitThr: 93,
+  extremeThr: 78,
+  revDeg: 3,
+  attemptMax: 88,
+};

@@ -9,7 +9,9 @@ import { Camera } from 'react-native-vision-camera';
 import { useFeedbackCues } from '@/audio/useFeedbackCues';
 import { useVoice } from '@/audio/useVoice';
 import { pickUtterance } from '@/audio/voicePolicy';
+import { cachedPrefs } from '@/features/profile/prefsStore';
 import { getProfile } from '@/features/workout/calibrationStore';
+import { effectiveView } from '@/features/workout/exerciseView';
 import { createToneState, toneAt, toneStep } from '@/features/workout/formTone';
 import { currentPlan, isExercise } from '@/features/workout/plans';
 import { useWorkoutSession } from '@/features/workout/useWorkoutSession';
@@ -47,6 +49,7 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   const { t } = useTranslation();
   const router = useRouter();
   const [profile] = useState(() => getProfile(exercise) ?? null);
+  const [view] = useState(() => effectiveView(exercise, cachedPrefs()));
   const { session, dispatch } = useWorkoutSession();
   const [message, setMessage] = useState<FeedbackCode | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -123,7 +126,7 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
     },
     [exercise, t],
   );
-  const pipeline = useWorkoutPipeline({ exercise, profile, calibrating: false, onEvent, onRecording: __DEV__ ? onRecording : undefined });
+  const pipeline = useWorkoutPipeline({ exercise, profile, calibrating: false, view, onEvent, onRecording: __DEV__ ? onRecording : undefined });
   const [recording, setRecording] = useState(false);
   const toggleRecording = () => {
     pipeline.recording.value = !recording;

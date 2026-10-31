@@ -6,7 +6,7 @@ import { DEFAULT_ONE_EURO, type OneEuroParams } from './filter/oneEuro';
 import { applyProfile, type CalibrationProfile } from './calibration/profile';
 import { JJ_SPEC, JJ_ZONES, jjStep, type JJZones } from './fsm/exercises/jumpingJack';
 import { PU_MAX_IOTA, PUSHUP_SPEC, PUSHUP_TRACK0, pushUpStep, type PushUpTrack } from './fsm/exercises/pushUp';
-import { SQUAT_SPEC } from './fsm/exercises/squat';
+import { SQUAT_FRONTAL_SPEC, SQUAT_SPEC } from './fsm/exercises/squat';
 import { createFsm, fsmStep, toIdle, type ExerciseSpec, type FsmState, type RepEvent } from './fsm/machine';
 import { toPose } from './landmarks/adapter';
 import { createGuard, guardStep, type GuardState } from './quality/subjectGuard';
@@ -19,6 +19,7 @@ import { qTempo, tempoPlateau } from './scoring/tempo';
 import { jjSignals } from './signals/jumpingJack';
 import { pushUpSignals } from './signals/pushUp';
 import { squatSignals, type HeelSample } from './signals/squat';
+import { squatFrontalSignals } from './signals/squatFrontal';
 import type { JointId, ModelSpec, Pose, PoseFrame } from './types';
 
 export type EngineExercise = 'squat' | 'jumpingJack' | 'pushUp';
@@ -69,6 +70,8 @@ export interface EngineState {
   readonly acc: RepAcc;
   /** Sentadilla: últimas muestras válidas del talón de pie, por lado (base de SQ_HEELS_LIFT; sobrevive entre repeticiones). */
   readonly heelStand: { readonly l: readonly HeelPoint[]; readonly r: readonly HeelPoint[] };
+  /** Vista de frente: referencia de pie (ρ_ref) y ventana de muestras crudas para su mediana (spec-vista-frontal §2). */
+  readonly fref: FrontalRef;
 }
 
 export type PauseCause = 'VIS_LOW' | 'VIEW' | 'OUT_OF_FRAME' | 'POSTURE';
@@ -155,14 +158,55 @@ const CAL_JJ_RHO = 1.2;
 
 // Las funciones auxiliares van antes del worklet que las usa: el plugin de worklets captura el cierre al definir la
 // función, y una declarada más abajo llegaba como undefined al hilo de la cámara (visto en el Pixel 7 Pro).
+/** Q_rom de la sentadilla de frente, en puntos de ρ [H]: fondo pleno ≈ θk 90°, arriba = de pie. */
+const FRONTAL_SQ_T = 72;
+const FRONTAL_SQ_TTOP = 99;
+
+interface FrontalSample {
+  readonly t: number;
+  readonly v: number;
+}
+interface FrontalRef {
+  readonly ref: number | null;
+  readonly win: readonly FrontalSample[];
+}
+const FREF0: FrontalRef = { ref: null, win: [] };
+const FREF_WINDOW_MS = 500;
+/** En IDLE ya armado, la referencia solo se refresca si la señal sigue arriba (puntos sobre `startThr`). */
+const FREF_REFRESH_MARGIN = 2;
+
+function medianOf(xs: readonly number[]): number {
+  'worklet';
+  const a = [...xs].sort((p, q) => p - q);
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 === 1 ? (a[m] ?? 0) : ((a[m - 1] ?? 0) + (a[m] ?? 0)) / 2;
+}
+
+/**
+ * Referencia de pie de la sentadilla de frente (spec-vista-frontal §2): mediana de los últimos 500 ms en IDLE; se
+ * congela al armar y durante la repetición. Ya armado en IDLE, se refresca si la señal sigue sobre `startThr` + 2.
+ */
+function frontalRefStep(fr: FrontalRef, raw: number | null, tMs: number, fsm: FsmState, startThr: number): FrontalRef {
+  'worklet';
+  if (raw === null || raw <= 0 || fsm.phase !== 'IDLE') return fr;
+  const win = [...fr.win.filter((p) => tMs - p.t <= FREF_WINDOW_MS), { t: tMs, v: raw }];
+  const med = medianOf(win.map((p) => p.v));
+  const update = fr.ref === null || !fsm.armed || (med / fr.ref) * 100 >= startThr + FREF_REFRESH_MARGIN;
+  return { ref: update ? med : fr.ref, win };
+}
+
 function resolveConfig(cfg: EngineConfig): ResolvedConfig {
   'worklet';
-  const profile = cfg.calibrating ? null : (cfg.profile ?? null);
-  const baseSpec = cfg.exercise === 'jumpingJack' ? JJ_SPEC : cfg.exercise === 'pushUp' ? PUSHUP_SPEC : SQUAT_SPEC;
+  const view = cfg.view ?? (cfg.exercise === 'jumpingJack' ? 'frontal' : 'lateral');
+  const squatFrontal = cfg.exercise === 'squat' && view === 'frontal';
+  // De frente aún no hay calibración por vista (F4.2): un perfil de lado no vale para ρ.
+  const profile = cfg.calibrating || squatFrontal ? null : (cfg.profile ?? null);
+  const baseSpec = cfg.exercise === 'jumpingJack' ? JJ_SPEC : cfg.exercise === 'pushUp' ? PUSHUP_SPEC : squatFrontal ? SQUAT_FRONTAL_SPEC : SQUAT_SPEC;
   let spec = baseSpec;
   let zones: JJZones = JJ_ZONES;
   if (cfg.calibrating) {
-    spec = { ...baseSpec, extremeThr: CAL_EXTREME_THR };
+    // De frente la señal va en puntos: el fondo permisivo en grados no aplica (la calibración de frente es F4.2).
+    if (!squatFrontal) spec = { ...baseSpec, extremeThr: CAL_EXTREME_THR };
     zones = { ...JJ_ZONES, openAlpha: CAL_JJ_ALPHA, openRho: CAL_JJ_RHO };
   } else if (profile !== null) {
     if (cfg.exercise === 'jumpingJack') zones = { ...JJ_ZONES, openAlpha: profile.alphaU ?? JJ_ZONES.openAlpha, openRho: profile.rhoU ?? JJ_ZONES.openRho };
@@ -170,7 +214,7 @@ function resolveConfig(cfg: EngineConfig): ResolvedConfig {
   }
   return {
     exercise: cfg.exercise, model: cfg.model, side: cfg.side ?? profile?.side ?? null, oneEuro: cfg.oneEuro ?? DEFAULT_ONE_EURO,
-    view: cfg.view ?? (cfg.exercise === 'jumpingJack' ? 'frontal' : 'lateral'), profile, spec, zones,
+    view, profile, spec, zones,
   };
 }
 
@@ -193,12 +237,16 @@ export function createEngine(cfg: EngineConfig): EngineState {
     pu: PUSHUP_TRACK0,
     acc: EMPTY_ACC,
     heelStand: { l: [], r: [] },
+    fref: FREF0,
   };
 }
 
 
-function requiredJoints(exercise: EngineExercise, side: 'l' | 'r'): readonly JointId[] {
+function requiredJoints(exercise: EngineExercise, view: 'lateral' | 'frontal', side: 'l' | 'r'): readonly JointId[] {
   'worklet';
+  if (exercise === 'squat' && view === 'frontal') {
+    return ['lShoulder', 'rShoulder', 'lHip', 'rHip', 'lKnee', 'rKnee', 'lAnkle', 'rAnkle'];
+  }
   if (exercise === 'jumpingJack') {
     return ['lShoulder', 'rShoulder', 'lHip', 'rHip', 'lWrist', 'rWrist', 'lAnkle', 'rAnkle'];
   }
@@ -221,8 +269,8 @@ function meanVisibility(pose: Pose, joints: readonly JointId[]): number {
 function chooseSide(s: EngineState, pose: Pose): 'l' | 'r' {
   'worklet';
   if (s.cfg.side !== null || s.fsm.phase !== 'IDLE') return s.side;
-  const l = meanVisibility(pose, requiredJoints('squat', 'l'));
-  const r = meanVisibility(pose, requiredJoints('squat', 'r'));
+  const l = meanVisibility(pose, requiredJoints('squat', 'lateral', 'l'));
+  const r = meanVisibility(pose, requiredJoints('squat', 'lateral', 'r'));
   return r > l + 0.15 ? 'r' : l > r + 0.15 ? 'l' : s.side;
 }
 
@@ -235,8 +283,9 @@ function score(cfg: ResolvedConfig, rep: RepEvent, pf: number): number {
   }
   const tempo = qTempo(cfg.exercise === 'pushUp' ? 'pushUp' : 'squat', downS, upS);
   // Con perfil, T = fondo calibrado y Ttop = inicio calibrado (spec §6.1).
-  const T = cfg.profile ? cfg.profile.extremeThr - 10 : DEFAULT_T;
-  const Ttop = cfg.profile ? cfg.profile.startThr + 10 : DEFAULT_TTOP;
+  const frontal = cfg.exercise === 'squat' && cfg.view === 'frontal';
+  const T = cfg.profile ? cfg.profile.extremeThr - 10 : frontal ? FRONTAL_SQ_T : DEFAULT_T;
+  const Ttop = cfg.profile ? cfg.profile.startThr + 10 : frontal ? FRONTAL_SQ_TTOP : DEFAULT_TTOP;
   return repQ(qRomSquat(rep.extreme, rep.top ?? rep.extreme, T, Ttop), tempo, pf);
 }
 
@@ -442,7 +491,7 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
   const filtered = filterPose(s.bank, rawPose, s.cfg.oneEuro, JOINT_MIN_V);
   s = { ...s, side, bank: filtered.bank };
 
-  const joints = requiredJoints(s.cfg.exercise, side);
+  const joints = requiredJoints(s.cfg.exercise, s.cfg.view, side);
   const wasPaused = isPaused(s);
   const prevCause: PauseCause | null = s.vis.paused ? 'VIS_LOW' : s.frameCheck.issue;
   const vis = visibilityStep(s.vis, meanVisibility(rawPose, joints), tMs);
@@ -492,6 +541,13 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
     if (!paused && bottomOrUp && puSig.thetaBSigned !== null && (acc.bodySigned === null || Math.abs(puSig.thetaBSigned) < Math.abs(acc.bodySigned))) {
       acc = { ...acc, bodySigned: puSig.thetaBSigned };
     }
+  } else if (s.cfg.view === 'frontal') {
+    const sig = squatFrontalSignals(filtered.pose);
+    const fref = paused ? s.fref : frontalRefStep(s.fref, sig.rho, tMs, s.fsm, s.cfg.spec.startThr);
+    value = sig.rho !== null && fref.ref !== null ? (sig.rho / fref.ref) * 100 : null;
+    r = fsmStep(s.fsm, { tMs, value, paused }, s.cfg.spec);
+    s = { ...s, fref };
+    if (prevPhase === 'IDLE') acc = EMPTY_ACC;
   } else {
     const sig = squatSignals(filtered.pose, side);
     value = sig.thetaK;

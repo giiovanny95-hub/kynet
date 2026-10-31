@@ -8,7 +8,9 @@ import { Camera } from 'react-native-vision-camera';
 
 import { useFeedbackCues } from '@/audio/useFeedbackCues';
 import { useVoice } from '@/audio/useVoice';
+import { cachedPrefs } from '@/features/profile/prefsStore';
 import { getProfile, setProfile } from '@/features/workout/calibrationStore';
+import { effectiveView } from '@/features/workout/exerciseView';
 import { createPlacement, placementStep, type PlacementTick } from '@/features/workout/placement';
 import { isExercise } from '@/features/workout/plans';
 import { calibratorStep, createCalibrator, type CalibratorState } from '@/kinematics/calibration/calibrator';
@@ -41,7 +43,10 @@ export default function SetupScreen() {
 function Setup({ exercise }: { readonly exercise: EngineExercise }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const known = getProfile(exercise) !== undefined;
+  const [view] = useState(() => effectiveView(exercise, cachedPrefs()));
+  // Sentadilla de frente: aún sin calibración por vista (F4.2); se entra sin calibrar y sin tocar el perfil de lado.
+  const frontalSquat = exercise === 'squat' && view === 'frontal';
+  const known = frontalSquat || getProfile(exercise) !== undefined;
   const [stage, setStage] = useState<Stage>('placing');
   const [calReps, setCalReps] = useState(0);
   const [message, setMessage] = useState<FeedbackCode | null>(null);
@@ -89,7 +94,7 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
     [cues, exercise, goLive],
   );
 
-  const pipeline = useWorkoutPipeline({ exercise, profile: null, calibrating: true, onEvent });
+  const pipeline = useWorkoutPipeline({ exercise, profile: null, calibrating: true, view, onEvent });
 
   // Colocación y cuenta atrás sin tocar: el motor no está en pausa (visibilidad, vista, encuadre) y hay persona.
   const { hud, landmarks } = pipeline;
@@ -115,7 +120,7 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
   }, [placingOrCounting, known, hud, landmarks, playTone, say, goLive]);
 
   const useStandard = () => {
-    setProfile(exercise, null);
+    if (!frontalSquat) setProfile(exercise, null);
     goLive();
   };
 

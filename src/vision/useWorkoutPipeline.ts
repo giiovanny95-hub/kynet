@@ -23,6 +23,8 @@ export interface WorkoutPipelineOptions {
   readonly exercise: EngineExercise;
   readonly profile: CalibrationProfile | null;
   readonly calibrating: boolean;
+  /** Vista del motor (`effectiveView`); también se guarda en el fixture grabado. */
+  readonly view: 'lateral' | 'frontal';
   /** Recibe en JS los eventos del motor (repeticiones, avisos, pausas). Nunca datos por cuadro. */
   readonly onEvent: (events: EngineEvent[]) => void;
   /** Solo desarrollo: recibe el JSON de la grabación de landmarks al detenerla (Task 11). */
@@ -66,10 +68,10 @@ export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
   const boxed = useMemo(() => NitroModules.box(landmarker), [landmarker]);
   // El recolector de JS no sabe cuánta memoria nativa y de GPU retiene MediaPipe: sin esto cada visita dejaba ~80 MB.
   useEffect(() => () => landmarker.dispose(), [landmarker]);
-  const { exercise, profile, calibrating } = o;
+  const { exercise, profile, calibrating, view } = o;
   // Identifica esta configuración en el runtime de la cámara para no heredar un motor anterior.
-  const session = useMemo(() => Math.random(), [exercise, profile, calibrating]);
-  const engineCfg = useMemo(() => ({ exercise, model: BLAZEPOSE33, profile, calibrating }), [exercise, profile, calibrating]);
+  const session = useMemo(() => Math.random(), [exercise, profile, calibrating, view]);
+  const engineCfg = useMemo(() => ({ exercise, model: BLAZEPOSE33, profile, calibrating, view }), [exercise, profile, calibrating, view]);
   const onEventRef = useRef(o.onEvent);
   onEventRef.current = o.onEvent;
   const emit = useMemo(() => (events: EngineEvent[]) => onEventRef.current(events), []);
@@ -146,7 +148,7 @@ export function useWorkoutPipeline(o: WorkoutPipelineOptions) {
           st.rec = appendFrame(st.rec ?? createRecording(), poseFrame);
         } else if (st.rec !== null) {
           // El conteo real lo añade a mano quien graba (labels.realReps = -1 hasta entonces).
-          scheduleOnRN(emitRecording, toFixtureJson(st.rec, { exercise, view: exercise === 'jumpingJack' ? 'frontal' : 'lateral', profile, realReps: -1 }));
+          scheduleOnRN(emitRecording, toFixtureJson(st.rec, { exercise, view, profile, realReps: -1 }));
           st.rec = null;
         }
         const r = step(st.engine, poseFrame);
