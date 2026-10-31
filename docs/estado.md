@@ -90,7 +90,7 @@
    - **Reparto (decisión del usuario, 2026-10-31):** el usuario diseña con Codex por su cuenta y entrega assets;
      **Claude Code (PC) lo implementa todo**.
    - **Guías y pantallas v2:** plan `docs/superpowers/plans/2026-10-31-diseno-v2-guias.md`, H1 → H6 y después H7.
-     - H1: GIF del jumping jack desde Descargas.
+     - H1: los 3 GIF desde Descargas.
      - H2: manifiesto y preferencias.
      - H3: "Así se hace" la primera vez.
      - H4: ayuda tras 3 correcciones, con pausa.
