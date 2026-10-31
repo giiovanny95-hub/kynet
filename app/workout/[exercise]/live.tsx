@@ -12,12 +12,16 @@ import { pickUtterance } from '@/audio/voicePolicy';
 import { cachedPrefs } from '@/features/profile/prefsStore';
 import { getProfile } from '@/features/workout/calibrationStore';
 import { effectiveView } from '@/features/workout/exerciseView';
+import { guideFor } from '@/features/workout/guides';
+import { createHelp, helpStep } from '@/features/workout/techniqueHelp';
 import { createToneState, toneAt, toneStep } from '@/features/workout/formTone';
 import { currentPlan, isExercise } from '@/features/workout/plans';
 import { useWorkoutSession } from '@/features/workout/useWorkoutSession';
 import type { EngineEvent, EngineExercise } from '@/kinematics/engine';
 import type { FeedbackCode } from '@/kinematics/feedback/codes';
 import { CameraGate } from '@/ui/CameraGate';
+import { GuideCard } from '@/ui/GuideCard';
+import { Button } from '@/ui/kit';
 import { Skeleton } from '@/ui/Skeleton';
 import { toneBadge, toneColor } from '@/ui/toneColor';
 import { fonts, tokens } from '@/ui/tokens';
@@ -32,6 +36,9 @@ const COUNT_HEIGHT_RATIO = 0.2;
 const TONE_BORDER = 8;
 /** Sin esto la cámara frontal del Pixel 7 Pro entrega 24 FPS con luz de interior (medido el 2026-10-29). */
 const CAMERA_CONSTRAINTS = [{ fps: 30 }];
+
+/** Tiempo mínimo de la ayuda en pantalla (plan diseño v2, H4). */
+const HELP_MIN_MS = 3000;
 
 function clock(ms: number): string {
   const s = Math.floor(ms / 1000);
@@ -55,6 +62,10 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [now, setNow] = useState(Date.now());
   const [pauseCode, setPauseCode] = useState<FeedbackCode | null>(null);
+  // Ayuda tras 3 correcciones seguidas (plan diseño v2, H4): la única animación sobre la cámara, con la sesión en pausa.
+  const [guide] = useState(() => guideFor(exercise, view));
+  const help = useRef(createHelp());
+  const [helpCode, setHelpCode] = useState<FeedbackCode | null | undefined>(undefined);
   const [hudNow, setHudNow] = useState(Date.now());
   const tone = useRef(createToneState());
   const { height: windowHeight } = useWindowDimensions();
@@ -101,13 +112,23 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
         // Solo desarrollo: la causa de cada pausa en el registro de Metro (C1 de B3, F0.3).
         if (__DEV__ && e.type === 'PAUSE') console.log(`[kynet] PAUSE ${e.cause ?? '?'} t=${Math.round(e.tMs)}`);
       }
+      const prefs = cachedPrefs();
+      for (const e of events) {
+        const r = helpStep(help.current, e, nowMs, { enabled: prefs?.techniqueHelp ?? true, hasGuide: guide !== null });
+        help.current = r.s;
+        if (r.show) {
+          dispatch({ type: 'pause', nowMs });
+          setHelpCode(r.code);
+          if (__DEV__) console.log(`[kynet] HELP ${r.code ?? '?'}`);
+        }
+      }
       cues(events);
       // El reductor aún no ha contado este lote: se suman aquí sus repeticiones válidas.
       const valid = events.filter((e) => e.type === 'REP' && e.outcome === 'valid').length;
       const u = pickUtterance(events, { repsInSet: setRef.current.repsInSet + valid, repsPerSet: setRef.current.repsPerSet });
       if (u !== null) voice.say(u);
     },
-    [cues, dispatch, voice],
+    [cues, dispatch, voice, guide],
   );
 
   // Solo desarrollo: el JSON se guarda en los documentos de la app y se saca con adb (ver docs/fixtures.md); nunca se sube.
@@ -126,6 +147,17 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
     },
     [exercise, t],
   );
+  const closeHelp = useCallback(() => {
+    setHelpCode(undefined);
+    dispatch({ type: 'resume', nowMs: Date.now() });
+  }, [dispatch]);
+  // Se cierra sola tras una vuelta de la animación (mínimo 3 s) y reanuda.
+  const helpOpen = helpCode !== undefined;
+  useEffect(() => {
+    if (!helpOpen || guide === null) return;
+    const id = setTimeout(closeHelp, Math.max(guide.loopMs, HELP_MIN_MS));
+    return () => clearTimeout(id);
+  }, [helpOpen, guide, closeHelp]);
   const pipeline = useWorkoutPipeline({ exercise, profile, calibrating: false, view, onEvent, onRecording: __DEV__ ? onRecording : undefined });
   const [recording, setRecording] = useState(false);
   const toggleRecording = () => {
@@ -250,7 +282,13 @@ function Live({ exercise }: { readonly exercise: EngineExercise }) {
           </View>
         ) : null}
 
-        {session.phase === 'paused' ? (
+        {session.phase === 'paused' && helpCode !== undefined && guide !== null ? (
+          <View style={styles.cover}>
+            <GuideCard exercise={exercise} guide={guide} compact note={helpCode !== null ? t(`feedback.${helpCode}`) : undefined}>
+              <Button label={t('guide.continue')} onPress={closeHelp} />
+            </GuideCard>
+          </View>
+        ) : session.phase === 'paused' ? (
           <View style={styles.cover}>
             <Text style={styles.coverTitle}>{critical ? t('workout.critical') : t('workout.paused')}</Text>
             <Pressable style={styles.button} disabled={critical} onPress={() => dispatch({ type: 'resume', nowMs: Date.now() })}>
