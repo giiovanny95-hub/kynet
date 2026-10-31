@@ -38,6 +38,7 @@ export function GuideCard({ exercise, guide, compact = false, note, children }: 
         contentFit="contain"
         style={styles.animation}
         accessibilityLabel={t('guide.title')}
+        onError={(e) => { if (__DEV__) console.warn(`[kynet] guía ${guide.key}: ${e.error}`); }}
       />
       {note !== undefined ? <Text style={styles.note}>{note}</Text> : null}
       {compact ? null : (

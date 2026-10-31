@@ -88,10 +88,11 @@ Los tonos de `assets/audio/` son arte propio: senos generados por `scripts/gen-t
 
 ## Guías de ejercicio
 `assets/guides/{jumping-jack,squat,push-up}.webp`: diseños del usuario (KYNET), entregados como GIF el 2026-10-30
-(`jumping-jack.gif`, `sentadilla.gif`, `flexion.gif`). Herramienta de creación: por confirmar con el usuario. Sin
+(`jumping-jack.gif`, `sentadilla.gif`, `flexion.gif`). Creados por el usuario con Claude Code. Sin
 licencias de terceros.
 - Se usa solo el recuadro de la animación (sin títulos ni consejos, que van por i18n), convertido en la PC con
   `sharp` 0.34.4 a WebP animado (calidad 82, bucle infinito). No se subieron a ningún servicio.
-- Jumping jack: 436×372, 65 cuadros. Sentadilla y flexión: 720×620, 72 y 73 cuadros. Las tres duran 4800 ms y
-  pesan menos de 340 KB.
+- Jumping jack 436×372 y 65 cuadros; sentadilla y flexión 436×376, con 72 y 73 cuadros. Las tres duran 4800 ms.
+- **Máximo 436 px de ancho:** a 720×620 el decodificador de Android no mostraba la animación (recuadro vacío, sin
+  error en `onError`), comprobado en el Pixel 7 Pro el 2026-10-31.
 - Los GIF de G1 (`assets/lottie/exercises/`) no se usan en la app.
