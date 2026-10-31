@@ -32,7 +32,20 @@ F0, F1.1-F1.3, F2.1, F3.1 y F4.3 (datos) están hechos y revisados. Umbrales fij
    proporcional a la profundidad. Con 0 por defecto, la salida actual sigue idéntica. Barrido de δ con 0, 0,08 y
    0,15 m.
 2. F2.2: tabla y referencia de la sentadilla de frente.
-3. F3.2: tabla y envoltorio de la flexión de frente (barrido con `shoulderForwardM` 0-0,15).
+2b. **F2.2b `abortHoldMs`** (decisión del 2026-10-31):
+   - campo nuevo en `ExerciseSpec` (`fsm/machine.ts`): en `DESCENDING`, una vuelta por encima de `exitThr` solo
+     cierra la bajada si dura `abortHoldMs` seguidos, en tiempo efectivo;
+   - 0 por defecto, así que lateral y jumping jack no cambian;
+   - `SQUAT_FRONTAL_SPEC.abortHoldMs = 150`.
+   - Tests:
+     - el replay de la semilla 16 (h 0,9, d 3) da 10/10;
+     - la rejilla de 27 × 20 da 10/10 con σ 0,004 y ≥ 9/10 con σ 0,008;
+     - 0 falsos en 60 s de pie;
+     - una bajada a ρ 87 da 1 incompleta;
+     - lateral y benchmark sin cambios.
+   - Si con 150 no llega, probar 200 e informar; más de 250, solo tras consultar.
+3. F3.2: tabla y envoltorio de la flexión de frente (barrido con `shoulderForwardM` 0-0,15), con `abortHoldMs` desde
+   150 y el mismo criterio de rejilla.
 4. **F2.4:** escala del cuerpo. Es imprescindible antes de probar, por el fallo de la ronda 2.
 5. F4.1: motor por (ejercicio, vista).
 6. F4.2: calibración por vista.

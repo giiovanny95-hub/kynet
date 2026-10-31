@@ -1,7 +1,7 @@
 # Estado del proyecto (traspaso entre sesiones)
 
 ## Última actualización
-2026-10-31. Sesión de la **nube**: punto de control F1.4 resuelto (umbrales de frente). Último commit de la PC: `d2986f8`.
+2026-10-31. Sesión de la **nube**: F1.4 y la histéresis de F2.2 decididas. Último commit de la PC: `2f0d898`.
 
 ## Estado
 - **Equipo (2026-10-30):** la nube planifica y revisa; **Codex** (PC) hace principalmente diseño y pantallas
@@ -19,6 +19,10 @@
   - F4.3: preferencia `exerciseView` (`d2986f8`);
   - checks: 412 tests, kinematics 152/152 y benchmark 8/8;
   - **F1.4 resuelto:** umbrales de frente en la spec §3-§5 (`decisions.md`, 2026-10-31).
+  - F2.2 (`2f0d898`): sentadilla de frente en el motor y referencia de pie corregida.
+    - σ 0,004: 540/540 series de 10/10.
+    - σ 0,008: 457/540, con un mínimo de 7 a 3 m, por la histéresis frente al ruido.
+    - Decidido `abortHoldMs` 150 (F2.2b) antes de F3.2.
 - **F0 de vista de frente hecho (`728635f`, aceptado):**
   - reproductor `npm run replay`;
   - el grabador guarda `view`, `profile` y `realReps`, y se puede armar antes de la salida;
@@ -87,7 +91,7 @@
 0. **En paralelo (decisión del usuario, 2026-10-30):**
    - **Codex:** plan de diseño `2026-10-30-diseno-premium.md`, desde E2.1 en cuanto tenga cuota (E0 y E1 hechos), y
      después F5 de la vista de frente.
-   - **Claude Code (PC):** ruta rápida del plan de vista de frente: F1.3b → F2.2 → F3.2 → F2.4 → F4.1 → F4.2, más
+   - **Claude Code (PC):** ruta rápida del plan de vista de frente: F1.3b → F2.2 → F2.2b → F3.2 → F2.4 → F4.1 → F4.2, más
      un mínimo de pantalla. Después, **prueba de hoy con el usuario** en los dos teléfonos.
    - Decisiones de diseño ya tomadas: títulos de nivel solo visuales, Progreso combinado y detalle de sesión simple.
 Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:

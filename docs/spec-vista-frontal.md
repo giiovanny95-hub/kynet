@@ -43,6 +43,7 @@ móvil.
 - La referencia se fija al armar, como **mediana de los últimos 500 ms en la zona de inicio**, y se congela durante
   la repetición. Si en IDLE armado la referencia actual difiere más de un 8 % de la del perfil de calibración, se usa
   la del perfil [H].
+- **Regla de la referencia sin armar** [H] (F2.2): sube libre; solo baja tras 1,5 s seguidos bajo la zona de inicio sin armar. Así no la arrastra una sentadilla abortada.
 - Las faltas de forma se miden con **medianas en ventanas de ms**, nunca con máximos de fase (lección A1 en
   `.claude/rules/vision-cinematica.md`).
 
@@ -76,6 +77,7 @@ Articulaciones requeridas (ambos lados): hombros, caderas, rodillas y tobillos. 
 | `attemptMax` | 90 | ≈ 128°; banda de intento (80, 90] |
 | `revDeg` | 3 | puntos |
 | `tNoiseMs`, `stallMs`, `tMaxMs` | iguales que de lado | |
+| `abortHoldMs` | 150 | campo nuevo de `ExerciseSpec` (0 por defecto, igual que de lado): en la bajada, una vuelta por encima de `exitThr` solo cierra la repetición si dura 150 ms seguidos de tiempo efectivo. Evita que el ruido a 3 m (±4 puntos) la corte al empezar (decisión del 2026-10-31, F2.2) |
 
 **Faltas:**
 - `SQ_KNEES_IN`: mediana de `kneeRatio` en ±150 ms del fondo `< 0,85`. Severidad media.
