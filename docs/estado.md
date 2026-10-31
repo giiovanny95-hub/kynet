@@ -1,7 +1,7 @@
 # Estado del proyecto (traspaso entre sesiones)
 
 ## Última actualización
-2026-10-31. Sesión de la **nube**: guías con los GIF del usuario, ayuda tras 3 correcciones y Codex fuera de los planes. Último commit de la PC: `560cd95`.
+2026-10-31. Sesión de la **nube**: los 3 GIF entregados; la PC implementa las guías en modo continuo. Último commit de la PC: `560cd95`.
 
 ## Estado
 - **Equipo (2026-10-31):** la nube planifica y revisa; **Claude Code (PC)** implementa todo (lógica y pantallas).
@@ -97,7 +97,8 @@
      - H5: ajuste en Perfil.
      - H6: bienvenida "Empezar" y "Ya tengo cuenta".
      - H7: resto de pantallas y HUD.
-     - Por ahora solo hay guía del jumping jack; las demás, cuando el usuario las entregue.
+     - **Los 3 GIF entregados** por el usuario (Descargas). La PC ejecuta H1 → H7 en **modo continuo** (sin esperar
+       revisión entre tareas; informa por bloque).
      - G0 hecho (`cc934bb`). G1 Lottie (`560cd95`) sin usar.
    - **Vista de frente: en pausa por el usuario.** Con `abortHoldMs`, σ 0,008 da 488/540 (mínimo 8). Al reanudar,
      F2.2c (guardia de sujeto con mediana) y el resto de la ruta rápida.

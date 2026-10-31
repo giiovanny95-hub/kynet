@@ -12,11 +12,20 @@
 >   Sus archivos no se conectan a la app y se retiran si el usuario lo confirma.
 > - G2, la mini-guía permanente del HUD y G4m quedan fuera.
 
-**Alcance ahora:**
-- Solo existe la tarjeta del **jumping jack**. El usuario avisará cuando tenga las de sentadilla y flexión.
-- El mecanismo se hace **genérico**, y se integra y prueba con el jumping jack.
-- **No se crean animaciones provisionales.** Añadir una guía nueva es solo H1: copiar el archivo y añadir su
-  entrada en el manifiesto.
+**Alcance ahora (actualizado el 2026-10-31):** el usuario entregó **las 3 guías** (jumping jack, sentadilla y
+flexión) en su carpeta de Descargas. Añadir guías nuevas más adelante es solo H1 y el manifiesto.
+
+**Modo de ejecución: continuo y autónomo** (lo pide el usuario):
+- H1 → H6 y después H7, **sin esperar la revisión de la nube entre tareas**.
+- Cada tarea con TDD, `npm run verify` en verde, commit y push a `feat/partes-0-1-2`.
+- Un `tipo: estado` por bloque: H1-H3, H4 (con la prueba en el teléfono), H5-H6 y cada pantalla de H7.
+- La nube revisa de forma asíncrona y manda correcciones como tareas nuevas.
+- **Solo se para** ante:
+  - una contradicción con la spec;
+  - un fallo sin resolver tras `systematic-debugging`;
+  - algo de pago;
+  - un nombre de archivo ambiguo (se pregunta al usuario).
+- Las pruebas en el teléfono, cuando el usuario esté. No bloquean el resto.
 
 **Reglas comunes:**
 - tokens, i18n (es y en) y `useMotion()`;
@@ -25,23 +34,26 @@
 
 ---
 
-## H1 Importar la guía del jumping jack
-- [ ] Copia el GIF del usuario desde su carpeta de Descargas a `assets/guides/jumping-jack.gif`. Si no está claro
-  cuál es, pregunta al usuario el nombre del archivo.
-- [ ] **Límites:** ≤ 2 MB y ≤ 720 px de lado.
-  - Si pasa, conviértelo a WebP animado en la PC con una herramienta gratuita y local (por ejemplo `ffmpeg` o
+## H1 Importar las 3 guías
+- [ ] Copia los GIF del usuario desde su carpeta de Descargas a `assets/guides/`:
+  - `jumping-jack.gif`, `squat.gif` y `push-up.gif`;
+  - si hay variantes por vista: `<ejercicio>-front.gif` y `<ejercicio>-side.gif`;
+  - una sola por ejercicio vale para las dos vistas.
+
+  Si algún nombre es ambiguo, pregunta al usuario cuál es cuál.
+- [ ] **Límites:** ≤ 2 MB y ≤ 720 px de lado por archivo.
+  - Si alguno pasa, conviértelo a WebP animado en la PC con una herramienta gratuita y local (por ejemplo `ffmpeg` o
     `gif2webp`, con versión fija), sin subirlo a ningún servicio.
-  - O pide al usuario uno más ligero.
   - Anota tamaño y dimensiones finales.
-- [ ] Mide `loopMs`, la duración de un ciclo, sumando los retardos de los cuadros (con `ffprobe` o un script).
-- [ ] `docs/licencias-assets.md`: "Guía del jumping jack: diseño del usuario (KYNET), creado con <herramienta que
-  indique el usuario>, fecha". Si no lo sabes, pregúntale qué herramienta usó.
+- [ ] Mide `loopMs` de cada una, sumando los retardos de los cuadros.
+- [ ] `docs/licencias-assets.md`: "Guías de ejercicio: diseños del usuario (KYNET), creados con <herramienta que
+  indique el usuario>, fecha". Pregúntale la herramienta si no la sabes.
 
 ## H2 Manifiesto y preferencias
 - [ ] `src/features/workout/guides.ts`: `guideFor(exercise, view)` → `{ source, loopMs } | null`.
-  - Hoy solo tiene el jumping jack.
+  - Tiene los 3 ejercicios.
   - Si una sentadilla o flexión tiene una sola animación, vale para las dos vistas.
-  - Test: el jumping jack devuelve su guía; sentadilla y flexión devuelven `null`.
+  - Test: los 3 devuelven guía, para cada vista válida, y `null` sigue siendo posible si falta un archivo.
 - [ ] `src/features/profile/prefs.ts`, con `parsePrefs` tolerante y test:
   - `techniqueHelp: boolean`, `true` por defecto;
   - `guideSeen: { squat: boolean; jumpingJack: boolean; pushUp: boolean }`, todo `false` por defecto.
@@ -51,8 +63,10 @@
 - [ ] `src/ui/GuideCard.tsx`, con `expo-image` (~58.0.18, ya instalado):
   - la animación en bucle;
   - con `useMotion().reduced`, el primer cuadro fijo (`autoplay={false}`);
-  - título y 2-3 consejos por i18n (`guide.<exercise>.tips`). Para el jumping jack: "Brazos arriba por los lados",
-    "Pies se abren a la vez" y "Vuelve a cerrar del todo".
+  - título y 2-3 consejos por i18n (`guide.<exercise>.tips`):
+    - jumping jack: "Brazos arriba por los lados", "Pies se abren a la vez" y "Vuelve a cerrar del todo";
+    - sentadilla: "Pies al ancho de hombros", "Baja como si te sentaras" y "Rodillas en línea con los pies";
+    - flexión: "Manos bajo los hombros", "Cuerpo recto de cabeza a talones" y "Codos a unos 45°".
 - [ ] `app/workout/[exercise]/setup.tsx`: si `techniqueHelp && !guideSeen[exercise] && guideFor(...) !== null`,
   **antes de la colocación** se muestra `GuideCard` a pantalla completa con:
   - **"Entendido"**, que marca `guideSeen[exercise]` y sigue a la colocación;
@@ -81,7 +95,7 @@
   3. se cierra sola a los `max(loopMs, 3000)` ms, o con "Seguir";
   4. **reanuda la sesión.**
 - [ ] Es la única animación sobre la cámara y solo aparece **con la sesión en pausa** (`spec-diseno` §5).
-- [ ] **Prueba en el teléfono** (Pixel), con jumping jack:
+- [ ] **Prueba en el teléfono** (Pixel), con jumping jack y sentadilla (la flexión, si da tiempo):
   - haz 3 repeticiones incorrectas seguidas (por ejemplo, brazos sin subir) → aparece la ayuda, se cierra sola y el
     conteo sigue bien;
   - con "Ayudas de técnica" desactivadas no aparece;
