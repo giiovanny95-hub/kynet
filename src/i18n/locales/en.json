@@ -223,8 +223,7 @@
     "version": "Version {{v}}",
     "devSpike": "Open camera test",
     "techniqueHelp": "Technique tips",
-    "techniqueHelpHint": "Shows how to do each exercise the first time and after 3 corrections in a row.",
-    "resetGuides": "Show the guides again"
+    "techniqueHelpHint": "Shows how to do each exercise before you start and after 3 corrections in a row."
   },
   "fitnessLevel": {
     "beginner": "I'm just starting",

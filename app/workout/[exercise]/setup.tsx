@@ -45,7 +45,7 @@ export default function SetupScreen() {
   return <FirstGuideGate exercise={exercise} />;
 }
 
-/** "Así se hace" a pantalla completa antes de la colocación, solo la primera vez (plan diseño v2, H3). */
+/** "Así se hace" a pantalla completa antes de la colocación, cada vez (plan diseño v2, H3; decisión del usuario). */
 function FirstGuideGate({ exercise }: { readonly exercise: EngineExercise }) {
   const { t } = useTranslation();
   const [view] = useState(() => effectiveView(exercise, cachedPrefs()));

@@ -25,13 +25,13 @@ describe('manifiesto de guías (H2)', () => {
   });
 });
 
-describe('"Así se hace" la primera vez (H3)', () => {
+describe('"Así se hace" antes de cada ejercicio (H3, decisión del usuario)', () => {
   const base = { ...DEFAULT_PREFS };
   it('se muestra con ayudas activas, guía disponible y sin haberla visto', () => {
     expect(shouldShowFirstGuide(base, 'jumpingJack', 'frontal')).toBe(true);
   });
-  it('no se muestra si ya se vio, si las ayudas están apagadas o si no hay guía', () => {
-    expect(shouldShowFirstGuide({ ...base, guideSeen: { ...base.guideSeen, jumpingJack: true } }, 'jumpingJack', 'frontal')).toBe(false);
+  it('se muestra aunque ya se haya visto; no con las ayudas apagadas ni sin guía', () => {
+    expect(shouldShowFirstGuide({ ...base, guideSeen: { ...base.guideSeen, jumpingJack: true } }, 'jumpingJack', 'frontal')).toBe(true);
     expect(shouldShowFirstGuide({ ...base, techniqueHelp: false }, 'squat', 'lateral')).toBe(false);
     expect(shouldShowFirstGuide(base, 'pushUp', 'lateral', { ...GUIDE_MANIFEST, pushUp: {} })).toBe(false);
   });

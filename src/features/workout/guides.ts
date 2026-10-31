@@ -23,8 +23,8 @@ export function guideFor(exercise: EngineExercise, view: ExerciseView, manifest:
   return m[view] ?? m.any ?? null;
 }
 
-/** "Así se hace" antes de la colocación: solo la primera vez, con ayudas activas y si hay guía (plan v2, H3). */
+/** "Así se hace" antes de la colocación, cada vez que se empieza el ejercicio, con ayudas activas y si hay guía (decisión del usuario, 2026-10-31). */
 export function shouldShowFirstGuide(prefs: Prefs | null, exercise: EngineExercise, view: ExerciseView, manifest: GuideManifest = GUIDE_MANIFEST): boolean {
   const p = prefs ?? DEFAULT_PREFS;
-  return p.techniqueHelp && !p.guideSeen[exercise] && guideFor(exercise, view, manifest) !== null;
+  return p.techniqueHelp && guideFor(exercise, view, manifest) !== null;
 }

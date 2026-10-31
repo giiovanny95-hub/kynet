@@ -75,7 +75,6 @@ export default function ProfileScreen() {
             <Choice label={t('profile.off')} selected={!data.prefs.techniqueHelp} onPress={() => set({ techniqueHelp: false })} />
           </View>
         </View>
-        <Button kind="ghost" label={t('profile.resetGuides')} onPress={() => set({ techniqueHelp: true, guideSeen: { squat: false, jumpingJack: false, pushUp: false } })} />
       </Card>
       <Card>
         <Body tone="muted">{t('profile.privacy')}</Body>

@@ -223,8 +223,7 @@
     "version": "Versión {{v}}",
     "devSpike": "Abrir prueba de cámara",
     "techniqueHelp": "Ayudas de técnica",
-    "techniqueHelpHint": "Muestra cómo se hace cada ejercicio la primera vez y tras 3 correcciones seguidas.",
-    "resetGuides": "Volver a ver las guías"
+    "techniqueHelpHint": "Muestra cómo se hace cada ejercicio antes de empezar y tras 3 correcciones seguidas."
   },
   "fitnessLevel": {
     "beginner": "Estoy empezando",
