@@ -14,6 +14,11 @@ export interface ExerciseSpec {
   readonly tMaxMs: number;
   /** Extremo máximo para que una repetición abortada cuente como intento (`incomplete`). */
   readonly attemptMax: number;
+  /**
+   * En DESCENDING, una vuelta de `revDeg` sobre el extremo solo cierra la bajada si dura estos ms seguidos (tiempo
+   * efectivo). Sin definir o 0 = al instante (vista de lado y jumping jack). Contra el ruido de frente (F2.2b).
+   */
+  readonly abortHoldMs?: number;
 }
 
 export interface RepEvent {
@@ -62,6 +67,8 @@ export interface FsmState {
   /** Instante (real y efectivo) en que la repetición volvió a la zona de inicio; `COMPLETED` sigue midiendo `top`. */
   readonly completedTMs: number;
   readonly completedTEff: number;
+  /** Tiempo efectivo desde el que la bajada lleva vuelta atrás (`abortHoldMs`), o `null`. */
+  readonly abortSinceEff: number | null;
 }
 
 export interface Sample {
@@ -81,7 +88,7 @@ export function createFsm(): FsmState {
     phase: 'IDLE', armed: false, armSinceMs: null, crossCount: 0, crossTMs: 0, crossTEff: 0, phaseSinceMs: 0,
     tStartMs: 0, tStartEff: 0, extreme: 0, extreme2: null, tExtremeMs: 0, tExtremeEff: 0,
     tBottomMs: null, tBottomEff: null, top: 0, pausedMs: 0, lastTMs: null, frozen: false,
-    completedTMs: 0, completedTEff: 0,
+    completedTMs: 0, completedTEff: 0, abortSinceEff: null,
   };
 }
 
@@ -116,7 +123,7 @@ export function enterPhase(s: FsmState, phase: Phase, tEff: number): FsmState {
 /** Sale a IDLE. `armed` indica si queda armado (tras repetición completa) o debe volver a la zona de inicio. */
 export function toIdle(s: FsmState, tEff: number, armed: boolean): FsmState {
   'worklet';
-  return { ...enterPhase(s, 'IDLE', tEff), armed, armSinceMs: null, tBottomMs: null, tBottomEff: null };
+  return { ...enterPhase(s, 'IDLE', tEff), armed, armSinceMs: null, tBottomMs: null, tBottomEff: null, abortSinceEff: null };
 }
 
 /**
@@ -205,12 +212,14 @@ export function fsmStep(s0: FsmState, sample: Sample, spec: ExerciseSpec): { s: 
     }
     case 'DESCENDING': {
       if (v < s.extreme) s = { ...s, extreme: v, tExtremeMs: sample.tMs, tExtremeEff: t };
-      if (v <= spec.extremeThr) return { s: enterPhase(s, 'INFLECTION', t), events: [] };
+      if (v <= spec.extremeThr) return { s: { ...enterPhase(s, 'INFLECTION', t), abortSinceEff: null }, events: [] };
       if (v > s.extreme + spec.revDeg) {
+        const since = s.abortSinceEff ?? t;
+        if (t - since < (spec.abortHoldMs ?? 0)) return { s: { ...s, abortSinceEff: since }, events: [] };
         const events = s.extreme <= spec.attemptMax ? [repEvent(s, 'incomplete', sample.tMs, t, 'SHALLOW')] : [];
-        return { s: toIdle(s, t, false), events };
+        return { s: toIdle({ ...s, abortSinceEff: null }, t, false), events };
       }
-      return { s, events: [] };
+      return { s: s.abortSinceEff === null ? s : { ...s, abortSinceEff: null }, events: [] };
     }
     case 'INFLECTION': {
       if (v < s.extreme) s = { ...s, extreme: v, tExtremeMs: sample.tMs, tExtremeEff: t };

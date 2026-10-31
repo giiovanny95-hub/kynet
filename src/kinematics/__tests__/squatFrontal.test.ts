@@ -39,3 +39,26 @@ describe('fantasma de MediaPipe (33 puntos juntos)', () => {
     expect(n).toBe(0);
   });
 });
+
+describe('abortHoldMs (F2.2b)', () => {
+  // Antes 7/10. La que falta la pierde el guardia de sujeto (torso crudo ±15 % con σ 0,008 a 3 m), pendiente de la nube.
+  it('replay de la semilla 16 (h 0,9, d 3, σ 0,008): ≥ 9/10', () => {
+    expect(countValid({ reps: 10, bottomsDeg: 85, periodS: 2.5, sigma: 0.008, seed: 16, fps: 30, standS: 2, camera: { heightM: 0.9, distanceM: 3 } })).toBeGreaterThanOrEqual(9);
+  });
+  it('una bajada que se queda en ρ ≈ 87 da exactamente 1 incompleta', () => {
+    let s = createEngine({ exercise: 'squat', model: BLAZEPOSE33, view: 'frontal' });
+    let valid = 0;
+    let inc = 0;
+    // θk 118° ≈ ρ 86,3.
+    for (const f of genSquat({ reps: 1, bottomsDeg: 118, periodS: 2.5, sigma: 0.004, seed: 1, fps: 30, standS: 2, camera: { heightM: 0.9, distanceM: 2.5 } })) {
+      const r = step(s, f);
+      s = r.s;
+      for (const e of r.events) {
+        if (e.type !== 'REP') continue;
+        if (e.outcome === 'valid') valid++;
+        else inc++;
+      }
+    }
+    expect([valid, inc]).toEqual([0, 1]);
+  });
+});

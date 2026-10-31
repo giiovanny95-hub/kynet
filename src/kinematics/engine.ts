@@ -171,11 +171,14 @@ interface FrontalRef {
   readonly win: readonly FrontalSample[];
   /** Desde cuándo la señal sigue bajo la zona de inicio sin estar armada (para bajar la referencia). */
   readonly lowSinceMs: number | null;
+  /** Hasta el primer armado la referencia es la mediana sin más (un pico al arrancar no debe quedarse). */
+  readonly armedOnce: boolean;
 }
-const FREF0: FrontalRef = { ref: null, win: [], lowSinceMs: null };
+const FREF0: FrontalRef = { ref: null, win: [], lowSinceMs: null, armedOnce: false };
 const FREF_WINDOW_MS = 500;
-/** La referencia se refresca arriba si la señal supera `startThr` + 2 puntos. */
-const FREF_REFRESH_MARGIN = 2;
+/** Armada (o en la zona de inicio), la referencia solo puede bajar este tanto por segundo: sigue la deriva lenta,
+ * no la propia bajada (refrescar con la mediana arrastraba ρ_ref con una sentadilla lenta). */
+const FREF_DECAY_PER_S = 0.01;
 /**
  * La referencia solo baja tras 1,5 s seguidos bajo la zona de inicio sin armar (la persona se alejó). Así una bajada
  * abortada por ruido no arrastra la referencia con la propia sentadilla (perdía repeticiones con σ 0,008).
@@ -196,20 +199,24 @@ function medianOf(xs: readonly number[]): number {
 
 /**
  * Referencia de pie de la sentadilla de frente (spec-vista-frontal §2): mediana de los últimos 500 ms en IDLE; se
- * congela durante la repetición. Sube si la señal pasa de `startThr` + 2 (o de 100 sin armar); baja solo tras
- * `FREF_LOWER_AFTER_MS` bajo la zona de inicio sin armar.
+ * congela durante la repetición. Sube libre; armada o en la zona de inicio baja como mucho `FREF_DECAY_PER_S`; sin
+ * armar y bajo la zona de inicio, baja de golpe tras `FREF_LOWER_AFTER_MS` seguidos (la persona se alejó).
  */
 function frontalRefStep(fr: FrontalRef, raw: number | null, tMs: number, fsm: FsmState, startThr: number): FrontalRef {
   'worklet';
   if (raw === null || raw <= 0 || fsm.phase !== 'IDLE') return fr;
+  const lastT = fr.win.length > 0 ? (fr.win[fr.win.length - 1]?.t ?? tMs) : tMs;
   const win = [...fr.win.filter((p) => tMs - p.t <= FREF_WINDOW_MS), { t: tMs, v: raw }];
   const med = medianOf(win.map((p) => p.v));
-  if (fr.ref === null) return { ref: med, win, lowSinceMs: null };
+  const armedOnce = fr.armedOnce || fsm.armed;
+  if (fr.ref === null || !armedOnce || med >= fr.ref) return { ref: med, win, lowSinceMs: null, armedOnce };
   const n = (med / fr.ref) * 100;
-  if (n >= startThr + FREF_REFRESH_MARGIN || (!fsm.armed && n > 100)) return { ref: med, win, lowSinceMs: null };
-  if (fsm.armed || n >= startThr) return { ref: fr.ref, win, lowSinceMs: null };
+  if (fsm.armed || n >= startThr) {
+    const floor = fr.ref * (1 - (FREF_DECAY_PER_S * (tMs - lastT)) / 1000);
+    return { ref: Math.max(med, floor), win, lowSinceMs: null, armedOnce };
+  }
   const lowSinceMs = fr.lowSinceMs ?? tMs;
-  return tMs - lowSinceMs >= FREF_LOWER_AFTER_MS ? { ref: med, win, lowSinceMs: null } : { ref: fr.ref, win, lowSinceMs };
+  return tMs - lowSinceMs >= FREF_LOWER_AFTER_MS ? { ref: med, win, lowSinceMs: null, armedOnce } : { ref: fr.ref, win, lowSinceMs, armedOnce };
 }
 
 function resolveConfig(cfg: EngineConfig): ResolvedConfig {

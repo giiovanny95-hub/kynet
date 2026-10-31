@@ -25,4 +25,6 @@ export const SQUAT_FRONTAL_SPEC: ExerciseSpec = {
   extremeThr: 80,
   revDeg: 3,
   attemptMax: 90,
+  // Una vuelta por ruido (±4 puntos con σ 0,008 a 3 m) no cierra la bajada si no dura 150 ms (F2.2b, 2026-10-31).
+  abortHoldMs: 150,
 };
