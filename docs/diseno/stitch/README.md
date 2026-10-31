@@ -1,6 +1,6 @@
 # Mockup de Stitch: inventario
 
-Exportado el 2026-10-30 del proyecto de Stitch `17277584496938994624` (solo lectura) con
+Exportado el 2026-10-30 (v1) y el 2026-10-31 (v2; diferencias en `CAMBIOS.md`) del proyecto de Stitch `17277584496938994624` (solo lectura) con
 `herramientas/exportar-stitch.mjs` en la PC. Stitch manda en lo visual; la navegación y el alcance siguen las specs
 (`CLAUDE.md`).
 
@@ -46,6 +46,8 @@ translúcido con desenfoque.
 | `02-vision-live-y-resumen.png` · `code/02-vision-live-y-resumen.html` | KYNET Vision — Live Workout & Resumen (Final Polish) | **Entrenamiento en vivo** y resumen | Píldora "Análisis en tu dispositivo"; cronómetro; tarjeta del ejercicio con serie, meta y "En curso"; esqueleto teal; contador "8 / 12 repeticiones" con válidas y forma media; píldora de aviso ("Baja un poco más"); Pausar y Finalizar entrenamiento | En el HTML: **en pausa** (tiempo, reps y Reanudar), **confirmar fin** ("¿Finalizar entrenamiento?") y **resumen** ("¡Buen trabajo!", XP, duración y tiempo activo) |
 | `03-historial.png` · `code/03-historial.html` | Historial de Entrenamientos (Final Polish) | Pestaña **Progreso** (historial) | Indicador "Guardado en este dispositivo" y sincronizar; 3 métricas (sesiones, reps y forma media); segmentos semana / mes / 3 meses; chips por ejercicio; tarjetas de sesión por día (XP, reps válidas, forma y un consejo técnico); botón "+ Nuevo entreno"; barra inferior | En el HTML: **vacío** ("Sin entrenamientos para este filtro"), aviso "Acción completada" y **detalle de sesión** (duración, desglose por serie y cadencia) |
 | `04-iniciar-sesion.png` · `code/04-iniciar-sesion.html` | KYNET — Iniciar Sesión y Vincular Cuenta | Login con Google y "Guardar mi progreso" | Logotipo y descriptor; ilustración del esqueleto con ángulo ("92° PROFUND.", "CV LOCKED"); titular; botón "Continuar con Google" (blanco, colores de Google); "Continuar sin cuenta"; tarjeta de privacidad; enlaces legales y versión | En el HTML: **inicial**, **conectando** ("Conectando con Google..."), **error** y **sin conexión** (selector de prototipo al pie) |
+| `05-bienvenida.png` · `code/05-bienvenida.html` | KYNET — Pantalla de Bienvenida Minimalista (v2) | Bienvenida y entrada (no está en el mapa de `spec-diseno` §2) | Logotipo con radar y descriptor; "Bienvenido"; INICIAR SESIÓN y CREAR CUENTA; Facebook, Google y Apple; "Entrenar como invitado" | Ninguno. Choca con el login de las specs: ver `CAMBIOS.md` |
+| `92-referencia-externa-login.jpg` | Image (v2) | Referencia de **otra marca** subida a Stitch; no es diseño de KYNET | Tres pantallas de login de "FitnessHub" | — |
 | `90-referencia-panel-ux-ui.jpg` | Panel UX_UI de KYNET Fitness Inteligente.png | Imagen de referencia **subida por el usuario**, no generada | Panel de 8 módulos (Inicio, Entrenamiento, Vision, Rendimiento, Nutrición, Bienestar, Objetivos y Perfil) con 3 teléfonos por módulo y la paleta al pie | — |
 | `code/91-referencia-manual-visual.md` | kynet_manual_visual_y_estructura.md | El manual visual, subido a Stitch como contexto | Igual que `docs/marca/` | — |
 
