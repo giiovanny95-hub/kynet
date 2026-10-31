@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { GUIDE_MANIFEST, guideFor, type GuideManifest } from './guides';
+import { DEFAULT_PREFS } from '@/features/profile/prefs';
+import { GUIDE_MANIFEST, guideFor, shouldShowFirstGuide, type GuideManifest } from './guides';
 
 describe('manifiesto de guías (H2)', () => {
   it('los 3 ejercicios tienen guía en cada vista válida', () => {
@@ -21,5 +22,20 @@ describe('manifiesto de guías (H2)', () => {
     expect(guideFor('squat', 'frontal', m)?.loopMs).toBe(1000);
     expect(guideFor('squat', 'lateral', m)?.loopMs).toBe(2000);
     expect(guideFor('pushUp', 'lateral', m)).toBeNull();
+  });
+});
+
+describe('"Así se hace" la primera vez (H3)', () => {
+  const base = { ...DEFAULT_PREFS };
+  it('se muestra con ayudas activas, guía disponible y sin haberla visto', () => {
+    expect(shouldShowFirstGuide(base, 'jumpingJack', 'frontal')).toBe(true);
+  });
+  it('no se muestra si ya se vio, si las ayudas están apagadas o si no hay guía', () => {
+    expect(shouldShowFirstGuide({ ...base, guideSeen: { ...base.guideSeen, jumpingJack: true } }, 'jumpingJack', 'frontal')).toBe(false);
+    expect(shouldShowFirstGuide({ ...base, techniqueHelp: false }, 'squat', 'lateral')).toBe(false);
+    expect(shouldShowFirstGuide(base, 'pushUp', 'lateral', { ...GUIDE_MANIFEST, pushUp: {} })).toBe(false);
+  });
+  it('sin preferencias cargadas usa los valores por defecto', () => {
+    expect(shouldShowFirstGuide(null, 'squat', 'frontal')).toBe(true);
   });
 });

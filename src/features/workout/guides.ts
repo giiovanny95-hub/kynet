@@ -1,5 +1,5 @@
 import type { EngineExercise } from '@/kinematics/engine';
-import type { ExerciseView } from '@/features/profile/prefs';
+import { DEFAULT_PREFS, type ExerciseView, type Prefs } from '@/features/profile/prefs';
 
 /** Nombre del archivo en `assets/guides/` (sin extensión); el `require` vive en `src/ui/guideAssets.ts`. */
 export type GuideKey = 'jumping-jack' | 'squat' | 'push-up';
@@ -21,4 +21,10 @@ export const GUIDE_MANIFEST: GuideManifest = {
 export function guideFor(exercise: EngineExercise, view: ExerciseView, manifest: GuideManifest = GUIDE_MANIFEST): GuideEntry | null {
   const m = manifest[exercise];
   return m[view] ?? m.any ?? null;
+}
+
+/** "Así se hace" antes de la colocación: solo la primera vez, con ayudas activas y si hay guía (plan v2, H3). */
+export function shouldShowFirstGuide(prefs: Prefs | null, exercise: EngineExercise, view: ExerciseView, manifest: GuideManifest = GUIDE_MANIFEST): boolean {
+  const p = prefs ?? DEFAULT_PREFS;
+  return p.techniqueHelp && !p.guideSeen[exercise] && guideFor(exercise, view, manifest) !== null;
 }

@@ -53,7 +53,8 @@
     "skip": "Omitir (usar valores estándar)",
     "useStandard": "Usar valores estándar",
     "retry": "Reintentar",
-    "start": "Empezar"
+    "start": "Empezar",
+    "howTo": "Ver cómo se hace"
   },
   "workout": {
     "set": "Serie {{set}}/{{sets}}",
@@ -297,5 +298,53 @@
     "item": "Elemento {{n}}",
     "loading": "Carga",
     "open": "Abrir componentes de diseño"
+  },
+  "guide": {
+    "title": "Así se hace",
+    "understood": "Entendido",
+    "noMore": "No mostrar más ayudas",
+    "continue": "Seguir",
+    "jumpingJack": {
+      "tip1": {
+        "title": "Brazos completos",
+        "text": "Llévalos por encima de la cabeza."
+      },
+      "tip2": {
+        "title": "Movimiento coordinado",
+        "text": "Abre y cierra brazos y piernas al mismo tiempo."
+      },
+      "tip3": {
+        "title": "Tronco estable",
+        "text": "Mantén el core activado y la espalda recta."
+      }
+    },
+    "squat": {
+      "tip1": {
+        "title": "Espalda neutra",
+        "text": "Tronco recto e inclinado desde la cadera."
+      },
+      "tip2": {
+        "title": "Rodillas a 90°",
+        "text": "Muslos paralelos al suelo, ángulo recto en la rodilla."
+      },
+      "tip3": {
+        "title": "Peso en los talones",
+        "text": "Pies firmes en el suelo y cadera hacia atrás."
+      }
+    },
+    "pushUp": {
+      "tip1": {
+        "title": "Codos a 45°",
+        "text": "No los abras en exceso ni los pegues al cuerpo."
+      },
+      "tip2": {
+        "title": "Cuerpo alineado",
+        "text": "Mantén espalda, cadera y tobillos en línea recta."
+      },
+      "tip3": {
+        "title": "Manos a la altura",
+        "text": "Bajo los hombros, firmes en el suelo."
+      }
+    }
   }
 }

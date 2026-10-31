@@ -2,21 +2,26 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { Camera } from 'react-native-vision-camera';
 
 import { useFeedbackCues } from '@/audio/useFeedbackCues';
 import { useVoice } from '@/audio/useVoice';
-import { cachedPrefs } from '@/features/profile/prefsStore';
+import { getStore } from '@/data/storeProvider';
+import { DEFAULT_PREFS } from '@/features/profile/prefs';
+import { cachedPrefs, savePrefs } from '@/features/profile/prefsStore';
 import { getProfile, setProfile } from '@/features/workout/calibrationStore';
 import { effectiveView } from '@/features/workout/exerciseView';
+import { guideFor, shouldShowFirstGuide } from '@/features/workout/guides';
 import { createPlacement, placementStep, type PlacementTick } from '@/features/workout/placement';
 import { isExercise } from '@/features/workout/plans';
 import { calibratorStep, createCalibrator, type CalibratorState } from '@/kinematics/calibration/calibrator';
 import type { EngineEvent, EngineExercise } from '@/kinematics/engine';
 import type { FeedbackCode } from '@/kinematics/feedback/codes';
 import { CameraGate } from '@/ui/CameraGate';
+import { GuideCard } from '@/ui/GuideCard';
+import { Button } from '@/ui/kit';
 import { silhouetteFor } from '@/ui/silhouettes';
 import { Skeleton } from '@/ui/Skeleton';
 import { fonts, tokens } from '@/ui/tokens';
@@ -37,7 +42,29 @@ type Stage = 'placing' | 'countdown' | 'calibrating' | 'failed';
 export default function SetupScreen() {
   const { exercise } = useLocalSearchParams<{ exercise: string }>();
   if (!isExercise(exercise)) return <Redirect href="/exercises" />;
-  return <Setup exercise={exercise} />;
+  return <FirstGuideGate exercise={exercise} />;
+}
+
+/** "Así se hace" a pantalla completa antes de la colocación, solo la primera vez (plan diseño v2, H3). */
+function FirstGuideGate({ exercise }: { readonly exercise: EngineExercise }) {
+  const { t } = useTranslation();
+  const [view] = useState(() => effectiveView(exercise, cachedPrefs()));
+  const [showGuide, setShowGuide] = useState(() => shouldShowFirstGuide(cachedPrefs(), exercise, view));
+  const guide = guideFor(exercise, view);
+  if (!showGuide || guide === null) return <Setup exercise={exercise} />;
+  const finish = (patch: Parameters<typeof savePrefs>[1]) => {
+    setShowGuide(false);
+    void savePrefs(getStore(), patch);
+  };
+  const seen = () => finish({ guideSeen: { ...(cachedPrefs() ?? DEFAULT_PREFS).guideSeen, [exercise]: true } });
+  return (
+    <ScrollView style={styles.fill} contentContainerStyle={styles.guideScreen}>
+      <GuideCard exercise={exercise} guide={guide}>
+        <Button label={t('guide.understood')} onPress={seen} />
+        <Button kind="ghost" label={t('guide.noMore')} onPress={() => finish({ techniqueHelp: false })} />
+      </GuideCard>
+    </ScrollView>
+  );
 }
 
 function Setup({ exercise }: { readonly exercise: EngineExercise }) {
@@ -59,6 +86,8 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
   const { onEvents: cues, playTone } = useFeedbackCues();
   const [tick, setTick] = useState<PlacementTick | null>(null);
   const [armed, setArmed] = useState(false);
+  const [howTo, setHowTo] = useState(false);
+  const guide = guideFor(exercise, view);
   const toggleArmed = () => {
     armRecording(!armed);
     setArmed(!armed);
@@ -172,12 +201,24 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
               <Text style={styles.link}>{armed ? t('workout.dev.armed') : t('workout.dev.arm')}</Text>
             </Pressable>
           ) : null}
+          {guide !== null && stage === 'placing' ? (
+            <Pressable onPress={() => setHowTo(true)}>
+              <Text style={styles.link}>{t('setup.howTo')}</Text>
+            </Pressable>
+          ) : null}
           {stage !== 'failed' ? (
             <Pressable onPress={useStandard}>
               <Text style={styles.link}>{t('setup.skip')}</Text>
             </Pressable>
           ) : null}
         </View>
+        {howTo && guide !== null ? (
+          <ScrollView style={styles.howTo} contentContainerStyle={styles.guideScreen}>
+            <GuideCard exercise={exercise} guide={guide}>
+              <Button label={t('guide.continue')} onPress={() => setHowTo(false)} />
+            </GuideCard>
+          </ScrollView>
+        ) : null}
       </View>
     </CameraGate>
   );
@@ -185,6 +226,8 @@ function Setup({ exercise }: { readonly exercise: EngineExercise }) {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: tokens.bg },
+  guideScreen: { flexGrow: 1, justifyContent: 'center', padding: 16 },
+  howTo: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: tokens.overlay },
   countdown: { fontFamily: fonts.display, position: 'absolute', top: '30%', alignSelf: 'center', color: tokens.text, fontVariant: ['tabular-nums'] },
   silhouette: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.5 },
   panel: { position: 'absolute', left: 16, right: 16, bottom: 32, backgroundColor: tokens.overlay, borderRadius: tokens.radius, padding: 16, gap: 8 },

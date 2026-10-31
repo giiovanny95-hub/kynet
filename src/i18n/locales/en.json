@@ -53,7 +53,8 @@
     "skip": "Skip (use standard values)",
     "useStandard": "Use standard values",
     "retry": "Retry",
-    "start": "Start"
+    "start": "Start",
+    "howTo": "See how it is done"
   },
   "workout": {
     "set": "Set {{set}}/{{sets}}",
@@ -297,5 +298,53 @@
     "item": "Item {{n}}",
     "loading": "Loading",
     "open": "Open design components"
+  },
+  "guide": {
+    "title": "How to do it",
+    "understood": "Got it",
+    "noMore": "Don’t show tips again",
+    "continue": "Continue",
+    "jumpingJack": {
+      "tip1": {
+        "title": "Full arms",
+        "text": "Raise them above your head."
+      },
+      "tip2": {
+        "title": "Coordinated movement",
+        "text": "Open and close arms and legs at the same time."
+      },
+      "tip3": {
+        "title": "Stable torso",
+        "text": "Keep your core engaged and your back straight."
+      }
+    },
+    "squat": {
+      "tip1": {
+        "title": "Neutral back",
+        "text": "Straight torso, leaning from the hips."
+      },
+      "tip2": {
+        "title": "Knees at 90°",
+        "text": "Thighs parallel to the floor, right angle at the knee."
+      },
+      "tip3": {
+        "title": "Weight on your heels",
+        "text": "Feet planted and hips back."
+      }
+    },
+    "pushUp": {
+      "tip1": {
+        "title": "Elbows at 45°",
+        "text": "Don’t flare them out or tuck them in."
+      },
+      "tip2": {
+        "title": "Aligned body",
+        "text": "Keep back, hips and ankles in a straight line."
+      },
+      "tip3": {
+        "title": "Hands in place",
+        "text": "Under your shoulders, firm on the floor."
+      }
+    }
   }
 }
