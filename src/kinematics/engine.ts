@@ -181,6 +181,11 @@ const FREF_REFRESH_MARGIN = 2;
  * abortada por ruido no arrastra la referencia con la propia sentadilla (perdía repeticiones con σ 0,008).
  */
 const FREF_LOWER_AFTER_MS = 1500;
+/**
+ * Cuerpo mínimo plausible de frente, en alto de cuadro [H]: a 3 m una persona da ρ ≈ 0,18 de pie y ≈ 0,14 en el
+ * fondo. MediaPipe a veces devuelve un "fantasma" con los 33 puntos juntos (visto en el Pixel: 8 conteos falsos).
+ */
+const FRONTAL_MIN_BODY = 0.06;
 
 function medianOf(xs: readonly number[]): number {
   'worklet';
@@ -554,7 +559,9 @@ export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; event
       acc = { ...acc, bodySigned: puSig.thetaBSigned };
     }
   } else if (s.cfg.view === 'frontal') {
-    const sig = squatFrontalSignals(filtered.pose);
+    const raw = squatFrontalSignals(filtered.pose);
+    const plausible = raw.rho !== null && raw.rho >= FRONTAL_MIN_BODY && raw.kappa !== null && raw.kappa >= FRONTAL_MIN_BODY;
+    const sig = plausible ? raw : { ...raw, rho: null };
     const fref = paused ? s.fref : frontalRefStep(s.fref, sig.rho, tMs, s.fsm, s.cfg.spec.startThr);
     value = sig.rho !== null && fref.ref !== null ? (sig.rho / fref.ref) * 100 : null;
     r = fsmStep(s.fsm, { tMs, value, paused }, s.cfg.spec);
