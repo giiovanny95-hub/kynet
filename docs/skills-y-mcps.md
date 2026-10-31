@@ -1,4 +1,4 @@
-# Skills de agente y servidores MCP para FitPose (RN + Expo + Supabase)
+# Skills de agente y servidores MCP para KYNET (RN + Expo + Supabase)
 
 Fecha de investigación: 2026-10-28. Solo lectura: no se instaló ni configuró nada.
 Todo el contenido de terceros se trató como no confiable. Donde algo no se pudo verificar se marca **[NO VERIFICADO]**.

@@ -1,0 +1,37 @@
+{
+  "repXp": [
+    { "formScore": 80, "durationMs": 2000, "exercise": "squat", "expected": 2 },
+    { "formScore": 79, "durationMs": 2000, "exercise": "squat", "expected": 1 },
+    { "formScore": 50, "durationMs": 2000, "exercise": "pushUp", "expected": 1 },
+    { "formScore": 49, "durationMs": 2000, "exercise": "squat", "expected": 0 },
+    { "formScore": 95, "durationMs": 799, "exercise": "squat", "expected": 0 },
+    { "formScore": 95, "durationMs": 799, "exercise": "pushUp", "expected": 0 },
+    { "formScore": 95, "durationMs": 600, "exercise": "jumpingJack", "expected": 2 }
+  ],
+  "level": [
+    { "xp": 0, "level": 1 }, { "xp": 99, "level": 1 }, { "xp": 100, "level": 2 }, { "xp": 239, "level": 2 },
+    { "xp": 240, "level": 3 }, { "xp": 640, "level": 5 }, { "xp": 2340, "level": 10 }, { "xp": 8740, "level": 20 }
+  ],
+  "sessionXp": [
+    {
+      "note": "30 reps limpias y 8 aceptables, completada, primera del día, primera vez: 60+8 = 68 + 20 + 10 + 10 (≥80 % limpias: 30/38 = 79 % no) + 15",
+      "reps": { "clean": 30, "ok": 8, "bad": 0 }, "status": "completed", "firstOfDay": true, "firstTimeExercise": true, "repXpTodayBefore": 0,
+      "expected": { "repXp": 68, "bonus": 45, "total": 113 }
+    },
+    {
+      "note": "32 limpias y 6 aceptables: 84 % limpias da +10",
+      "reps": { "clean": 32, "ok": 6, "bad": 0 }, "status": "completed", "firstOfDay": false, "firstTimeExercise": false, "repXpTodayBefore": 0,
+      "expected": { "repXp": 70, "bonus": 30, "total": 100 }
+    },
+    {
+      "note": "tope de 300 por repeticiones: ya había 290, la sesión aporta 20 pero solo cuentan 10; los bonos sí",
+      "reps": { "clean": 10, "ok": 0, "bad": 0 }, "status": "completed", "firstOfDay": false, "firstTimeExercise": false, "repXpTodayBefore": 290,
+      "expected": { "repXp": 10, "bonus": 30, "total": 40 }
+    },
+    {
+      "note": "abandonada: sin bono de sesión completada ni de forma",
+      "reps": { "clean": 5, "ok": 0, "bad": 2 }, "status": "abandoned", "firstOfDay": true, "firstTimeExercise": false, "repXpTodayBefore": 0,
+      "expected": { "repXp": 10, "bonus": 10, "total": 20 }
+    }
+  ]
+}

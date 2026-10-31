@@ -1,0 +1,354 @@
+{
+  "common": {
+    "appName": "KYNET",
+    "descriptor": "INTELLIGENT FITNESS",
+    "loading": "Cargando"
+  },
+  "home": {
+    "openSpike": "Abrir prueba de cámara",
+    "train": "Entrenar"
+  },
+  "spike": {
+    "permissionNeeded": "Se necesita la cámara para la prueba.",
+    "grantPermission": "Dar permiso",
+    "enableInSettings": "Actívala en Ajustes.",
+    "hud": {
+      "fps": "FPS {{value}}",
+      "dropped": "Descartes {{value}}",
+      "inferP95": "Inferencia p95 {{value}} ms",
+      "inferLast": "Inferencia {{value}} ms",
+      "intervalP95": "Intervalo p95 {{value}} ms",
+      "detection": "Detección {{value}} %",
+      "thermal": "Térmico {{value}}"
+    }
+  },
+  "exercise": {
+    "squat": "Sentadilla",
+    "jumpingJack": "Jumping jack",
+    "pushUp": "Flexión",
+    "position": {
+      "squat": "Móvil de lado, a 2-3 m",
+      "jumpingJack": "Móvil de frente, a 2-3 m",
+      "pushUp": "Móvil en vertical en el suelo, de lado, a 2-3 m"
+    },
+    "sideTag": "De lado",
+    "impact": "Impacto: apto solo si no tienes molestias en rodillas o tobillos",
+    "plan": "{{sets}} series de {{reps}}",
+    "choose": "Elige ejercicio"
+  },
+  "camera": {
+    "permissionNeeded": "Necesitamos la cámara para contar tus repeticiones. El vídeo nunca sale del teléfono.",
+    "grant": "Dar permiso",
+    "openSettings": "Abrir Ajustes",
+    "busy": "La cámara la está usando otra app. Ciérrala e inténtalo de nuevo.",
+    "back": "Volver"
+  },
+  "setup": {
+    "placing": "Colócate para que se vea todo tu cuerpo",
+    "placed": "Perfecto. Te vemos bien",
+    "calibrate": "Haz 3 repeticiones despacio para calibrar",
+    "calibrateRep": "Repetición {{n}} de 3",
+    "calibrateExtra": "Haz una más, un poco más parecida a las anteriores",
+    "calibrationFailed": "No pudimos calibrar. Puedes entrenar con los valores estándar.",
+    "skip": "Omitir (usar valores estándar)",
+    "useStandard": "Usar valores estándar",
+    "retry": "Reintentar",
+    "start": "Empezar",
+    "howTo": "Ver cómo se hace"
+  },
+  "workout": {
+    "set": "Serie {{set}}/{{sets}}",
+    "reps": "{{reps}} / {{target}}",
+    "clean": "Limpias {{n}}",
+    "form": "Forma",
+    "pause": "Pausa",
+    "resume": "Seguir",
+    "finish": "Terminar",
+    "paused": "En pausa",
+    "rest": "Descanso: {{s}} s",
+    "restTip": "Respira y suelta los hombros",
+    "skipRest": "Saltar descanso",
+    "warn15": "Llevas 15 min; considera descansar",
+    "warn25": "Llevas 25 min. Te recomendamos terminar por hoy",
+    "hot": "Tu móvil está caliente; bajamos la carga",
+    "fatigue": {
+      "title": "Tu forma está bajando",
+      "body": "Descansa 30-60 s o termina aquí.",
+      "rest": "Descansar",
+      "endSet": "Terminar serie",
+      "continue": "Seguir"
+    },
+    "dev": {
+      "record": "Grabar landmarks",
+      "arm": "Armar grabación",
+      "armed": "Grabación armada",
+      "stopRecording": "Detener y compartir",
+      "saved": "Guardado {{name}} ({{kb}} KB). Sácalo con adb (ver docs/fixtures.md).",
+      "saveFailed": "No se pudo guardar: {{error}}"
+    },
+    "critical": "Tu móvil está muy caliente. Descansa unos minutos"
+  },
+  "feedback": {
+    "SQ_DEPTH_SHALLOW": "Baja un poco más",
+    "SQ_TRUNK_LEAN": "Pecho arriba",
+    "SQ_HEELS_LIFT": "Mantén los talones en el suelo",
+    "SQ_TOO_FAST": "Sube sin impulso",
+    "SQ_TOO_SLOW": "Mantén un ritmo constante",
+    "JJ_ARMS_LOW": "Abre más los brazos",
+    "JJ_FEET_NARROW": "Abre más los pies",
+    "JJ_ASYMMETRY": "Sube los dos brazos por igual",
+    "JJ_FACE_CAMERA": "Ponte de frente al móvil",
+    "PU_POSITION": "Colócate de lado, en plancha",
+    "PU_DEPTH_SHALLOW": "Baja más",
+    "PU_HIPS_SAG": "Cuerpo recto: sube la cadera",
+    "PU_HIPS_PIKE": "Cuerpo recto: baja la cadera",
+    "PU_TOO_FAST": "Más despacio",
+    "PU_TOO_SLOW": "Mantén un ritmo constante",
+    "VIS_LOW": "No te veo. Colócate en el encuadre",
+    "OUT_OF_FRAME": "Aléjate un paso",
+    "VIEW_WRONG_FRONT": "Ponte de frente al móvil",
+    "VIEW_WRONG_SIDE": "Gírate de lado",
+    "SUBJECT_CHANGED": "Solo una persona en el encuadre",
+    "CAL_ROM_TOO_SMALL": "Haz el movimiento más amplio",
+    "CAL_INCONSISTENT": "Intenta que las repeticiones sean parecidas"
+  },
+  "summary": {
+    "title": "¡Buen trabajo!",
+    "reps": "Repeticiones {{n}}",
+    "clean": "Limpias {{n}} ({{pct}} %)",
+    "form": "Forma media {{pct}} %",
+    "tip": "Consejo: {{tip}}",
+    "noTip": "Sigue así",
+    "short": "Cuenta como día activo si haces 20 repeticiones",
+    "done": "Listo",
+    "titleEmpty": "Sesión terminada"
+  },
+  "voice": {
+    "count": "{{n}}",
+    "setDone": "Serie completa",
+    "tick": "{{n}}",
+    "go": "¡Vamos!",
+    "on": "Voz: sí",
+    "off": "Voz: no"
+  },
+  "tone": {
+    "good": "Bien",
+    "warn": "Ajusta",
+    "bad": "Corrige"
+  },
+  "tabs": {
+    "today": "Hoy",
+    "progress": "Progreso",
+    "missions": "Misiones",
+    "profile": "Perfil"
+  },
+  "today": {
+    "hello": "Hola",
+    "streak_one": "{{count}} día de racha",
+    "streak_other": "{{count}} días de racha",
+    "streakStart": "Empieza hoy tu racha",
+    "atRisk": "Aún puedes mantener tu racha hoy",
+    "dayDone": "Hecho. Mañana más.",
+    "planTitle": "Entreno de hoy",
+    "planLine": "{{sets}} × {{reps}} {{exercise}}",
+    "start": "Empezar",
+    "missionsTitle": "Misiones de hoy {{done}}/{{total}}",
+    "provisional": "Provisional hasta sincronizar",
+    "dayGoal": "Meta del día: {{reps}}/20 repeticiones o {{min}}/3 min"
+  },
+  "level": {
+    "label": "Nivel {{n}}",
+    "xp": "{{cur}}/{{next}} XP",
+    "title": {
+      "novice": "Novato",
+      "explorer": "Explorador",
+      "athlete": "Atleta",
+      "elite": "Élite",
+      "legend": "Leyenda"
+    },
+    "rank": {
+      "bronze": "Rango bronce",
+      "silver": "Rango plata",
+      "gold": "Rango oro",
+      "platinum": "Rango platino",
+      "diamond": "Rango diamante"
+    }
+  },
+  "missions": {
+    "title": "Misiones",
+    "daily": "Diarias",
+    "weekly": "Semanales",
+    "reward": "+{{xp}} XP",
+    "progress": "{{cur}}/{{target}}",
+    "allDone": "¡Día redondo! +{{xp}} XP",
+    "bonusHint": "Completa las tres de hoy: +{{xp}} XP",
+    "code": {
+      "d_easy_squat15": "Haz {{target}} sentadillas",
+      "d_easy_active3": "Entrena 3 minutos",
+      "d_easy_jj20": "Haz {{target}} jumping jacks",
+      "d_med_squat25": "Haz {{target}} sentadillas",
+      "d_med_jj40": "Haz {{target}} jumping jacks",
+      "d_med_pu10": "Haz {{target}} flexiones",
+      "d_med_sessions2": "Haz {{target}} sesiones",
+      "d_q_clean": "Una sesión con 80 % de repeticiones limpias",
+      "d_explore": "Prueba {{target}} ejercicios distintos",
+      "w_consistency": "Entrena {{target}} días esta semana",
+      "w_volume": "Suma {{target}} repeticiones",
+      "w_variety": "Haz los {{target}} ejercicios"
+    }
+  },
+  "progress": {
+    "title": "Progreso",
+    "current": "Racha actual",
+    "longest": "Racha máxima",
+    "days_one": "{{count}} día",
+    "days_other": "{{count}} días",
+    "totalXp": "XP total",
+    "totalReps": "Repeticiones válidas",
+    "sessions": "Sesiones",
+    "last7": "Últimos 7 días",
+    "empty": "Aún no hay sesiones. Tu primer día empieza hoy.",
+    "byExercise": "Forma media por ejercicio",
+    "noData": "—"
+  },
+  "profile": {
+    "title": "Perfil",
+    "fitnessLevel": "Nivel de dificultad",
+    "weeklyGoal": "Días por semana (meta orientativa)",
+    "voice": "Voz durante el entrenamiento",
+    "on": "Sí",
+    "off": "No",
+    "medical": "Aviso médico",
+    "privacy": "El vídeo y los puntos del cuerpo nunca salen del teléfono. Solo se guarda el resumen de cada repetición.",
+    "version": "Versión {{v}}",
+    "devSpike": "Abrir prueba de cámara",
+    "techniqueHelp": "Ayudas de técnica",
+    "techniqueHelpHint": "Muestra cómo se hace cada ejercicio antes de empezar y tras 3 correcciones seguidas."
+  },
+  "fitnessLevel": {
+    "beginner": "Estoy empezando",
+    "regular": "Entreno de vez en cuando",
+    "advanced": "Entreno con regularidad"
+  },
+  "onboarding": {
+    "welcomeTitle": "Entrena con tu cámara",
+    "welcomeBody": "Cuento tus repeticiones y te corrijo la postura. Todo ocurre en tu móvil: el vídeo nunca sale de aquí.",
+    "start": "Empezar",
+    "birthTitle": "¿Cuál es tu fecha de nacimiento?",
+    "day": "Día",
+    "month": "Mes",
+    "year": "Año",
+    "invalid": "Revisa la fecha",
+    "next": "Seguir",
+    "blockedTitle": "Por ahora no podemos ofrecerte KYNET",
+    "blockedBody": "Esta app es solo para mayores de edad. Gracias por tu interés.",
+    "levelTitle": "¿Cómo te sientes con el ejercicio?",
+    "goalTitle": "¿Cuántos días por semana quieres entrenar?",
+    "goalHint": "Es una meta orientativa: no afecta a la racha.",
+    "finish": "Listo",
+    "tagline": "Intelligent Fitness",
+    "haveAccount": "Ya tengo cuenta"
+  },
+  "medical": {
+    "title": "Antes de empezar",
+    "body": "KYNET es una herramienta de apoyo para entrenar y no sustituye el consejo de un profesional sanitario. Consulta a tu médico antes de empezar si tienes una condición cardíaca, respiratoria, articular o embarazo, o si llevas tiempo sin hacer ejercicio. Detente si sientes dolor, mareo, falta de aire u opresión en el pecho. Entrena en un espacio libre de obstáculos. El análisis de postura es aproximado y puede fallar: tu cuerpo manda.",
+    "accept": "Entiendo y acepto",
+    "continue": "Continuar"
+  },
+  "summaryGame": {
+    "xp": "+{{n}} XP",
+    "streak": "Racha: {{n}}",
+    "missionDone": "Misión cumplida: {{title}}",
+    "savedLocal": "Guardado en el teléfono",
+    "savePrompt": "Guarda tu progreso para no perderlo si cambias de teléfono."
+  },
+  "account": {
+    "title": "Cuenta",
+    "local": "Cuenta local: tus datos solo están en este teléfono.",
+    "signIn": "Guardar mi progreso con Google",
+    "signedInAs": "Sesión iniciada: {{email}}",
+    "pending_one": "{{count}} sesión por subir",
+    "pending_other": "{{count}} sesiones por subir",
+    "synced": "Todo sincronizado",
+    "sync": "Sincronizar ahora",
+    "export": "Exportar mis datos",
+    "signOut": "Cerrar sesión",
+    "delete": "Eliminar cuenta",
+    "deleteTitle": "¿Eliminar tu cuenta?",
+    "deleteBody": "Se borran tus sesiones, XP y racha del servidor y de este teléfono. No se puede deshacer.",
+    "cancel": "Cancelar",
+    "confirmDelete": "Eliminar",
+    "unavailable": "El inicio de sesión aún no está configurado en esta versión.",
+    "error": "No se pudo completar. Inténtalo de nuevo.",
+    "syncError": "Algunas sesiones no se pudieron subir; se reintentará.",
+    "errors": {
+      "serverConfig": "El inicio de sesión con Google no está activado en el servidor. Avisa al equipo.",
+      "network": "Sin conexión. Revisa tu red e inténtalo de nuevo.",
+      "google": "Google no pudo completar el inicio de sesión. Inténtalo de nuevo."
+    }
+  },
+  "devUi": {
+    "title": "Componentes",
+    "numbers": "Cifras y racha",
+    "xp": "+{{xp}} XP",
+    "next": "Siguiente",
+    "progress": "Progreso",
+    "controls": "Controles",
+    "week": "Semana",
+    "month": "Mes",
+    "quarter": "3 meses",
+    "confetti": "Confeti",
+    "ghost": "Reiniciar",
+    "item": "Elemento {{n}}",
+    "loading": "Carga",
+    "open": "Abrir componentes de diseño"
+  },
+  "guide": {
+    "title": "Así se hace",
+    "understood": "Entendido",
+    "noMore": "No mostrar más ayudas",
+    "continue": "Seguir",
+    "jumpingJack": {
+      "tip1": {
+        "title": "Brazos completos",
+        "text": "Llévalos por encima de la cabeza."
+      },
+      "tip2": {
+        "title": "Movimiento coordinado",
+        "text": "Abre y cierra brazos y piernas al mismo tiempo."
+      },
+      "tip3": {
+        "title": "Tronco estable",
+        "text": "Mantén el core activado y la espalda recta."
+      }
+    },
+    "squat": {
+      "tip1": {
+        "title": "Espalda neutra",
+        "text": "Tronco recto e inclinado desde la cadera."
+      },
+      "tip2": {
+        "title": "Rodillas a 90°",
+        "text": "Muslos paralelos al suelo, ángulo recto en la rodilla."
+      },
+      "tip3": {
+        "title": "Peso en los talones",
+        "text": "Pies firmes en el suelo y cadera hacia atrás."
+      }
+    },
+    "pushUp": {
+      "tip1": {
+        "title": "Codos a 45°",
+        "text": "No los abras en exceso ni los pegues al cuerpo."
+      },
+      "tip2": {
+        "title": "Cuerpo alineado",
+        "text": "Mantén espalda, cadera y tobillos en línea recta."
+      },
+      "tip3": {
+        "title": "Manos a la altura",
+        "text": "Bajo los hombros, firmes en el suelo."
+      }
+    }
+  }
+}

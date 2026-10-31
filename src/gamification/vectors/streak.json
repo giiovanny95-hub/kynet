@@ -1,0 +1,24 @@
+{
+  "cases": [
+    { "note": "3 días seguidos hasta hoy", "asOf": "2026-10-30",
+      "days": [["2026-10-28", 20, 0], ["2026-10-29", 25, 0], ["2026-10-30", 0, 180]],
+      "expected": { "current": 3, "longest": 3, "lastDay": "2026-10-30", "atRisk": false } },
+    { "note": "hoy sin actividad: racha intacta y en riesgo", "asOf": "2026-10-30",
+      "days": [["2026-10-28", 20, 0], ["2026-10-29", 25, 0]],
+      "expected": { "current": 2, "longest": 2, "lastDay": "2026-10-29", "atRisk": true } },
+    { "note": "ayer sin actividad: se rompe y se conserva la máxima", "asOf": "2026-10-30",
+      "days": [["2026-10-25", 20, 0], ["2026-10-26", 20, 0], ["2026-10-27", 20, 0], ["2026-10-28", 20, 0]],
+      "expected": { "current": 0, "longest": 4, "lastDay": "2026-10-28", "atRisk": false } },
+    { "note": "19 repeticiones y 179 s no cuentan", "asOf": "2026-10-30",
+      "days": [["2026-10-29", 20, 0], ["2026-10-30", 19, 179]],
+      "expected": { "current": 1, "longest": 1, "lastDay": "2026-10-29", "atRisk": true } },
+    { "note": "racha nueva tras un hueco", "asOf": "2026-10-30",
+      "days": [["2026-10-20", 30, 0], ["2026-10-21", 30, 0], ["2026-10-22", 30, 0], ["2026-10-29", 30, 0], ["2026-10-30", 30, 0]],
+      "expected": { "current": 2, "longest": 3, "lastDay": "2026-10-30", "atRisk": false } },
+    { "note": "sin días", "asOf": "2026-10-30", "days": [],
+      "expected": { "current": 0, "longest": 0, "lastDay": null, "atRisk": false } },
+    { "note": "días futuros se ignoran", "asOf": "2026-10-30",
+      "days": [["2026-10-30", 30, 0], ["2026-10-31", 30, 0]],
+      "expected": { "current": 1, "longest": 1, "lastDay": "2026-10-30", "atRisk": false } }
+  ]
+}

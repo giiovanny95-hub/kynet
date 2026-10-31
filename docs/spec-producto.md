@@ -1,4 +1,4 @@
-# Spec de producto: FitPose (nombre provisional)
+# Spec de producto: KYNET
 
 Estado: borrador para aprobación. Alcance: MVP (partes 0-6 de `requirements.md`). Idioma de la app: español neutro LATAM/ES, tuteo.
 
@@ -8,7 +8,7 @@ Estado: borrador para aprobación. Alcance: MVP (partes 0-6 de `requirements.md`
 
 **Usuario:** adulto (18+) que entrena en casa sin equipo, con poco espacio y poca paciencia para configurar cosas.
 
-**Diferenciador:** las apps del benchmark son juegos arcade sin técnica ni progresión. FitPose cuenta, corrige la forma y motiva a volver cada día.
+**Diferenciador:** las apps del benchmark son juegos arcade sin técnica ni progresión. KYNET cuenta, corrige la forma y motiva a volver cada día.
 
 **Principios de diseño**
 1. **Forma antes que volumen.** Una repetición limpia vale más que una sucia. Nunca premiamos el movimiento brusco ni el cansancio extremo.
@@ -246,7 +246,7 @@ Tres niveles de onboarding fijan reps iniciales (4.6). Ajuste automático modera
 
 ### 5.4 Advertencia médica y descargo
 Pantalla obligatoria antes del primer entrenamiento (casilla "Entiendo y acepto"):
-> "FitPose es una herramienta de apoyo para entrenar y no sustituye el consejo de un profesional sanitario. Consulta a tu médico antes de empezar si tienes una condición cardíaca, respiratoria, articular o embarazo, o si llevas tiempo sin hacer ejercicio. Detente si sientes dolor, mareo, falta de aire u opresión en el pecho. Entrena en un espacio libre de obstáculos. El análisis de postura es aproximado y puede fallar: tu cuerpo manda."
+> "KYNET es una herramienta de apoyo para entrenar y no sustituye el consejo de un profesional sanitario. Consulta a tu médico antes de empezar si tienes una condición cardíaca, respiratoria, articular o embarazo, o si llevas tiempo sin hacer ejercicio. Detente si sientes dolor, mareo, falta de aire u opresión en el pecho. Entrena en un espacio libre de obstáculos. El análisis de postura es aproximado y puede fallar: tu cuerpo manda."
 Se repite resumida en Perfil > Aviso médico y en los términos. La app no da diagnósticos ni consejos clínicos ni de pérdida de peso. Opción en onboarding "Tengo una lesión" abre el aviso extendido y sugiere omitir el ejercicio afectado (sin lógica médica).
 
 ## 6. Privacidad
@@ -316,6 +316,13 @@ Instrumentación mínima: eventos locales anonimizados (`onboarding_step`, `cali
 6. **Pase de batalla por temporadas** (cosmético: avatares, marcos, sonidos de repetición; sin ventaja competitiva).
 7. **iOS** y Apple Sign-In (en paralelo cuando haya dispositivo y cuenta de desarrollador).
 8. **Carril premium de pago:** análisis detallado de forma, planes, historial extendido, temas. Nunca el conteo básico, la racha ni el protector. Sin anuncios.
+
+### 8.1 Sugerencia de monetización (no decidida; benchmark de 10 apps, 2026-10-29)
+Propuesta a validar cuando se diseñe el carril premium; las cifras del benchmark son afirmaciones de un informe externo sin verificar.
+- **Gratis e ilimitado:** conteo manos libres por cámara, diario de entrenamiento, racha y misiones. Según el informe, cobrar por el conteo básico provoca desinstalaciones inmediatas.
+- **De pago (valor alto):** coaching de voz con corrección postural en vivo, análisis a largo plazo de forma y desequilibrios, y retos o clasificaciones con repeticiones validadas por cámara (anti-trampas).
+- **Momento del muro de pago:** después de que el usuario haya comprobado que el conteo funciona (no en la primera sesión ni antes de entrenar).
+- **Referencias de precio del informe:** suscripciones de 4 a 15 USD al mes o 23 a 80 USD al año; Form Coach y SmartSight venden pagos únicos de 5 a 15 USD.
 
 ## 9. Riesgos y decisiones abiertas
 

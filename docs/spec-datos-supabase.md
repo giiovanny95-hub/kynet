@@ -1,8 +1,8 @@
-# Spec de diseño: datos, sincronización y backend (Supabase) de FitPose
+# Spec de diseño: datos, sincronización y backend (Supabase) de KYNET
 
 Estado: borrador de diseño para aprobación. Es solo un documento: no se ha ejecutado nada contra Supabase, no se ha creado ningún proyecto y el SQL de las secciones 3 y 7 es ilustrativo (sin probar). Basado en `docs/requirements.md`.
 
-> **AVISO DE AISLAMIENTO.** Existe un proyecto Supabase con el **CRM real de Verse que NO debe tocarse** (ni leer, ni migrar, ni reutilizar claves, ni compartir buckets o Edge Functions). El backend de FitPose irá en un **proyecto nuevo y aislado**, con sus propias claves, credenciales de Google, secretos y `supabase/migrations` en el repo de la app. Toda migración se prueba primero con `supabase start` (local) y se aplica solo al proyecto nuevo, comprobando el `project-ref` antes de cada `db push`. Ver riesgo R1 sobre el límite de proyectos del plan.
+> **AVISO DE AISLAMIENTO.** Existe un proyecto Supabase con el **CRM real de Verse que NO debe tocarse** (ni leer, ni migrar, ni reutilizar claves, ni compartir buckets o Edge Functions). El backend de KYNET irá en un **proyecto nuevo y aislado**, con sus propias claves, credenciales de Google, secretos y `supabase/migrations` en el repo de la app. Toda migración se prueba primero con `supabase start` (local) y se aplica solo al proyecto nuevo, comprobando el `project-ref` antes de cada `db push`. Ver riesgo R1 sobre el límite de proyectos del plan.
 
 ## 0. Resumen de decisiones
 
@@ -223,17 +223,17 @@ Otras RPC: `get_state()` (recalcula racha perezosamente y devuelve estado + asig
 3. `supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })`.
 4. Supabase crea/recupera el usuario en `auth.users` → el trigger crea el perfil → la app llama `get_state()` y fija la zona horaria.
 
-Alternativa de reserva: OAuth por navegador (`expo-web-browser` + `expo-auth-session`/PKCE con `signInWithOAuth` y esquema `fitpose://auth-callback`). Peor UX, pero no necesita el SDK nativo.
+Alternativa de reserva: OAuth por navegador (`expo-web-browser` + `expo-auth-session`/PKCE con `signInWithOAuth` y esquema `kynet://auth-callback`). Peor UX, pero no necesita el SDK nativo.
 
 ### 5.2 Configuración necesaria
 
 | Dónde | Qué |
 |-------|-----|
-| Google Cloud (proyecto propio de FitPose, no el del CRM) | Pantalla de consentimiento (nombre, correo de soporte, política de privacidad, ámbitos solo `email`, `profile`, `openid`); publicar fuera de "Testing" antes del lanzamiento |
+| Google Cloud (proyecto propio de KYNET, no el del CRM) | Pantalla de consentimiento (nombre, correo de soporte, política de privacidad, ámbitos solo `email`, `profile`, `openid`); publicar fuera de "Testing" antes del lanzamiento |
 | Google Cloud | Cliente OAuth **Android**: nombre de paquete + huella **SHA-1** de cada firma (debug local, EAS, **y clave de firma de Play App Signing** al publicar) |
 | Google Cloud | Cliente OAuth **Web**: su ID es el `webClientId` de la app y se carga en Supabase junto con su secreto |
 | Supabase (proyecto nuevo) | Auth > Providers > Google: activar, ID y secreto del cliente Web; añadir el ID Android a la lista de clientes autorizados si se pide. Verificar en la documentación vigente el tema del **nonce** con el SDK nativo en Android (puede requerir "skip nonce check") |
-| Supabase | Site URL y Redirect URLs (`fitpose://auth-callback`) por si se usa el flujo de navegador; desactivar proveedores que no se usan; confirmación de correo no aplica |
+| Supabase | Site URL y Redirect URLs (`kynet://auth-callback`) por si se usa el flujo de navegador; desactivar proveedores que no se usan; confirmación de correo no aplica |
 | App | `supabase-js` con storage seguro: `expo-secure-store` tiene un límite de ~2 KB por valor, así que usar el patrón de "LargeSecureStore" (clave de cifrado en SecureStore, sesión cifrada en AsyncStorage). `autoRefreshToken` ligado a `AppState` |
 | EAS | Las huellas SHA-1 de EAS (`eas credentials`) deben coincidir con las registradas en Google |
 
@@ -488,5 +488,5 @@ create trigger xp_event_applied after insert on public.xp_events
 | DA6 | Retención de cuentas inactivas y de repeticiones | 24 meses / 180 días |
 | DA7 | ¿Limitar cambios de zona horaria? | Observar uso; limitar si hay abuso |
 | DA8 | Dataset de ejercicios y atribuciones (heredado de requirements) | Catálogo propio mínimo de 3 en MVP |
-| DA9 | Nombre del paquete Android y del esquema de URL (`fitpose://`) | Pendiente; afecta a Google Cloud y Supabase |
+| DA9 | Nombre del paquete Android y del esquema de URL (`kynet://`) | Pendiente; afecta a Google Cloud y Supabase |
 | DA10 | Analítica y reporte de fallos (Sentry, etc.) | Solo fallos, sin identificadores; declarado en la política |

@@ -1,0 +1,354 @@
+{
+  "common": {
+    "appName": "KYNET",
+    "descriptor": "INTELLIGENT FITNESS",
+    "loading": "Loading"
+  },
+  "home": {
+    "openSpike": "Open camera test",
+    "train": "Train"
+  },
+  "spike": {
+    "permissionNeeded": "The camera is needed for the test.",
+    "grantPermission": "Grant permission",
+    "enableInSettings": "Enable it in Settings.",
+    "hud": {
+      "fps": "FPS {{value}}",
+      "dropped": "Dropped {{value}}",
+      "inferP95": "Inference p95 {{value}} ms",
+      "inferLast": "Inference {{value}} ms",
+      "intervalP95": "Interval p95 {{value}} ms",
+      "detection": "Detection {{value}} %",
+      "thermal": "Thermal {{value}}"
+    }
+  },
+  "exercise": {
+    "squat": "Squat",
+    "jumpingJack": "Jumping jack",
+    "pushUp": "Push-up",
+    "position": {
+      "squat": "Phone to your side, 2-3 m away",
+      "jumpingJack": "Phone facing you, 2-3 m away",
+      "pushUp": "Phone upright on the floor, to your side, 2-3 m away"
+    },
+    "sideTag": "Side view",
+    "impact": "Impact: only if your knees and ankles feel fine",
+    "plan": "{{sets}} sets of {{reps}}",
+    "choose": "Choose an exercise"
+  },
+  "camera": {
+    "permissionNeeded": "We need the camera to count your reps. Video never leaves your phone.",
+    "grant": "Allow",
+    "openSettings": "Open Settings",
+    "busy": "Another app is using the camera. Close it and try again.",
+    "back": "Back"
+  },
+  "setup": {
+    "placing": "Step back so your whole body is visible",
+    "placed": "Great. We can see you",
+    "calibrate": "Do 3 slow reps to calibrate",
+    "calibrateRep": "Rep {{n}} of 3",
+    "calibrateExtra": "One more, closer to the previous ones",
+    "calibrationFailed": "We couldn't calibrate. You can train with standard values.",
+    "skip": "Skip (use standard values)",
+    "useStandard": "Use standard values",
+    "retry": "Retry",
+    "start": "Start",
+    "howTo": "See how it is done"
+  },
+  "workout": {
+    "set": "Set {{set}}/{{sets}}",
+    "reps": "{{reps}} / {{target}}",
+    "clean": "Clean {{n}}",
+    "form": "Form",
+    "pause": "Pause",
+    "resume": "Resume",
+    "finish": "Finish",
+    "paused": "Paused",
+    "rest": "Rest: {{s}} s",
+    "restTip": "Breathe and relax your shoulders",
+    "skipRest": "Skip rest",
+    "warn15": "15 min in; consider a break",
+    "warn25": "25 min in. We recommend stopping for today",
+    "hot": "Your phone is warm; we're lowering the load",
+    "fatigue": {
+      "title": "Your form is dropping",
+      "body": "Rest 30-60 s or stop here.",
+      "rest": "Rest",
+      "endSet": "End set",
+      "continue": "Keep going"
+    },
+    "dev": {
+      "record": "Record landmarks",
+      "arm": "Arm recording",
+      "armed": "Recording armed",
+      "stopRecording": "Stop and share",
+      "saved": "Saved {{name}} ({{kb}} KB). Pull it with adb (see docs/fixtures.md).",
+      "saveFailed": "Could not save: {{error}}"
+    },
+    "critical": "Your phone is very hot. Rest for a few minutes"
+  },
+  "feedback": {
+    "SQ_DEPTH_SHALLOW": "Go a bit lower",
+    "SQ_TRUNK_LEAN": "Chest up",
+    "SQ_HEELS_LIFT": "Keep your heels down",
+    "SQ_TOO_FAST": "Rise without bouncing",
+    "SQ_TOO_SLOW": "Keep a steady pace",
+    "JJ_ARMS_LOW": "Raise your arms higher",
+    "JJ_FEET_NARROW": "Jump your feet wider",
+    "JJ_ASYMMETRY": "Raise both arms evenly",
+    "JJ_FACE_CAMERA": "Face the phone",
+    "PU_POSITION": "Get into a plank, side-on",
+    "PU_DEPTH_SHALLOW": "Go lower",
+    "PU_HIPS_SAG": "Straight body: lift your hips",
+    "PU_HIPS_PIKE": "Straight body: lower your hips",
+    "PU_TOO_FAST": "Slow down",
+    "PU_TOO_SLOW": "Keep a steady pace",
+    "VIS_LOW": "Can't see you. Step into the frame",
+    "OUT_OF_FRAME": "Step back",
+    "VIEW_WRONG_FRONT": "Face the phone",
+    "VIEW_WRONG_SIDE": "Turn sideways",
+    "SUBJECT_CHANGED": "Only one person in the frame",
+    "CAL_ROM_TOO_SMALL": "Use a bigger range of motion",
+    "CAL_INCONSISTENT": "Try to make the reps similar"
+  },
+  "summary": {
+    "title": "Great job!",
+    "reps": "Reps {{n}}",
+    "clean": "Clean {{n}} ({{pct}}%)",
+    "form": "Average form {{pct}}%",
+    "tip": "Tip: {{tip}}",
+    "noTip": "Keep it up",
+    "short": "It counts as an active day at 20 reps",
+    "done": "Done",
+    "titleEmpty": "Session ended"
+  },
+  "voice": {
+    "count": "{{n}}",
+    "setDone": "Set complete",
+    "tick": "{{n}}",
+    "go": "Go!",
+    "on": "Voice: on",
+    "off": "Voice: off"
+  },
+  "tone": {
+    "good": "Good",
+    "warn": "Adjust",
+    "bad": "Fix it"
+  },
+  "tabs": {
+    "today": "Today",
+    "progress": "Progress",
+    "missions": "Missions",
+    "profile": "Profile"
+  },
+  "today": {
+    "hello": "Hi",
+    "streak_one": "{{count}}-day streak",
+    "streak_other": "{{count}}-day streak",
+    "streakStart": "Start your streak today",
+    "atRisk": "You can still keep your streak today",
+    "dayDone": "Done. More tomorrow.",
+    "planTitle": "Today's workout",
+    "planLine": "{{sets}} × {{reps}} {{exercise}}",
+    "start": "Start",
+    "missionsTitle": "Today's missions {{done}}/{{total}}",
+    "provisional": "Provisional until synced",
+    "dayGoal": "Daily goal: {{reps}}/20 reps or {{min}}/3 min"
+  },
+  "level": {
+    "label": "Level {{n}}",
+    "xp": "{{cur}}/{{next}} XP",
+    "title": {
+      "novice": "Rookie",
+      "explorer": "Explorer",
+      "athlete": "Athlete",
+      "elite": "Elite",
+      "legend": "Legend"
+    },
+    "rank": {
+      "bronze": "Bronze rank",
+      "silver": "Silver rank",
+      "gold": "Gold rank",
+      "platinum": "Platinum rank",
+      "diamond": "Diamond rank"
+    }
+  },
+  "missions": {
+    "title": "Missions",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "reward": "+{{xp}} XP",
+    "progress": "{{cur}}/{{target}}",
+    "allDone": "Perfect day! +{{xp}} XP",
+    "bonusHint": "Finish all three today: +{{xp}} XP",
+    "code": {
+      "d_easy_squat15": "Do {{target}} squats",
+      "d_easy_active3": "Train for 3 minutes",
+      "d_easy_jj20": "Do {{target}} jumping jacks",
+      "d_med_squat25": "Do {{target}} squats",
+      "d_med_jj40": "Do {{target}} jumping jacks",
+      "d_med_pu10": "Do {{target}} push-ups",
+      "d_med_sessions2": "Do {{target}} sessions",
+      "d_q_clean": "One session with 80% clean reps",
+      "d_explore": "Try {{target}} different exercises",
+      "w_consistency": "Train {{target}} days this week",
+      "w_volume": "Reach {{target}} reps",
+      "w_variety": "Do all {{target}} exercises"
+    }
+  },
+  "progress": {
+    "title": "Progress",
+    "current": "Current streak",
+    "longest": "Longest streak",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "totalXp": "Total XP",
+    "totalReps": "Valid reps",
+    "sessions": "Sessions",
+    "last7": "Last 7 days",
+    "empty": "No sessions yet. Your first day starts today.",
+    "byExercise": "Average form by exercise",
+    "noData": "—"
+  },
+  "profile": {
+    "title": "Profile",
+    "fitnessLevel": "Difficulty level",
+    "weeklyGoal": "Days per week (guideline)",
+    "voice": "Voice during workouts",
+    "on": "On",
+    "off": "Off",
+    "medical": "Medical notice",
+    "privacy": "Video and body points never leave your phone. Only a summary of each rep is stored.",
+    "version": "Version {{v}}",
+    "devSpike": "Open camera test",
+    "techniqueHelp": "Technique tips",
+    "techniqueHelpHint": "Shows how to do each exercise before you start and after 3 corrections in a row."
+  },
+  "fitnessLevel": {
+    "beginner": "I'm just starting",
+    "regular": "I train now and then",
+    "advanced": "I train regularly"
+  },
+  "onboarding": {
+    "welcomeTitle": "Train with your camera",
+    "welcomeBody": "I count your reps and correct your form. Everything happens on your phone: the video never leaves it.",
+    "start": "Start",
+    "birthTitle": "What is your date of birth?",
+    "day": "Day",
+    "month": "Month",
+    "year": "Year",
+    "invalid": "Check the date",
+    "next": "Next",
+    "blockedTitle": "We can't offer KYNET to you yet",
+    "blockedBody": "This app is for adults only. Thanks for your interest.",
+    "levelTitle": "How do you feel about exercise?",
+    "goalTitle": "How many days a week do you want to train?",
+    "goalHint": "It's a guideline: it doesn't affect your streak.",
+    "finish": "Done",
+    "tagline": "Intelligent Fitness",
+    "haveAccount": "I already have an account"
+  },
+  "medical": {
+    "title": "Before you start",
+    "body": "KYNET is a training aid and does not replace advice from a health professional. Talk to your doctor before starting if you have a heart, breathing or joint condition, are pregnant, or haven't exercised in a while. Stop if you feel pain, dizziness, shortness of breath or chest tightness. Train in a space free of obstacles. Pose analysis is approximate and can be wrong: listen to your body.",
+    "accept": "I understand and accept",
+    "continue": "Continue"
+  },
+  "summaryGame": {
+    "xp": "+{{n}} XP",
+    "streak": "Streak: {{n}}",
+    "missionDone": "Mission complete: {{title}}",
+    "savedLocal": "Saved on this phone",
+    "savePrompt": "Save your progress so you don't lose it if you change phones."
+  },
+  "account": {
+    "title": "Account",
+    "local": "Local account: your data is only on this phone.",
+    "signIn": "Save my progress with Google",
+    "signedInAs": "Signed in: {{email}}",
+    "pending_one": "{{count}} session to upload",
+    "pending_other": "{{count}} sessions to upload",
+    "synced": "All synced",
+    "sync": "Sync now",
+    "export": "Export my data",
+    "signOut": "Sign out",
+    "delete": "Delete account",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "Your sessions, XP and streak are deleted from the server and this phone. This can't be undone.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete",
+    "unavailable": "Sign-in isn't set up in this build yet.",
+    "error": "That didn't work. Please try again.",
+    "syncError": "Some sessions couldn't be uploaded; we'll retry.",
+    "errors": {
+      "serverConfig": "Google sign-in is not enabled on the server. Please tell the team.",
+      "network": "No connection. Check your network and try again.",
+      "google": "Google could not complete the sign-in. Please try again."
+    }
+  },
+  "devUi": {
+    "title": "Components",
+    "numbers": "Numbers and streak",
+    "xp": "+{{xp}} XP",
+    "next": "Next",
+    "progress": "Progress",
+    "controls": "Controls",
+    "week": "Week",
+    "month": "Month",
+    "quarter": "3 months",
+    "confetti": "Confetti",
+    "ghost": "Reset",
+    "item": "Item {{n}}",
+    "loading": "Loading",
+    "open": "Open design components"
+  },
+  "guide": {
+    "title": "How to do it",
+    "understood": "Got it",
+    "noMore": "Don’t show tips again",
+    "continue": "Continue",
+    "jumpingJack": {
+      "tip1": {
+        "title": "Full arms",
+        "text": "Raise them above your head."
+      },
+      "tip2": {
+        "title": "Coordinated movement",
+        "text": "Open and close arms and legs at the same time."
+      },
+      "tip3": {
+        "title": "Stable torso",
+        "text": "Keep your core engaged and your back straight."
+      }
+    },
+    "squat": {
+      "tip1": {
+        "title": "Neutral back",
+        "text": "Straight torso, leaning from the hips."
+      },
+      "tip2": {
+        "title": "Knees at 90°",
+        "text": "Thighs parallel to the floor, right angle at the knee."
+      },
+      "tip3": {
+        "title": "Weight on your heels",
+        "text": "Feet planted and hips back."
+      }
+    },
+    "pushUp": {
+      "tip1": {
+        "title": "Elbows at 45°",
+        "text": "Don’t flare them out or tuck them in."
+      },
+      "tip2": {
+        "title": "Aligned body",
+        "text": "Keep back, hips and ankles in a straight line."
+      },
+      "tip3": {
+        "title": "Hands in place",
+        "text": "Under your shoulders, firm on the floor."
+      }
+    }
+  }
+}

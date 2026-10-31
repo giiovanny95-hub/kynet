@@ -1,0 +1,12 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": ["kynetnative"],
+  "ios": { "iosModuleName": "KynetNative" },
+  "android": { "androidNamespace": ["kynetnative"], "androidCxxLibName": "KynetNative" },
+  "autolinking": {
+    "PoseLandmarker": {
+      "android": { "language": "kotlin", "implementationClassName": "HybridPoseLandmarker" }
+    }
+  },
+  "ignorePaths": ["**/node_modules"]
+}

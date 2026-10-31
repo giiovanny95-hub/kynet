@@ -5,7 +5,7 @@ Estado: propuesta para la parte 0. No se ha ejecutado nada. Las marcas **[NV]** 
 ## 1. Dónde se desarrolla y se prueba
 - Este entorno cloud **no** sirve para compilar ni probar la app: no hay Android SDK ni cámara, y los servidores MCP de GitHub y Figma fallan aquí. Sirve para escribir código, specs y pruebas de la lógica pura (cinemática, racha, XP) con Vitest o Jest.
 - La compilación se hace con **EAS Build en la nube** (sin necesidad de un Mac, y para Android tampoco de Android Studio) o localmente si el usuario tiene Android SDK. Las pruebas en vivo se hacen instalando el APK de desarrollo en el Galaxy S26 Ultra y el Pixel 7 Pro.
-- Hace falta un **development build** (no Expo Go) porque se usan módulos nativos: VisionCamera, Skia, worklets y `fitpose-native`.
+- Hace falta un **development build** (no Expo Go) porque se usan módulos nativos: VisionCamera, Skia, worklets y `kynet-native`.
 - Falta un Android de gama media: la térmica y el rendimiento en gama media quedan sin validar.
 
 ## 2. Perfiles de EAS (`eas.json`)

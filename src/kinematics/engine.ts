@@ -1,0 +1,620 @@
+import { JOINT_MIN_V } from './config/visibility';
+import { arbiterStep, createArbiter, type ArbiterState } from './feedback/arbiter';
+import type { FeedbackCode, FeedbackEvent } from './feedback/codes';
+import { createFilterBank, filterPose, type FilterBank } from './filter/landmarkFilter';
+import { DEFAULT_ONE_EURO, type OneEuroParams } from './filter/oneEuro';
+import { applyProfile, type CalibrationProfile } from './calibration/profile';
+import { JJ_SPEC, JJ_ZONES, jjStep, type JJZones } from './fsm/exercises/jumpingJack';
+import { PU_MAX_IOTA, PUSHUP_SPEC, PUSHUP_TRACK0, pushUpStep, type PushUpTrack } from './fsm/exercises/pushUp';
+import { SQUAT_FRONTAL_SPEC, SQUAT_SPEC } from './fsm/exercises/squat';
+import { createFsm, fsmStep, toIdle, type ExerciseSpec, type FsmState, type RepEvent } from './fsm/machine';
+import { toPose } from './landmarks/adapter';
+import { createGuard, guardStep, type GuardState } from './quality/subjectGuard';
+import { classifyView } from './quality/viewClassifier';
+import { createVisState, visibilityStep, type VisState } from './quality/visibility';
+import { comboStep } from './scoring/combo';
+import { formScore, pForm, quality, repQ, type Quality } from './scoring/quality';
+import { DEFAULT_T, DEFAULT_TTOP, qRomJJ, qRomSquat } from './scoring/rom';
+import { qTempo, tempoPlateau } from './scoring/tempo';
+import { jjSignals } from './signals/jumpingJack';
+import { pushUpSignals } from './signals/pushUp';
+import { squatSignals, type HeelSample } from './signals/squat';
+import { squatFrontalSignals } from './signals/squatFrontal';
+import type { JointId, ModelSpec, Pose, PoseFrame } from './types';
+
+export type EngineExercise = 'squat' | 'jumpingJack' | 'pushUp';
+
+export interface EngineConfig {
+  readonly exercise: EngineExercise;
+  readonly model: ModelSpec;
+  readonly side?: 'l' | 'r';
+  readonly oneEuro?: OneEuroParams;
+  /** Vista exigida; por defecto frontal en jumping jack y lateral en el resto. */
+  readonly view?: 'lateral' | 'frontal';
+  /** Calibración en curso: umbrales permisivos (spec §5.2). */
+  readonly calibrating?: boolean;
+  /** Umbrales personalizados; la app comprueba antes `isProfileValid`. */
+  readonly profile?: CalibrationProfile | null;
+}
+
+interface ResolvedConfig {
+  readonly exercise: EngineExercise;
+  readonly model: ModelSpec;
+  readonly side: 'l' | 'r' | null;
+  readonly oneEuro: OneEuroParams;
+  readonly view: 'lateral' | 'frontal';
+  readonly profile: CalibrationProfile | null;
+  /** Tabla efectiva de la FSM (con calibración o perfil aplicados) y zonas de jumping jack. */
+  readonly spec: ExerciseSpec;
+  readonly zones: JJZones;
+}
+
+export interface EngineState {
+  readonly cfg: ResolvedConfig;
+  /** Encuadre: vista incorrecta (desde cuándo), cuadros con una articulación al borde y cuadros correctos seguidos. */
+  readonly frameCheck: FrameCheck;
+  readonly side: 'l' | 'r';
+  readonly bank: FilterBank;
+  readonly vis: VisState;
+  readonly guard: GuardState;
+  readonly fsm: FsmState;
+  readonly combo: number;
+  readonly reps: number;
+  readonly lastTMs: number | null;
+  readonly pausedSinceMs: number | null;
+  readonly arbiter: ArbiterState;
+  /** Intentos emitidos (válidas, incompletas y faltas): numeran las repeticiones para el escalado de avisos. */
+  readonly attempts: number;
+  readonly pu: PushUpTrack;
+  /** Señales secundarias de la repetición en curso: `τ` en el extremo (sentadilla) y asimetría máxima en el pico (jumping jack). */
+  readonly acc: RepAcc;
+  /** Sentadilla: últimas muestras válidas del talón de pie, por lado (base de SQ_HEELS_LIFT; sobrevive entre repeticiones). */
+  readonly heelStand: { readonly l: readonly HeelPoint[]; readonly r: readonly HeelPoint[] };
+  /** Vista de frente: referencia de pie (ρ_ref) y ventana de muestras crudas para su mediana (spec-vista-frontal §2). */
+  readonly fref: FrontalRef;
+}
+
+export type PauseCause = 'VIS_LOW' | 'VIEW' | 'OUT_OF_FRAME' | 'POSTURE';
+
+interface FrameCheck {
+  readonly viewBadSinceMs: number | null;
+  /** Flexión: cuerpo no horizontal fuera de una repetición. */
+  readonly postureBadSinceMs: number | null;
+  readonly edgeRun: number;
+  readonly okRun: number;
+  /** Causa de encuadre que mantiene la pausa (la visibilidad va aparte en `vis`). */
+  readonly issue: 'VIEW' | 'OUT_OF_FRAME' | 'POSTURE' | null;
+}
+
+const FRAME_OK: FrameCheck = { viewBadSinceMs: null, postureBadSinceMs: null, edgeRun: 0, okRun: 0, issue: null };
+const POSTURE_BAD_MS = 1000;
+const VIEW_BAD_MS = 1000;
+const EDGE_FRAMES = 3;
+const RESUME_FRAMES = 5;
+const EDGE_MARGIN = 0.02;
+
+/** Una muestra de la altura del talón respecto al tobillo (unidades de alto de cuadro). */
+interface HeelPoint {
+  readonly tMs: number;
+  readonly h: number;
+}
+
+/**
+ * Talón de un lado durante la repetición (SQ_HEELS_LIFT, plan A1 rev. 2): base de pie (mediana, `null` = lado
+ * desactivado), últimas muestras de la fase, muestras alrededor del fondo, visibilidad mínima y si fue visible siempre.
+ */
+interface HeelTrack {
+  readonly base: number | null;
+  readonly recent: readonly HeelPoint[];
+  readonly peak: readonly HeelPoint[];
+  readonly tExtremeMs: number | null;
+  readonly minV: number;
+  readonly ok: boolean;
+}
+
+interface RepAcc {
+  readonly tauBottom: number | null;
+  readonly asymMax: number | null;
+  /** Flexión: θb con signo de la peor alineación en el fondo y la subida. */
+  readonly bodySigned: number | null;
+  /** Sentadilla: talones izquierdo y derecho para SQ_HEELS_LIFT. */
+  readonly heelL: HeelTrack | null;
+  readonly heelR: HeelTrack | null;
+}
+
+const EMPTY_ACC: RepAcc = { tauBottom: null, asymMax: null, bodySigned: null, heelL: null, heelR: null };
+
+export type ScoredRep = RepEvent & {
+  readonly q?: number;
+  readonly quality?: Quality;
+  readonly formScore?: number;
+  readonly mult?: number;
+  /** Faltas suaves o causa de la incompleta. */
+  readonly faults: readonly FeedbackCode[];
+  /** Sentadilla: inclinación del tronco en el fondo (para `τ_cal`). */
+  readonly tau?: number | null;
+};
+export type EngineEvent =
+  | ScoredRep
+  | FeedbackEvent
+  /** `cause` solo informa (registro de desarrollo, reproductor); la UI decide por el código de feedback. */
+  | { readonly type: 'PAUSE'; readonly tMs: number; readonly cause?: PauseCause }
+  | { readonly type: 'RESUME' | 'REP_ABANDONED' | 'SUBJECT_CHANGED'; readonly tMs: number };
+
+export interface Hud {
+  readonly phase: string;
+  readonly value: number | null;
+  readonly reps: number;
+  readonly paused: boolean;
+  /** Causa de la pausa en curso, para mostrarla mientras dure (producto §3.4). */
+  readonly pauseCode: FeedbackCode | null;
+}
+
+const ABANDON_AFTER_MS = 3000;
+
+const CAL_EXTREME_THR = 115;
+const CAL_JJ_ALPHA = 110;
+const CAL_JJ_RHO = 1.2;
+
+// Las funciones auxiliares van antes del worklet que las usa: el plugin de worklets captura el cierre al definir la
+// función, y una declarada más abajo llegaba como undefined al hilo de la cámara (visto en el Pixel 7 Pro).
+/** Q_rom de la sentadilla de frente, en puntos de ρ [H]: fondo pleno ≈ θk 90°, arriba = de pie. */
+const FRONTAL_SQ_T = 72;
+const FRONTAL_SQ_TTOP = 99;
+
+interface FrontalSample {
+  readonly t: number;
+  readonly v: number;
+}
+interface FrontalRef {
+  readonly ref: number | null;
+  readonly win: readonly FrontalSample[];
+  /** Desde cuándo la señal sigue bajo la zona de inicio sin estar armada (para bajar la referencia). */
+  readonly lowSinceMs: number | null;
+  /** Hasta el primer armado la referencia es la mediana sin más (un pico al arrancar no debe quedarse). */
+  readonly armedOnce: boolean;
+}
+const FREF0: FrontalRef = { ref: null, win: [], lowSinceMs: null, armedOnce: false };
+const FREF_WINDOW_MS = 500;
+/** Armada (o en la zona de inicio), la referencia solo puede bajar este tanto por segundo: sigue la deriva lenta,
+ * no la propia bajada (refrescar con la mediana arrastraba ρ_ref con una sentadilla lenta). */
+const FREF_DECAY_PER_S = 0.01;
+/**
+ * La referencia solo baja tras 1,5 s seguidos bajo la zona de inicio sin armar (la persona se alejó). Así una bajada
+ * abortada por ruido no arrastra la referencia con la propia sentadilla (perdía repeticiones con σ 0,008).
+ */
+const FREF_LOWER_AFTER_MS = 1500;
+/**
+ * Cuerpo mínimo plausible de frente, en alto de cuadro [H]: a 3 m una persona da ρ ≈ 0,18 de pie y ≈ 0,14 en el
+ * fondo. MediaPipe a veces devuelve un "fantasma" con los 33 puntos juntos (visto en el Pixel: 8 conteos falsos).
+ */
+const FRONTAL_MIN_BODY = 0.06;
+
+function medianOf(xs: readonly number[]): number {
+  'worklet';
+  const a = [...xs].sort((p, q) => p - q);
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 === 1 ? (a[m] ?? 0) : ((a[m - 1] ?? 0) + (a[m] ?? 0)) / 2;
+}
+
+/**
+ * Referencia de pie de la sentadilla de frente (spec-vista-frontal §2): mediana de los últimos 500 ms en IDLE; se
+ * congela durante la repetición. Sube libre; armada o en la zona de inicio baja como mucho `FREF_DECAY_PER_S`; sin
+ * armar y bajo la zona de inicio, baja de golpe tras `FREF_LOWER_AFTER_MS` seguidos (la persona se alejó).
+ */
+function frontalRefStep(fr: FrontalRef, raw: number | null, tMs: number, fsm: FsmState, startThr: number): FrontalRef {
+  'worklet';
+  if (raw === null || raw <= 0 || fsm.phase !== 'IDLE') return fr;
+  const lastT = fr.win.length > 0 ? (fr.win[fr.win.length - 1]?.t ?? tMs) : tMs;
+  const win = [...fr.win.filter((p) => tMs - p.t <= FREF_WINDOW_MS), { t: tMs, v: raw }];
+  const med = medianOf(win.map((p) => p.v));
+  const armedOnce = fr.armedOnce || fsm.armed;
+  if (fr.ref === null || !armedOnce || med >= fr.ref) return { ref: med, win, lowSinceMs: null, armedOnce };
+  const n = (med / fr.ref) * 100;
+  if (fsm.armed || n >= startThr) {
+    const floor = fr.ref * (1 - (FREF_DECAY_PER_S * (tMs - lastT)) / 1000);
+    return { ref: Math.max(med, floor), win, lowSinceMs: null, armedOnce };
+  }
+  const lowSinceMs = fr.lowSinceMs ?? tMs;
+  return tMs - lowSinceMs >= FREF_LOWER_AFTER_MS ? { ref: med, win, lowSinceMs: null, armedOnce } : { ref: fr.ref, win, lowSinceMs, armedOnce };
+}
+
+function resolveConfig(cfg: EngineConfig): ResolvedConfig {
+  'worklet';
+  const view = cfg.view ?? (cfg.exercise === 'jumpingJack' ? 'frontal' : 'lateral');
+  const squatFrontal = cfg.exercise === 'squat' && view === 'frontal';
+  // De frente aún no hay calibración por vista (F4.2): un perfil de lado no vale para ρ.
+  const profile = cfg.calibrating || squatFrontal ? null : (cfg.profile ?? null);
+  const baseSpec = cfg.exercise === 'jumpingJack' ? JJ_SPEC : cfg.exercise === 'pushUp' ? PUSHUP_SPEC : squatFrontal ? SQUAT_FRONTAL_SPEC : SQUAT_SPEC;
+  let spec = baseSpec;
+  let zones: JJZones = JJ_ZONES;
+  if (cfg.calibrating) {
+    // De frente la señal va en puntos: el fondo permisivo en grados no aplica (la calibración de frente es F4.2).
+    if (!squatFrontal) spec = { ...baseSpec, extremeThr: CAL_EXTREME_THR };
+    zones = { ...JJ_ZONES, openAlpha: CAL_JJ_ALPHA, openRho: CAL_JJ_RHO };
+  } else if (profile !== null) {
+    if (cfg.exercise === 'jumpingJack') zones = { ...JJ_ZONES, openAlpha: profile.alphaU ?? JJ_ZONES.openAlpha, openRho: profile.rhoU ?? JJ_ZONES.openRho };
+    else spec = applyProfile(baseSpec, profile);
+  }
+  return {
+    exercise: cfg.exercise, model: cfg.model, side: cfg.side ?? profile?.side ?? null, oneEuro: cfg.oneEuro ?? DEFAULT_ONE_EURO,
+    view, profile, spec, zones,
+  };
+}
+
+export function createEngine(cfg: EngineConfig): EngineState {
+  'worklet';
+  return {
+    cfg: resolveConfig(cfg),
+    frameCheck: FRAME_OK,
+    side: cfg.side ?? 'l',
+    bank: createFilterBank(),
+    vis: createVisState(),
+    guard: createGuard(),
+    fsm: createFsm(),
+    combo: 0,
+    reps: 0,
+    lastTMs: null,
+    pausedSinceMs: null,
+    arbiter: createArbiter(),
+    attempts: 0,
+    pu: PUSHUP_TRACK0,
+    acc: EMPTY_ACC,
+    heelStand: { l: [], r: [] },
+    fref: FREF0,
+  };
+}
+
+
+function requiredJoints(exercise: EngineExercise, view: 'lateral' | 'frontal', side: 'l' | 'r'): readonly JointId[] {
+  'worklet';
+  if (exercise === 'squat' && view === 'frontal') {
+    return ['lShoulder', 'rShoulder', 'lHip', 'rHip', 'lKnee', 'rKnee', 'lAnkle', 'rAnkle'];
+  }
+  if (exercise === 'jumpingJack') {
+    return ['lShoulder', 'rShoulder', 'lHip', 'rHip', 'lWrist', 'rWrist', 'lAnkle', 'rAnkle'];
+  }
+  if (exercise === 'pushUp') {
+    return side === 'l'
+      ? ['lShoulder', 'lElbow', 'lWrist', 'lHip', 'lKnee', 'lAnkle']
+      : ['rShoulder', 'rElbow', 'rWrist', 'rHip', 'rKnee', 'rAnkle'];
+  }
+  return side === 'l' ? ['lShoulder', 'lHip', 'lKnee', 'lAnkle'] : ['rShoulder', 'rHip', 'rKnee', 'rAnkle'];
+}
+
+function meanVisibility(pose: Pose, joints: readonly JointId[]): number {
+  'worklet';
+  let sum = 0;
+  for (const id of joints) sum += pose.joints[id]?.v ?? 0;
+  return joints.length > 0 ? sum / joints.length : 0;
+}
+
+/** Lado lateral con más visibilidad; solo cambia fuera de una repetición. */
+function chooseSide(s: EngineState, pose: Pose): 'l' | 'r' {
+  'worklet';
+  if (s.cfg.side !== null || s.fsm.phase !== 'IDLE') return s.side;
+  const l = meanVisibility(pose, requiredJoints('squat', 'lateral', 'l'));
+  const r = meanVisibility(pose, requiredJoints('squat', 'lateral', 'r'));
+  return r > l + 0.15 ? 'r' : l > r + 0.15 ? 'l' : s.side;
+}
+
+function score(cfg: ResolvedConfig, rep: RepEvent, pf: number): number {
+  'worklet';
+  const downS = (rep.downMs ?? 0) / 1000;
+  const upS = (rep.upMs ?? 0) / 1000;
+  if (cfg.exercise === 'jumpingJack') {
+    return repQ(qRomJJ(rep.extreme, rep.extreme2 ?? 0), qTempo('jumpingJack', downS, upS), pf);
+  }
+  const tempo = qTempo(cfg.exercise === 'pushUp' ? 'pushUp' : 'squat', downS, upS);
+  // Con perfil, T = fondo calibrado y Ttop = inicio calibrado (spec §6.1).
+  const frontal = cfg.exercise === 'squat' && cfg.view === 'frontal';
+  const T = cfg.profile ? cfg.profile.extremeThr - 10 : frontal ? FRONTAL_SQ_T : DEFAULT_T;
+  const Ttop = cfg.profile ? cfg.profile.startThr + 10 : frontal ? FRONTAL_SQ_TTOP : DEFAULT_TTOP;
+  return repQ(qRomSquat(rep.extreme, rep.top ?? rep.extreme, T, Ttop), tempo, pf);
+}
+
+const TRUNK_LEAN_MIN_DEG = 55;
+const TRUNK_LEAN_MARGIN_DEG = 15;
+const JJ_ASYM_DEG = 35;
+const P_SOFT_MILD = 0.1;
+const P_SOFT_SEVERE = 0.25;
+const PU_HIPS_DEG = 160;
+/** SQ_HEELS_LIFT: subida del talón respecto al tobillo, en fracción del alto del cuadro (spec §7). */
+const HEEL_LIFT_MIN = 0.02;
+// Medianas en ventanas de tiempo, no en cuadros: con térmica la cámara baja a 20-25 FPS (plan A1, rev. 2).
+const HEEL_BASE_WINDOW_MS = 500;
+const HEEL_PEAK_HALF_WINDOW_MS = 150;
+const HEEL_MIN_SAMPLES = 3;
+/** Tamaño máximo de cada búfer: en el worklet nada crece sin límite. */
+const HEEL_RING = 16;
+
+function median(xs: readonly number[]): number {
+  'worklet';
+  const a = [...xs].sort((x, y) => x - y);
+  const m = a.length >> 1;
+  return a.length % 2 === 1 ? (a[m] ?? 0) : ((a[m - 1] ?? 0) + (a[m] ?? 0)) / 2;
+}
+
+function pushRing(ring: readonly HeelPoint[], p: HeelPoint): HeelPoint[] {
+  'worklet';
+  const next = [...ring, p];
+  return next.length > HEEL_RING ? next.slice(next.length - HEEL_RING) : next;
+}
+
+/** De pie: guarda solo las muestras con talón y tobillo visibles. */
+function heelStandStep(ring: readonly HeelPoint[], sample: HeelSample | null, tMs: number): readonly HeelPoint[] {
+  'worklet';
+  return sample === null ? ring : pushRing(ring, { tMs, h: sample.h });
+}
+
+/** Base de pie: mediana de los últimos 500 ms antes de la bajada; `null` con menos de 3 muestras. */
+function heelBase(ring: readonly HeelPoint[], tMs: number): number | null {
+  'worklet';
+  const hs: number[] = [];
+  for (const p of ring) if (tMs - p.tMs <= HEEL_BASE_WINDOW_MS) hs.push(p.h);
+  return hs.length >= HEEL_MIN_SAMPLES ? median(hs) : null;
+}
+
+/**
+ * Un cuadro de la repetición. El primero fija la base de pie; cada fondo nuevo (`newExtreme`) reinicia la ventana del
+ * pico con las muestras de los 150 ms previos, y las siguientes entran hasta 150 ms después. Un talón no visible en
+ * cualquier cuadro desactiva el lado para toda la repetición.
+ */
+function heelTrackStep(
+  t: HeelTrack | null,
+  sample: HeelSample | null,
+  tMs: number,
+  stand: readonly HeelPoint[],
+  newExtreme: boolean,
+): HeelTrack {
+  'worklet';
+  const cur: HeelTrack = t ?? { base: heelBase(stand, tMs), recent: [], peak: [], tExtremeMs: null, minV: 1, ok: true };
+  if (sample === null) return { ...cur, ok: false };
+  const p = { tMs, h: sample.h };
+  const recent = pushRing(cur.recent, p);
+  let peak = cur.peak;
+  let tExtremeMs = cur.tExtremeMs;
+  if (newExtreme) {
+    tExtremeMs = tMs;
+    peak = recent.filter((q) => q.tMs >= tMs - HEEL_PEAK_HALF_WINDOW_MS);
+  } else if (tExtremeMs !== null && tMs <= tExtremeMs + HEEL_PEAK_HALF_WINDOW_MS) {
+    peak = pushRing(peak, p);
+  }
+  return { base: cur.base, recent, peak, tExtremeMs, minV: Math.min(cur.minV, sample.v), ok: cur.ok };
+}
+
+/** Elevación (mediana en el fondo − base de pie) del lado válido mejor visible; `null` si ningún lado cumple. */
+function heelLift(acc: RepAcc): number | null {
+  'worklet';
+  let best: HeelTrack | null = null;
+  for (const t of [acc.heelL, acc.heelR]) {
+    if (t === null || !t.ok || t.base === null || t.peak.length < HEEL_MIN_SAMPLES) continue;
+    if (best === null || t.minV > best.minV) best = t;
+  }
+  if (best === null || best.base === null) return null;
+  return median(best.peak.map((p) => p.h)) - best.base;
+}
+
+/** Faltas suaves de una repetición válida (spec §7) y sus penalizaciones para P_form. */
+function softFaults(exercise: EngineExercise, rep: RepEvent, acc: RepAcc, tauCal: number): { faults: FeedbackCode[]; penalties: number[] } {
+  'worklet';
+  const faults: FeedbackCode[] = [];
+  const penalties: number[] = [];
+  if (exercise === 'squat') {
+    if (acc.tauBottom !== null && acc.tauBottom > Math.max(TRUNK_LEAN_MIN_DEG, tauCal + TRUNK_LEAN_MARGIN_DEG)) {
+      faults.push('SQ_TRUNK_LEAN');
+      penalties.push(P_SOFT_MILD);
+    }
+    const lift = heelLift(acc);
+    if (lift !== null && lift > HEEL_LIFT_MIN) {
+      faults.push('SQ_HEELS_LIFT');
+      penalties.push(P_SOFT_MILD);
+    }
+    const [lo, hi] = tempoPlateau('squat');
+    const d = rep.durationMs / 1000;
+    if (d < lo) faults.push('SQ_TOO_FAST');
+    else if (d > hi) faults.push('SQ_TOO_SLOW');
+  } else if (exercise === 'pushUp') {
+    if (acc.bodySigned !== null && Math.abs(acc.bodySigned) < PU_HIPS_DEG) {
+      faults.push(acc.bodySigned < 0 ? 'PU_HIPS_SAG' : 'PU_HIPS_PIKE');
+      penalties.push(P_SOFT_SEVERE);
+    }
+    const [lo, hi] = tempoPlateau('pushUp');
+    const d = rep.durationMs / 1000;
+    if (d < lo) faults.push('PU_TOO_FAST');
+    else if (d > hi) faults.push('PU_TOO_SLOW');
+  } else if (acc.asymMax !== null && acc.asymMax > JJ_ASYM_DEG) {
+    faults.push('JJ_ASYMMETRY');
+  }
+  return { faults, penalties };
+}
+
+/** Causa de una repetición incompleta como código de feedback. */
+function incompleteCode(exercise: EngineExercise, code: string | null): FeedbackCode {
+  'worklet';
+  if (exercise === 'squat') return 'SQ_DEPTH_SHALLOW';
+  if (exercise === 'pushUp') return 'PU_DEPTH_SHALLOW';
+  return code === 'JJ_FEET_NARROW' ? 'JJ_FEET_NARROW' : 'JJ_ARMS_LOW';
+}
+
+/** Alguna articulación requerida y visible a menos del 2 % del borde (coordenadas normalizadas del cuadro). */
+function nearEdge(pose: Pose, joints: readonly JointId[], aspect: number): boolean {
+  'worklet';
+  for (const id of joints) {
+    const lm = pose.joints[id];
+    if (!lm || lm.v < JOINT_MIN_V) continue;
+    const xn = lm.x / aspect;
+    if (xn < EDGE_MARGIN || xn > 1 - EDGE_MARGIN || lm.y < EDGE_MARGIN || lm.y > 1 - EDGE_MARGIN) return true;
+  }
+  return false;
+}
+
+/** Vista incorrecta más de 1 s o articulación al borde 3 cuadros: pausa; 5 cuadros correctos la levantan. */
+function frameCheckStep(
+  f: FrameCheck, pose: Pose, joints: readonly JointId[], want: 'lateral' | 'frontal', aspect: number, tMs: number, postureBad: boolean,
+): FrameCheck {
+  'worklet';
+  const v = classifyView(pose);
+  const wrongView = v !== null && v !== 'ambiguous' && v !== want;
+  const viewBadSinceMs = wrongView ? (f.viewBadSinceMs ?? tMs) : null;
+  const postureBadSinceMs = postureBad ? (f.postureBadSinceMs ?? tMs) : null;
+  const edgeRun = nearEdge(pose, joints, aspect) ? f.edgeRun + 1 : 0;
+  const now = viewBadSinceMs !== null && tMs - viewBadSinceMs > VIEW_BAD_MS ? 'VIEW'
+    : edgeRun >= EDGE_FRAMES ? 'OUT_OF_FRAME'
+    : postureBadSinceMs !== null && tMs - postureBadSinceMs > POSTURE_BAD_MS ? 'POSTURE'
+    : null;
+  if (now !== null) return { viewBadSinceMs, postureBadSinceMs, edgeRun, okRun: 0, issue: now };
+  if (f.issue === null) return { viewBadSinceMs, postureBadSinceMs, edgeRun, okRun: 0, issue: null };
+  const bad = wrongView || edgeRun > 0 || postureBad;
+  const okRun = bad ? 0 : f.okRun + 1;
+  return { viewBadSinceMs, postureBadSinceMs, edgeRun, okRun, issue: okRun >= RESUME_FRAMES ? null : f.issue };
+}
+
+function pauseCode(cause: PauseCause, exercise: EngineExercise, want: 'lateral' | 'frontal'): FeedbackCode {
+  'worklet';
+  if (cause === 'POSTURE') return 'PU_POSITION';
+  if (cause !== 'VIEW') return cause;
+  if (exercise === 'jumpingJack') return 'JJ_FACE_CAMERA';
+  if (exercise === 'pushUp') return 'PU_POSITION';
+  return want === 'lateral' ? 'VIEW_WRONG_SIDE' : 'VIEW_WRONG_FRONT';
+}
+
+/**
+ * Un cuadro: guarda de sujeto → adaptador → filtro → visibilidad → señales → FSM → puntuación.
+ * Puro y serializable: el estado devuelto se puede guardar y reanudar.
+ */
+export function step(s0: EngineState, frame: PoseFrame): { s: EngineState; events: EngineEvent[]; hud: Hud } {
+  'worklet';
+  const isPaused = (st: EngineState): boolean => st.vis.paused || st.frameCheck.issue !== null;
+  const hudOf = (st: EngineState, value: number | null): Hud => {
+    const cause: PauseCause | null = st.vis.paused ? 'VIS_LOW' : st.frameCheck.issue;
+    return {
+      phase: st.fsm.phase, value, reps: st.reps, paused: cause !== null,
+      pauseCode: cause === null ? null : pauseCode(cause, st.cfg.exercise, st.cfg.view),
+    };
+  };
+  const tMs = frame.meta.tMs;
+  // Marca de tiempo no finita, repetida o que retrocede: el cuadro se ignora (un NaN no debe congelar el motor).
+  if (!Number.isFinite(tMs) || (s0.lastTMs !== null && !(tMs > s0.lastTMs))) return { s: s0, events: [], hud: hudOf(s0, null) };
+
+  const events: EngineEvent[] = [];
+  let s: EngineState = { ...s0, lastTMs: tMs };
+  const rawPose = toPose(frame, s.cfg.model);
+
+  const guarded = guardStep(s.guard, rawPose);
+  s = { ...s, guard: guarded.g };
+  if (!guarded.accept) return { s, events, hud: hudOf(s, null) };
+  if (guarded.event === 'SUBJECT_CHANGED') {
+    // Si estaba en pausa, la visibilidad se reinicia sin pausa: se avisa con RESUME para que la UI no quede bloqueada.
+    if (isPaused(s)) events.push({ type: 'RESUME', tMs });
+    s = { ...s, bank: createFilterBank(), vis: createVisState(), frameCheck: FRAME_OK, fsm: createFsm(), pausedSinceMs: null };
+    events.push({ type: 'SUBJECT_CHANGED', tMs });
+  }
+
+  const side = s.cfg.exercise === 'jumpingJack' ? s.side : chooseSide(s, rawPose);
+  const filtered = filterPose(s.bank, rawPose, s.cfg.oneEuro, JOINT_MIN_V);
+  s = { ...s, side, bank: filtered.bank };
+
+  const joints = requiredJoints(s.cfg.exercise, s.cfg.view, side);
+  const wasPaused = isPaused(s);
+  const prevCause: PauseCause | null = s.vis.paused ? 'VIS_LOW' : s.frameCheck.issue;
+  const vis = visibilityStep(s.vis, meanVisibility(rawPose, joints), tMs);
+  const aspect = frame.meta.height > 0 ? frame.meta.width / frame.meta.height : 1;
+  // Flexión: fuera de una repetición, el cuerpo no horizontal (de pie, sentado) pausa con PU_POSITION.
+  const puSig = s.cfg.exercise === 'pushUp' ? pushUpSignals(filtered.pose, side) : null;
+  const outOfRep = s.fsm.phase === 'IDLE' || s.fsm.phase === 'FAULT';
+  const postureBad = puSig !== null && outOfRep && puSig.iota !== null && puSig.iota > PU_MAX_IOTA;
+  const frameCheck = frameCheckStep(s.frameCheck, rawPose, joints, s.cfg.view, aspect, tMs, postureBad);
+  s = { ...s, vis: vis.s, frameCheck };
+  const paused = isPaused(s);
+  const cause: PauseCause | null = vis.paused ? 'VIS_LOW' : frameCheck.issue;
+  s = { ...s, pausedSinceMs: paused ? (s.pausedSinceMs ?? tMs) : null };
+  if (paused !== wasPaused) events.push(paused ? { type: 'PAUSE', tMs, cause: cause ?? undefined } : { type: 'RESUME', tMs });
+  if (cause !== null && cause !== prevCause) {
+    const fb = arbiterStep(s.arbiter, [pauseCode(cause, s.cfg.exercise, s.cfg.view)], tMs, null);
+    s = { ...s, arbiter: fb.a };
+    if (fb.event) events.push(fb.event);
+  }
+
+  const inRep = s.fsm.phase !== 'IDLE' && s.fsm.phase !== 'FAULT' && s.fsm.phase !== 'COMPLETED';
+  if (paused && inRep && s.pausedSinceMs !== null && tMs - s.pausedSinceMs > ABANDON_AFTER_MS) {
+    s = { ...s, fsm: toIdle(s.fsm, tMs - s.fsm.pausedMs, false) };
+    events.push({ type: 'REP_ABANDONED', tMs });
+  }
+
+  let value: number | null;
+  let r: { s: FsmState; events: RepEvent[] };
+  const prevPhase = s.fsm.phase;
+  let acc = s.acc;
+  if (s.cfg.exercise === 'jumpingJack') {
+    const sig = jjSignals(filtered.pose);
+    value = sig.alpha;
+    r = jjStep(s.fsm, { tMs, alpha: sig.alpha, rhoF: sig.rhoF, paused }, s.cfg.spec, s.cfg.zones);
+    if (prevPhase === 'IDLE') acc = EMPTY_ACC;
+    if (!paused && sig.asym !== null && (r.s.phase === 'INFLECTION' || r.s.phase === 'ASCENDING' && prevPhase === 'INFLECTION')) {
+      acc = { ...acc, asymMax: Math.max(acc.asymMax ?? 0, sig.asym) };
+    }
+  } else if (puSig !== null) {
+    value = puSig.thetaE;
+    const pr = pushUpStep(s.fsm, s.pu, { tMs, thetaE: puSig.thetaE, thetaB: puSig.thetaB, iota: puSig.iota, paused }, s.cfg.spec);
+    r = pr;
+    s = { ...s, pu: pr.track };
+    if (prevPhase === 'IDLE') acc = EMPTY_ACC;
+    // θb en el fondo y la subida: se guarda la peor alineación (θb más bajo) con su signo.
+    const bottomOrUp = r.s.phase === 'INFLECTION' || r.s.phase === 'ASCENDING';
+    if (!paused && bottomOrUp && puSig.thetaBSigned !== null && (acc.bodySigned === null || Math.abs(puSig.thetaBSigned) < Math.abs(acc.bodySigned))) {
+      acc = { ...acc, bodySigned: puSig.thetaBSigned };
+    }
+  } else if (s.cfg.view === 'frontal') {
+    const raw = squatFrontalSignals(filtered.pose);
+    const plausible = raw.rho !== null && raw.rho >= FRONTAL_MIN_BODY && raw.kappa !== null && raw.kappa >= FRONTAL_MIN_BODY;
+    const sig = plausible ? raw : { ...raw, rho: null };
+    const fref = paused ? s.fref : frontalRefStep(s.fref, sig.rho, tMs, s.fsm, s.cfg.spec.startThr);
+    value = sig.rho !== null && fref.ref !== null ? (sig.rho / fref.ref) * 100 : null;
+    r = fsmStep(s.fsm, { tMs, value, paused }, s.cfg.spec);
+    s = { ...s, fref };
+    if (prevPhase === 'IDLE') acc = EMPTY_ACC;
+  } else {
+    const sig = squatSignals(filtered.pose, side);
+    value = sig.thetaK;
+    r = fsmStep(s.fsm, { tMs, value, paused }, s.cfg.spec);
+    if (prevPhase === 'IDLE') acc = EMPTY_ACC;
+    // τ en el cuadro del extremo: se actualiza cada vez que la FSM registra un mínimo nuevo.
+    const descending = r.s.phase === 'DESCENDING' || r.s.phase === 'INFLECTION';
+    if (descending && r.s.tExtremeMs === tMs) acc = { ...acc, tauBottom: sig.tau };
+    // Talones: de pie se guardan muestras para la base; en la fase (bajada, fondo y subida) se sigue el pico.
+    if (!paused && (descending || r.s.phase === 'ASCENDING')) {
+      const newExtreme = descending && r.s.tExtremeMs === tMs;
+      acc = {
+        ...acc,
+        heelL: heelTrackStep(acc.heelL, sig.heelL, tMs, s.heelStand.l, newExtreme),
+        heelR: heelTrackStep(acc.heelR, sig.heelR, tMs, s.heelStand.r, newExtreme),
+      };
+    } else if (!paused && (r.s.phase === 'IDLE' || r.s.phase === 'COMPLETED')) {
+      s = { ...s, heelStand: { l: heelStandStep(s.heelStand.l, sig.heelL, tMs), r: heelStandStep(s.heelStand.r, sig.heelR, tMs) } };
+    }
+  }
+  s = { ...s, fsm: r.s, acc };
+
+  for (const rep of r.events) {
+    let faults: FeedbackCode[];
+    if (rep.outcome !== 'valid') {
+      // Spec §6.3: una repetición no contada (incompleta o falta) es Miss y reinicia el combo.
+      faults = rep.outcome === 'incomplete' ? [incompleteCode(s.cfg.exercise, rep.code)] : rep.code === 'PU_POSITION' ? ['PU_POSITION'] : [];
+      s = { ...s, combo: 0 };
+      events.push({ ...rep, quality: 'Miss', mult: 1, faults });
+    } else {
+      const soft = softFaults(s.cfg.exercise, rep, s.acc, s.cfg.profile?.tauCal ?? 0);
+      faults = soft.faults;
+      const q = score(s.cfg, rep, pForm(soft.penalties));
+      const qual = quality(q, faults.length);
+      const c = comboStep({ combo: s.combo }, qual);
+      s = { ...s, combo: c.combo, reps: s.reps + 1 };
+      events.push({ ...rep, q, quality: qual, formScore: formScore(q), mult: c.mult, faults, tau: s.acc.tauBottom });
+    }
+    const fb = arbiterStep(s.arbiter, faults, rep.tEndMs, s.attempts + 1);
+    s = { ...s, arbiter: fb.a, attempts: s.attempts + 1 };
+    if (fb.event) events.push(fb.event);
+  }
+  return { s, events, hud: hudOf(s, value) };
+}

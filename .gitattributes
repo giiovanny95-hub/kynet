@@ -1,0 +1,3 @@
+# EAS Build y CI corren en Linux: los scripts con CRLF fallan (set: pipefail).
+* text=auto eol=lf
+*.task binary

@@ -60,7 +60,7 @@ Precondiciones del adaptador (documentadas y con tests):
 - Estado `PAUSED` (flag ortogonal a la FSM): congela estado y temporizadores (el tiempo en pausa no cuenta en la duración de la repetición). Si la pausa dura > 3 s con repetición en curso: se abandona (sin evento de repetición, evento `REP_ABANDONED`) y vuelve a IDLE sin armar.
 - Causas de pausa (códigos): `VIS_LOW`, `OUT_OF_FRAME` (articulación requerida a menos de 2 % del borde), `VIEW_INVALID`, `SUBJECT_CHANGED`.
 - **Persona distinta / dos personas**: los modelos son de una sola pose y pueden saltar a otra persona. Se rechaza el cuadro como outlier si la longitud de torso (punto medio hombros a punto medio caderas) cambia > 30 % entre cuadros aceptados, o el centro de caderas salta > 0.5 longitudes de torso en un cuadro (7 m/s, imposible). 3 rechazos seguidos: se acepta como sujeto nuevo, se reinicia filtros y FSM y se emite `SUBJECT_CHANGED`.
-- **Validación de vista** (cociente `r = anchoHombros2D / longitudTorso2D`; frontal teórico ≈ 0.8, `r = 0.8·cos(guiñada)`): frontal válida si `r >= 0.60` (guiñada <= 41°), lateral válida si `r <= 0.35` (guiñada >= 64°) [V]. Entre ambos: `VIEW_AMBIGUOUS` (aviso, sigue contando). Jumping jack exige frontal; sentadilla y flexión, lateral.
+- **Validación de vista** (cociente `r = anchoHombros2D / longitudTorso2D`; frontal teórico ≈ 0.8, `r = 0.8·cos(guiñada)`): frontal válida si `r >= 0.60` (guiñada <= 41°), lateral válida si `r <= 0.35` (guiñada >= 64°) [V]. Entre ambos: `VIEW_AMBIGUOUS` (aviso, sigue contando). Jumping jack exige frontal; sentadilla y flexión, la vista que elija el usuario (frontal por defecto desde 2026-10-30, ver `spec-vista-frontal.md`).
 
 ## 3. Filtro One-Euro
 
@@ -92,7 +92,7 @@ function filterStep(s: OneEuroState | null, tSec: number, x: number, p: OneEuroP
 ### 3.3 Parámetros iniciales [V en simulación a 30 FPS, ruido σ=0.004 alto de cuadro]
 | Parámetro | Informes | Propuesta | Razón |
 |---|---|---|---|
-| `fcMin` | 1.0 Hz | **1.5 Hz** | ruido en reposo 0.004 a 0.0013 (x0.33) |
+| `fcMin` | 1.0 Hz | **1.5 Hz** | ruido en reposo 0.004 a ~0.0016 (x0.40 medido; ver nota) |
 | `beta` (unidades de alto por segundo) | 0.007 | **8** | a 3 u/s de muñeca en jumping jack sube fc a ~25 Hz |
 | `dCutoff` | 1.0 | 1.0 | sin cambio |
 
@@ -102,6 +102,8 @@ Resultados comparados (retardo / amplitud pico a pico / jitter en reposo):
 |---|---|---|
 | Informes (1.0, 0.007) | 133 ms / 0.96 / 0.0013 | 100 ms / **0.65** / 0.0013 |
 | Propuesta (1.5, 8) | 67 ms / 1.02 / 0.0013 | **33 ms** / 0.99 / 0.0014 |
+
+**Nota (implementación, 2026-10-29):** con `fcMin` 1,5 Hz a 30 FPS una EMA pura deja √(α/(2−α)) = 0,368·σ (α = 0,239) y el término `beta` sube `fc` a ~1,8 Hz con el ruido de la derivada: medido 0,40·σ en 3 semillas. La cifra 0,0013 (x0,33) y la restricción "jitter <= 0.35·σ" no son alcanzables con estos parámetros; la prueba usa <= 0,45·σ y la rejilla debe usar ese límite o bajar `fcMin`.
 
 Ajuste: **búsqueda en rejilla** offline sobre los fixtures (`fcMin ∈ {1,1.5,2,3}`, `beta ∈ {2,4,8,12}`) con restricciones: jitter en reposo <= 0.35·σ_crudo, retardo <= 70 ms, razón de amplitud ∈ [0.97, 1.07]; entre las que cumplen, minimizar RMSE. Sube `fcMin` si se nota lentitud; sube `beta` si hay retardo en movimientos rápidos; baja `fcMin` si el esqueleto/ángulos tiemblan en reposo. Por ejercicio se permite un override (`jumpingJack.beta`). El retardo medio (~50 ms) se asume en todos los umbrales de tiempo.
 
@@ -143,6 +145,8 @@ Reglas generales:
 Tres resultados de repetición: **válida** (cuenta), **incompleta** (no cuenta, avisa de la causa) y **falta de forma** crítica (`fault`, no cuenta). Las faltas suaves no cambian el conteo.
 
 ### 4.3 Sentadilla (lateral, lado cercano) [V sim. en geometría 2D]
+La sentadilla y la flexión **de frente** se definen en `spec-vista-frontal.md` (decisión del usuario, 2026-10-30).
+
 Señal principal `θk` = ángulo cadera–rodilla–tobillo. Secundarias: `τ` = inclinación del tronco respecto a la vertical (vector cadera→hombro, 0° erguido); `ρ` en el modo frontal.
 
 | Transición | Condición inicial | Notas |
@@ -273,7 +277,7 @@ El evento `FEEDBACK{code, severity, rep}` se emite como máximo **uno por repeti
 | `SQ_DEPTH_SHALLOW` | sentadilla | incompleta (mín. en (100,130]) | alta | |
 | `SQ_TRUNK_LEAN` | sentadilla | `τ` fondo `> max(55°, τ_cal+15°)` | media (p=0.10) | |
 | `SQ_KNEES_IN` | sentadilla | cociente rodillas/tobillos `< 0.85` en fondo | media | frontal |
-| `SQ_HEELS_LIFT` | sentadilla | talón sube respecto al tobillo (> 2 % alto de cuadro) | media | 33 puntos |
+| `SQ_HEELS_LIFT` | sentadilla | talón sube respecto al tobillo (> 2 % alto de cuadro); solo se evalúa si talón y tobillo del mismo lado tienen `v >= 0.8` durante la fase, si no queda desactivada en esa repetición sin aviso | media | 33 puntos |
 | `SQ_TOO_FAST` / `SQ_TOO_SLOW` | sentadilla | `D < Dlo` / `D > Dhi` | baja | |
 | `JJ_ARMS_LOW` | jumping jack | pies abiertos, `αpico < αU` | alta | |
 | `JJ_FEET_NARROW` | jumping jack | brazos arriba, `ρfpico < ρfU` | alta | |
@@ -283,6 +287,8 @@ El evento `FEEDBACK{code, severity, rep}` se emite como máximo **uno por repeti
 | `PU_DEPTH_SHALLOW` | flexión | incompleta (mín. en (100,130]) | alta | |
 | `PU_HIPS_SAG` / `PU_HIPS_PIKE` | flexión | `θb < 160°` con signo | media (p=0.25) | |
 | `PU_TOO_FAST` / `PU_TOO_SLOW` | flexión | `D < Dlo` / `D > Dhi` | baja | |
+
+Nota (decisión del usuario, 2026-10-29): se mantiene el modelo **lite** de MediaPipe; el full no cabe en 30 FPS. Con lite los talones dan `v` 0,71-0,78 de pie a 2 m (full 0,83-0,93), de ahí la condición de `v >= 0.8` de `SQ_HEELS_LIFT`. Medido por la sesión local en el S26 Ultra (docs/spike-results.md).
 
 ## 8. Estrategia de pruebas
 
@@ -366,9 +372,9 @@ Riesgos
 
 Decisiones abiertas
 - D1 ¿Pausa de visibilidad sobre cuadros consecutivos (como se especifica) o con ventana mínima en ms (para 20 FPS térmico)?
-- D2 ¿Activar 3D (z de MediaPipe) para vistas oblicuas, o exigir vista estricta?
+- D2 ¿Activar 3D (z de MediaPipe) para vistas oblicuas, o exigir vista estricta? **Parcial (2026-10-30):** vista estricta; el 3D solo como spike para la cadera en flexión de frente (`spec-vista-frontal.md` §6).
 - D3 Tolerancia de guiñada: ¿rechazar o solo avisar cuando el móvil no está a 90° del usuario en sentadilla/flexión?
-- D4 Sentadilla frontal: ¿soportarla en el MVP (modo degradado con ρ) o solo lateral?
+- D4 Sentadilla frontal: ¿soportarla en el MVP (modo degradado con ρ) o solo lateral? **Resuelta (2026-10-30):** sí, de frente por defecto y como modo completo, con la vista elegible por el usuario (`spec-vista-frontal.md`).
 - D5 Adaptación de umbrales en vivo por fatiga (etapa 2) frente a calibración fija.
 - D6 `Miss` también para repeticiones contadas con `Q < 0.25`: ¿se acepta que "cuenta pero es Miss"?
 - D7 Faltas suaves leves/graves: los pesos `p_i` y los umbrales `τ`, `θb` son [H] y deben ajustarse con un entrenador.

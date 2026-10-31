@@ -31,7 +31,7 @@ Fecha de verificación: 2026-10-28. Solo investigación; no se descargó ningún
 
 1. **Ilustraciones propias** (diseñador o ilustrador contratado con cesión de derechos escrita, work-for-hire). Máxima claridad.
 2. **Animaciones propias en Lottie o Rive**: vectoriales, ligeras, controlables por código y válidas para un premium. Crear a partir de un rig simple (figura de palitos o maniquí).
-3. **Render propio desde la pose**: dado que el proyecto se llama fitpose, se puede dibujar un esqueleto/figura animada generada por código a partir de keyframes propios. Sin riesgo de terceros.
+3. **Render propio desde la pose**: dado que el proyecto se llama kynet, se puede dibujar un esqueleto/figura animada generada por código a partir de keyframes propios. Sin riesgo de terceros.
 4. **Generación con IA propia**: revisar los términos de la herramienta y la protección por copyright de resultados IA. [ABOGADO]
 5. **Licenciar de pago** un catálogo (GymVisual o RepDB de pago) con contrato claro, cuando haya catálogo y presupuesto.
 6. Bancos de ilustración con licencia comercial clara (verificar cada licencia antes de usar).
@@ -45,6 +45,13 @@ Fecha de verificación: 2026-10-28. Solo investigación; no se descargó ningún
 - Antes del premium de pago, guardar un registro de procedencia (de dónde viene cada asset y su licencia).
 
 ## 6. Plan de atribución
+
+| Asset | Procedencia |
+|---|---|
+| Guías de ejercicio | Guías de ejercicio: arte propio generado por código (KYNET), sin terceros |
+
+Las cinco guías de `assets/lottie/exercises/` se regeneran con `npm run lottie:build`, a partir de poses
+sintéticas del proyecto y colores de `src/ui/tokens.ts`. No contienen grabaciones ni landmarks de personas.
 
 - Pantalla "Créditos / Licencias" accesible desde Ajustes, y copia en el sitio web.
 - Si se usa RepDB: "Exercise data by RepDB (repdb.co)" con enlace visible.
@@ -75,3 +82,17 @@ Fecha de verificación: 2026-10-28. Solo investigación; no se descargó ningún
 - https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/LICENSE.md
 - https://github.com/wrkout/exercises.json
 - Búsqueda web sobre licencias wger (fuentes secundarias: https://pypi.org/project/wger/1.4/ , https://github.com/exercemus/exercises)
+
+## Audio
+Los tonos de `assets/audio/` son arte propio: senos generados por `scripts/gen-tones.ts` a partir de `src/audio/tones.ts`. Sin licencias de terceros.
+
+## Guías de ejercicio
+`assets/guides/{jumping-jack,squat,push-up}.webp`: diseños del usuario (KYNET), entregados como GIF el 2026-10-30
+(`jumping-jack.gif`, `sentadilla.gif`, `flexion.gif`). Creados por el usuario con Claude Code. Sin
+licencias de terceros.
+- Se usa solo el recuadro de la animación (sin títulos ni consejos, que van por i18n), convertido en la PC con
+  `sharp` 0.34.4 a WebP animado (calidad 82, bucle infinito). No se subieron a ningún servicio.
+- Jumping jack 436×372 y 65 cuadros; sentadilla y flexión 436×376, con 72 y 73 cuadros. Las tres duran 4800 ms.
+- **Máximo 436 px de ancho:** a 720×620 el decodificador de Android no mostraba la animación (recuadro vacío, sin
+  error en `onError`), comprobado en el Pixel 7 Pro el 2026-10-31.
+- Los GIF de G1 (`assets/lottie/exercises/`) no se usan en la app.
