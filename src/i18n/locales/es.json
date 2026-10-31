@@ -246,7 +246,9 @@
     "levelTitle": "¿Cómo te sientes con el ejercicio?",
     "goalTitle": "¿Cuántos días por semana quieres entrenar?",
     "goalHint": "Es una meta orientativa: no afecta a la racha.",
-    "finish": "Listo"
+    "finish": "Listo",
+    "tagline": "Intelligent Fitness",
+    "haveAccount": "Ya tengo cuenta"
   },
   "medical": {
     "title": "Antes de empezar",

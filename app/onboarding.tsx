@@ -4,14 +4,18 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import '@/i18n';
+import { loginAvailable, signInWithGoogle } from '@/auth/accountService';
 import { birthDateFrom, isAdult } from '@/auth/age';
+import { signInMessageKey } from '@/auth/signInError';
 import { AGE_BLOCKED_KEY, deviceTimeZone } from '@/data/account';
 import { getStore } from '@/data/storeProvider';
 import type { FitnessLevel } from '@/features/profile/prefs';
-import { savePrefs } from '@/features/profile/prefsStore';
+import { stepAfterLogin } from '@/features/profile/onboardingSteps';
+import { loadPrefs, savePrefs } from '@/features/profile/prefsStore';
 import { calendarDate } from '@/gamification/localDate';
 import { Body, Button, Choice, H1, Screen } from '@/ui/kit';
-import { fonts, tokens } from '@/ui/tokens';
+import { RadarMark } from '@/ui/RadarMark';
+import { fonts, tokens, type } from '@/ui/tokens';
 
 type Step = 'welcome' | 'birth' | 'blocked' | 'level' | 'goal';
 const LEVELS: readonly FitnessLevel[] = ['beginner', 'regular', 'advanced'];
@@ -31,6 +35,20 @@ export default function OnboardingScreen() {
   const [invalid, setInvalid] = useState(false);
   const [level, setLevel] = useState<FitnessLevel>('beginner');
   const [goal, setGoal] = useState(3);
+  const [signInBusy, setSignInBusy] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
+
+  // "Ya tengo cuenta": entra con Google y sigue donde toque; la edad se pide si no hay fecha local (H6).
+  const signIn = async () => {
+    setSignInBusy(true);
+    setSignInError(null);
+    const result = await signInWithGoogle();
+    setSignInBusy(false);
+    if (result !== 'ok') return setSignInError(signInMessageKey(result));
+    const next = stepAfterLogin(await loadPrefs(getStore()));
+    if (next === 'done') router.replace('/');
+    else setStep(next);
+  };
 
   useEffect(() => {
     void getStore()
@@ -58,12 +76,23 @@ export default function OnboardingScreen() {
 
   if (step === 'welcome') {
     return (
-      <Screen>
-        <Text style={styles.wordmark}>{t('common.appName')}</Text>
-        <H1>{t('onboarding.welcomeTitle')}</H1>
+      <View style={styles.welcome}>
+        <View style={styles.brand}>
+          <RadarMark />
+          <Text style={styles.wordmark}>
+            {t('common.appName')}
+            <Text style={styles.wordmarkDot}>.</Text>
+          </Text>
+          <Text style={styles.tagline}>{t('onboarding.tagline').toUpperCase()}</Text>
+        </View>
+        <Text style={styles.welcomeTitle}>{t('onboarding.welcomeTitle')}</Text>
         <Body tone="muted">{t('onboarding.welcomeBody')}</Body>
-        <Button label={t('onboarding.start')} onPress={() => setStep('birth')} />
-      </Screen>
+        <View style={styles.actions}>
+          <Button label={t('onboarding.start')} onPress={() => setStep('birth')} />
+          {loginAvailable() ? <Button kind="secondary" disabled={signInBusy} label={t('onboarding.haveAccount')} onPress={() => void signIn()} /> : null}
+          {signInError !== null ? <Body tone="warn">{t(signInError)}</Body> : null}
+        </View>
+      </View>
     );
   }
   if (step === 'blocked') {
@@ -132,7 +161,13 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  wordmark: { fontFamily: fonts.title, color: tokens.text, fontSize: 32, letterSpacing: 8, marginBottom: 24 },
+  welcome: { flex: 1, backgroundColor: tokens.bg, justifyContent: 'center', paddingHorizontal: 24, gap: 16 },
+  brand: { alignItems: 'center', gap: 12, marginBottom: 16 },
+  wordmark: { fontFamily: fonts.title, color: tokens.text, fontSize: 28, letterSpacing: 8 },
+  wordmarkDot: { color: tokens.accent },
+  tagline: { ...type.labelCaps, color: tokens.muted, letterSpacing: 2.4 },
+  welcomeTitle: { ...type.displayMd, color: tokens.text, textAlign: 'center' },
+  actions: { gap: 12, marginTop: 8 },
   row: { flexDirection: 'row', gap: 8 },
   field: { flex: 1, gap: 4 },
   label: { fontFamily: fonts.label, color: tokens.muted, fontSize: 13 },

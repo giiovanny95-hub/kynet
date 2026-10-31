@@ -246,7 +246,9 @@
     "levelTitle": "How do you feel about exercise?",
     "goalTitle": "How many days a week do you want to train?",
     "goalHint": "It's a guideline: it doesn't affect your streak.",
-    "finish": "Done"
+    "finish": "Done",
+    "tagline": "Intelligent Fitness",
+    "haveAccount": "I already have an account"
   },
   "medical": {
     "title": "Before you start",
