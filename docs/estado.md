@@ -1,7 +1,7 @@
 # Estado del proyecto (traspaso entre sesiones)
 
 ## Última actualización
-2026-10-31. Sesión de la **nube**: revisión de B1, F0 y la colaboración Claude-Codex. Último commit de la PC: `728635f`.
+2026-10-31. Sesión de la **nube**: punto de control F1.4 resuelto (umbrales de frente). Último commit de la PC: `d2986f8`.
 
 ## Estado
 - **Equipo (2026-10-30):** la nube planifica y revisa; **Codex** (PC) hace principalmente diseño y pantallas
@@ -13,6 +13,12 @@
 - **Vista de frente (2026-10-30):** spec `docs/spec-vista-frontal.md` y plan
   `docs/superpowers/plans/2026-10-30-vista-frontal.md`. El usuario elige Frente (por defecto) o Lado en sentadilla y
   flexión.
+- **Vista de frente, F1-F4.3 (PC, revisado en la nube):**
+  - F1.1-F1.3: generadores con perspectiva (`68e8440`, `02cc06d`);
+  - F2.1 y F3.1: señales de frente (`c80f63a`, `031f210`);
+  - F4.3: preferencia `exerciseView` (`d2986f8`);
+  - checks: 412 tests, kinematics 152/152 y benchmark 8/8;
+  - **F1.4 resuelto:** umbrales de frente en la spec §3-§5 (`decisions.md`, 2026-10-31).
 - **F0 de vista de frente hecho (`728635f`, aceptado):**
   - reproductor `npm run replay`;
   - el grabador guarda `view`, `profile` y `realReps`, y se puede armar antes de la salida;
@@ -81,7 +87,8 @@
 0. **En paralelo (decisión del usuario, 2026-10-30):**
    - **Codex:** plan de diseño `2026-10-30-diseno-premium.md`, desde E2.1 en cuanto tenga cuota (E0 y E1 hechos), y
      después F5 de la vista de frente.
-   - **Claude Code (PC):** vista de frente F1 → F4 (F1.4 es punto de control con la nube), y después F6 y F7.
+   - **Claude Code (PC):** ruta rápida del plan de vista de frente: F1.3b → F2.2 → F3.2 → F2.4 → F4.1 → F4.2, más
+     un mínimo de pantalla. Después, **prueba de hoy con el usuario** en los dos teléfonos.
    - Decisiones de diseño ya tomadas: títulos de nivel solo visuales, Progreso combinado y detalle de sesión simple.
 Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
 1. **Bloque A terminado y revisado en la nube** (366 tests, typecheck, lint e i18n):

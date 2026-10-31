@@ -24,6 +24,41 @@ Si la tarea toca `src/kinematics`, también `test:kinematics` y `/benchmark-fsm`
 
 ---
 
+## Ruta rápida para la prueba de hoy (decisión de la nube tras F1.4, 2026-10-31)
+F0, F1.1-F1.3, F2.1, F3.1 y F4.3 (datos) están hechos y revisados. Umbrales fijados en la spec §3, §4.2, §4.3 y §5.
+
+**Orden nuevo:**
+1. **F1.3b:** `shoulderForwardM` en `gen/pushUp.ts`. Es el adelanto del hombro sobre las manos en el fondo,
+   proporcional a la profundidad. Con 0 por defecto, la salida actual sigue idéntica. Barrido de δ con 0, 0,08 y
+   0,15 m.
+2. F2.2: tabla y referencia de la sentadilla de frente.
+3. F3.2: tabla y envoltorio de la flexión de frente (barrido con `shoulderForwardM` 0-0,15).
+4. **F2.4:** escala del cuerpo. Es imprescindible antes de probar, por el fallo de la ronda 2.
+5. F4.1: motor por (ejercicio, vista).
+6. F4.2: calibración por vista.
+
+**Mínimo de pantalla, lo hace Claude Code y no Codex, para no esperar:**
+- en vista de frente, ocultar la silueta de lado en la colocación;
+- los textos de colocación de sentadilla y flexión, en su versión de frente, en las claves i18n actuales (es y en).
+
+El selector Frente/Lado, las siluetas de frente y el HUD grande siguen en F5 (Codex).
+
+**Prueba de hoy (F7 reducida),** con la grabación armada antes de la salida:
+- Pixel y S26, sentadilla y flexión de frente;
+- calibración de frente primero;
+- 2×10 buenas, 1×10 a media profundidad, 60 s quieto, y acercarse a la pantalla y agacharse;
+- jumping jack 1×15 como regresión.
+
+Informe: conteo real frente al de la app, y los fixtures con `realReps`.
+
+**Después:** F2.3 y F3.3 (faltas, ajustadas con los fixtures de hoy), F5, F6 y F7 completo. Las faltas nuevas de
+frente no se activan hasta tener los fixtures reales: un aviso falso resta más que uno perdido.
+
+Si un test de conteo no pasa con estos umbrales, **no los cambies en silencio**: informa con el barrido y una
+propuesta.
+
+---
+
 ## F0 `[claude]` Herramientas de medición
 - [ ] **F0.1 Reproductor en el repo.** El de la PC (con el que se analizó la ronda 2) pasa a
   `src/kinematics/tools/replay.ts`, más el script `npm run replay -- <fixture.json> [--profile <perfil.json>] [--view frontal|lateral]`.

@@ -51,26 +51,29 @@ Articulaciones requeridas (ambos lados): hombros, caderas, rodillas y tobillos. 
 `classifyView`).
 
 **Señales:**
-- `ρ` (principal) = `(yTobilloMedio − yCaderaMedia) / ρ_ref × 100`. Geometría verificada en `spec-cinematica` §4.3:
-  - θk 170° → 99,6;
-  - 120° → 85,4;
-  - 100° → 74,7;
-  - 90° → 68,5.
+- `ρ` (principal) = `(yTobilloMedio − yCaderaMedia) / ρ_ref × 100`. Con muslo ≈ tibia y referencia de pie a 172°,
+  `ρ ≈ 100·cos((180−θk)/2) / cos 4°`. Simulado en F1.4 con perspectiva (altura 0,6-1,2 m, distancia 2-3 m y guiñada
+  ±15°, que cambian ≤ 0,2 puntos):
+  - θk 170° → 99,9;
+  - 120° → 86,8;
+  - 100° → 76,9;
+  - 90° → 71,0.
+
+  Corrige la tabla de la primera versión de esta spec, que usaba otra referencia (decisión 2026-10-31).
 - `λ` (profundidad) = `(yRodillaMedia − yCaderaMedia) / λ_ref × 100`. Es el acortamiento del muslo: se acerca a 0
   cuando el muslo queda paralelo al suelo, pero depende de la altura del móvil. **Solo entra en `Q_rom`**, no en el
   conteo.
 - `κ` (tronco) = `longitudTorso2D / κ_ref × 100`. Baja cuando el tronco se inclina hacia la cámara.
 - `kneeRatio` = `|xRodillaI − xRodillaD| / |xTobilloI − xTobilloD|`.
 
-**Tabla `SQUAT_FRONTAL_SPEC`** (valores iniciales [H], que se ajustan con la simulación de F1 sin bajar los criterios
-de §1):
+**Tabla `SQUAT_FRONTAL_SPEC`** ([H] hasta F7; fijada el 2026-10-31 con la geometría de F1.4):
 
 | Campo | Valor | Nota |
 |---|---|---|
-| `startThr` | 95 | armar con `ρ ≥ 95` durante 300 ms |
-| `exitThr` | 93 | |
-| `extremeThr` | 78 | ≈ θk 105° |
-| `attemptMax` | 88 | banda de intento (78, 88] |
+| `startThr` | 95 | armar con `ρ ≥ 95` durante 300 ms (≈ θk 143°) |
+| `exitThr` | 93 | ≈ 137° |
+| `extremeThr` | 80 | ≈ 106° (de lado es 100°, más margen por el ruido 2D) |
+| `attemptMax` | 90 | ≈ 128°; banda de intento (80, 90] |
 | `revDeg` | 3 | puntos |
 | `tNoiseMs`, `stallMs`, `tMaxMs` | iguales que de lado | |
 
@@ -97,22 +100,28 @@ Sin postura no se arma (`PU_POSITION`, con texto de frente). En una repetición,
 `PU_POSITION`. Es el mismo envoltorio que `pushUpStep`.
 
 ### 4.2 Señal y tabla
-- `δ` (principal) = `((yMuñecaMedia − yHombroMedio) / w) / δ_ref × 100`. Arriba vale 100; abajo, con el pecho cerca
-  del suelo, ≈ 25-40 según la altura del móvil (lo fija la simulación de F1).
+- `δ` (principal) = `((yMuñecaMedia − yHombroMedio) / w) / δ_ref × 100`. Arriba vale 100.
+  - En la simulación de F1.4, con el hombro sobre la muñeca, no depende de la colocación: codo a 90° → 69,3 y a
+    70° → 55,2.
+  - En una flexión real el hombro se adelanta sobre las manos en el fondo y δ baja más: ≈ 55-70 según cuánto se
+    adelante. El generador lo modela con `shoulderForwardM` y el valor real lo fija F7.
 - Al bajar, la cabeza se acerca a la cámara y `w` crece; como `δ` está dividida por `w`, eso se compensa solo.
 
-**Tabla `PUSHUP_FRONTAL_SPEC`** [H]: `startThr 92`, `exitThr 88`, `extremeThr 55`, `attemptMax 75`, `revDeg 4`,
-`armMs 500`. Tiempos iguales que de lado.
+**Tabla `PUSHUP_FRONTAL_SPEC`** ([H] hasta F7; fijada el 2026-10-31):
+- `startThr 95`, `exitThr 92`, `extremeThr 76`, `attemptMax 88`, `revDeg 3`, `armMs 500`. Tiempos iguales que de lado.
+- `extremeThr 76` ≈ codo a 100° con el hombro sobre la muñeca, el caso más exigente. Con el hombro adelantado cuenta
+  algo antes; la calibración lo personaliza.
 
 ### 4.3 Faltas
 - **`PU_ELBOWS_FLARE`** (nueva):
   - medida: `(|xCodoI − xHombroI| + |xCodoD − xHombroD|) / (2·w)`, con la mediana en ±150 ms del fondo;
-  - aviso si es `> 0,55` [H] (codos a unos 45° del cuerpo es lo recomendado; abiertos a 90° dan ≈ 0,9 [H, F1]);
+  - aviso si es `> 0,48` [H]: está a medio camino entre la simulación con codos a 45° del cuerpo (lo
+    recomendado, 0,34) y a 90° (0,60);
   - severidad media.
 - **`PU_HEAD_DROP`** (nueva):
   - medida: `(yNariz − yHombroMedio) / w`, con la mediana del fondo frente a la mediana de arriba (500 ms antes de
     bajar);
-  - aviso si baja más de 0,35·w [H];
+  - aviso si baja más de 0,30·w [H] (≈ 20° de caída; 25° dan 0,37-0,45 en la simulación);
   - severidad baja.
 - `PU_DEPTH_SHALLOW`, `PU_TOO_FAST` y `PU_TOO_SLOW`: igual que de lado.
 - `PU_HIPS_SAG` y `PU_HIPS_PIKE`: solo de lado. De frente dependen del spike de §6.
@@ -142,9 +151,9 @@ usuario se acercará más a la pantalla, así que este caso es más frecuente.
   - el perfil guarda `view` y ahora también `scale`;
   - `calibrationStore` se indexa por **(ejercicio, vista)**, no solo por ejercicio. Así, cambiar de vista no
     reutiliza un perfil de la otra;
-  - límites de frente: sentadilla `extremeThr ∈ [70, 88]`; flexión `[40, 70]`;
+  - límites de frente: sentadilla `extremeThr ∈ [72, 88]`; flexión `[50, 85]`;
   - ROM mínima: `exitThr − extremeThr ≥ 10` puntos;
-  - con umbrales permisivos en la calibración: `ρ ≤ 85` y `δ ≤ 70`.
+  - con umbrales permisivos en la calibración: `ρ ≤ 88` y `δ ≤ 85`.
 - **Colocación sugerida** (textos y siluetas):
   - sentadilla y jumping jack: móvil en vertical a la altura de la cadera (0,6-1,2 m), a 2-3 m, cuerpo entero visible;
   - flexión: §4.
