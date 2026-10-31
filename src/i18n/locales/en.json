@@ -221,7 +221,10 @@
     "medical": "Medical notice",
     "privacy": "Video and body points never leave your phone. Only a summary of each rep is stored.",
     "version": "Version {{v}}",
-    "devSpike": "Open camera test"
+    "devSpike": "Open camera test",
+    "techniqueHelp": "Technique tips",
+    "techniqueHelpHint": "Shows how to do each exercise the first time and after 3 corrections in a row.",
+    "resetGuides": "Show the guides again"
   },
   "fitnessLevel": {
     "beginner": "I'm just starting",

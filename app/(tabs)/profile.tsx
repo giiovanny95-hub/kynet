@@ -65,6 +65,19 @@ export default function ProfileScreen() {
         </View>
       </Card>
       <Card>
+        <H2>{t('profile.techniqueHelp')}</H2>
+        <Body tone="muted">{t('profile.techniqueHelpHint')}</Body>
+        <View style={styles.row}>
+          <View style={styles.cell}>
+            <Choice label={t('profile.on')} selected={data.prefs.techniqueHelp} onPress={() => set({ techniqueHelp: true })} />
+          </View>
+          <View style={styles.cell}>
+            <Choice label={t('profile.off')} selected={!data.prefs.techniqueHelp} onPress={() => set({ techniqueHelp: false })} />
+          </View>
+        </View>
+        <Button kind="ghost" label={t('profile.resetGuides')} onPress={() => set({ techniqueHelp: true, guideSeen: { squat: false, jumpingJack: false, pushUp: false } })} />
+      </Card>
+      <Card>
         <Body tone="muted">{t('profile.privacy')}</Body>
       </Card>
       <Button kind="secondary" label={t('profile.medical')} onPress={() => router.push('/medical')} />

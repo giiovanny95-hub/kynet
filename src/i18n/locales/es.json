@@ -221,7 +221,10 @@
     "medical": "Aviso médico",
     "privacy": "El vídeo y los puntos del cuerpo nunca salen del teléfono. Solo se guarda el resumen de cada repetición.",
     "version": "Versión {{v}}",
-    "devSpike": "Abrir prueba de cámara"
+    "devSpike": "Abrir prueba de cámara",
+    "techniqueHelp": "Ayudas de técnica",
+    "techniqueHelpHint": "Muestra cómo se hace cada ejercicio la primera vez y tras 3 correcciones seguidas.",
+    "resetGuides": "Volver a ver las guías"
   },
   "fitnessLevel": {
     "beginner": "Estoy empezando",
