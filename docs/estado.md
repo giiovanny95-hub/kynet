@@ -1,7 +1,7 @@
 # Estado del proyecto (traspaso entre sesiones)
 
 ## Última actualización
-2026-10-31. Sesión de la **nube**: plan de diseño v2 (Stitch actualizado, HUD y guías Lottie) para Codex. Último commit de la PC: `87cd8bd`.
+2026-10-31. Sesión de la **nube**: guías con los GIF del usuario, ayuda tras 3 correcciones y Codex fuera de los planes. Último commit de la PC: `560cd95`.
 
 ## Estado
 - **Equipo (2026-10-30):** la nube planifica y revisa; **Codex** (PC) hace principalmente diseño y pantallas
@@ -89,14 +89,20 @@
 
 ## Siguiente paso
 0. **En paralelo (decisión del usuario, 2026-10-30):**
-   - **Diseño v2 (decisión del usuario, 2026-10-31):** plan `docs/superpowers/plans/2026-10-31-diseno-v2-guias.md`.
-     - La PC exporta el mockup actualizado de Stitch (G0).
-     - **Codex** hace a la vez el personaje Lottie propio (G1) y `ExerciseGuide` (G2).
-     - Después Codex hace la colocación con "Así se hace" (G3), el HUD en vivo con la mini-guía (G4) y las pantallas
-       v2 (G5). G3 y G4 sustituyen a E2.8 y F5.
-     - La PC mide el HUD (G4m).
-   - **Claude Code (PC):** ruta rápida del plan de vista de frente: F1.3b → F2.2 → F2.2b → F3.2 → F2.4 → F4.1 → F4.2, más
-     un mínimo de pantalla. Después, **prueba de hoy con el usuario** en los dos teléfonos.
+   - **Reparto (decisión del usuario, 2026-10-31):** el usuario diseña con Codex por su cuenta y entrega assets;
+     **Claude Code (PC) lo implementa todo**.
+   - **Guías y pantallas v2:** plan `docs/superpowers/plans/2026-10-31-diseno-v2-guias.md`, H1 → H6 y después H7.
+     - H1: GIF del jumping jack desde Descargas.
+     - H2: manifiesto y preferencias.
+     - H3: "Así se hace" la primera vez.
+     - H4: ayuda tras 3 correcciones, con pausa.
+     - H5: ajuste en Perfil.
+     - H6: bienvenida "Empezar" y "Ya tengo cuenta".
+     - H7: resto de pantallas y HUD.
+     - Por ahora solo hay guía del jumping jack; las demás, cuando el usuario las entregue.
+     - G0 hecho (`cc934bb`). G1 Lottie (`560cd95`) sin usar.
+   - **Vista de frente: en pausa por el usuario.** Con `abortHoldMs`, σ 0,008 da 488/540 (mínimo 8). Al reanudar,
+     F2.2c (guardia de sujeto con mediana) y el resto de la ruta rápida.
    - Decisiones de diseño ya tomadas: títulos de nivel solo visuales, Progreso combinado y detalle de sesión simple.
 Plan `docs/superpowers/plans/2026-10-30-cierre-mvp.md`:
 1. **Bloque A terminado y revisado en la nube** (366 tests, typecheck, lint e i18n):

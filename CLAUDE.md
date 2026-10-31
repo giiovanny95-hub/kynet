@@ -24,12 +24,10 @@ Estado: MVP en construcción (partes 0-6 con código; el estado vivo está en `d
   informa en `para-nube/` con la evidencia y espera el plan corregido, o pregunta al usuario si es urgente.
 - **Traspaso:** la nube avisa en `para-local/` con `tipo: plan` y la ruta del plan. La PC responde en `para-nube/`
   con `tipo: estado` (commit, verificación y lo que no pudo medir). Las dos leen `docs/estado.md` al empezar.
-- **Codex por área (decisión del usuario, 2026-10-30):** Codex hace principalmente **diseño y pantallas** (plan de
-  diseño E2-E3 y tareas `[codex]`); Claude Code en la PC hace la **lógica** (cinemática, motor, datos, nativo y
-  mediciones), es el integrador único y coordina a Codex. Mecanismo: plugin oficial (`/delegar-codex`,
-  `/codex:rescue`) en worktree propio `feat/codex-<id>`, entrega por SHA e integración tras revisar y pasar
-  `npm run verify`, según `docs/colaboracion-agentes.md` y `docs/agent-coordination-cli.md`. Un aviso del buzón no
-  asigna una tarea; no lanzar dos escritores en el mismo checkout. Si Codex pide algo de pago, para y pregunta.
+- **Codex (decisión del usuario, 2026-10-31):** el usuario trabaja con Codex **por su cuenta** y entrega diseños y
+  assets (por ejemplo, GIF en su carpeta de Descargas). **Claude Code en la PC los integra** y hace también las
+  pantallas. Los planes no asignan tareas a Codex ni lo lanzan, salvo que el usuario lo pida.
+  `docs/colaboracion-agentes.md` sigue valiendo para cuando el usuario lo use.
 
 ## Memoria del proyecto (dónde vive cada cosa)
 | Qué | Dónde |

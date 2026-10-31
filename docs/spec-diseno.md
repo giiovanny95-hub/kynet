@@ -34,6 +34,8 @@ visual, manda la PNG de Stitch; ante una duda de comportamiento, `spec-producto.
 | `02` (resumen) | `app/workout/summary.tsx` | "¡Buen trabajo!", XP, duración, tiempo activo, más lo que ya existe (racha, misiones y nivel). Botón "Guardar mi progreso" si no hay cuenta |
 | `03-historial` | `app/(tabs)/progress.tsx` | **Combinado** (decisión del usuario): arriba, las 3 métricas, la racha actual y máxima y los últimos 7 días; debajo, el historial con segmentos (semana, mes, 3 meses), chips por ejercicio y tarjetas por día. Estado vacío del HTML |
 | `03` (detalle) | `app/workout/session/[id].tsx`, nueva | **Versión simple** (decisión del usuario): duración, válidas/total, gráfica de forma por repetición y consejo. La cadencia por serie queda fuera del MVP |
+| `05-bienvenida` (v2) | `app/onboarding.tsx`, paso 0 | Decisión del usuario (2026-10-31): logotipo, tipografía y botones del mockup, **sin resplandor**. "Empezar" (principal) sigue el onboarding sin cuenta; "Ya tengo cuenta" (secundaria) usa Google y solo aparece si `loginAvailable`. La edad se pide igual si no hay fecha local. Sin Facebook, Apple, email ni "crear cuenta" |
+| `92-referencia-externa-login.jpg` | — | Inspiración de otra marca; no se implementa ni se copia |
 | `04-iniciar-sesion` | `app/account.tsx`, nueva | **No es la primera pantalla.** Se abre desde el resumen ("Guardar mi progreso") y desde Perfil, porque el login va después de la primera sesión (spec). Estados: inicial, conectando, error y sin conexión. "Continuar sin cuenta" cierra la pantalla |
 | No está en Stitch | `onboarding`, `medical`, `exercises`, `workout/[exercise]/setup`, `missions` y `profile` | Se diseñan con el mismo sistema: componentes de §4 y patrones de Hoy e Historial |
 
@@ -94,7 +96,7 @@ visual, manda la PNG de Stitch; ante una duda de comportamiento, `spec-producto.
 | `TabBar` | Indicador teal que se desliza bajo la pestaña activa (`snappy`); icono activo con escala 1,08 | Reanimated |
 | `Segmented` | Fondo activo que se desliza entre segmentos | Reanimated `layout` |
 | `Skeleton` de carga | Bloques Slate con un brillo que se desplaza (1,2 s); sin bucle con `reduced` | Reanimated |
-| `ExerciseGuide` | Personaje que hace una repetición lenta en bucle (§11); con `reduced`, cuadro fijo; `playing` para congelarla | `lottie-react-native`, `renderMode="HARDWARE"` |
+| `GuideCard` | Animación del ejercicio (diseño del usuario) en bucle, con título y consejos (§11); con `reduced`, primer cuadro fijo | `expo-image` (GIF o WebP animado) |
 
 ## 5. Coreografía por pantalla
 - **Hoy:**
@@ -121,9 +123,8 @@ visual, manda la PNG de Stitch; ante una duda de comportamiento, `spec-producto.
     buena forma, como dice `tema.md`.
   - El aviso entra con deslizamiento corto y fundido y sale a los 2,5 s.
   - Pausa y confirmación en hoja inferior con `base`.
-  - **Nada de Lottie, Skia extra ni desenfoque sobre la cámara**, con una única excepción (decisión del usuario, 2026-10-31): la **mini-guía** `ExerciseGuide`.
-    - ≤ 96 dp, en una esquina superior y fuera del 70 % central.
-    - Se mide con `audit_performance.sh` con y sin ella (G4m). Si empeora más de 1 punto, se congela mientras se cuenta; si aun así no cumple, se quita del HUD.
+  - **Nada de Lottie, Skia extra ni desenfoque sobre la cámara.** Única excepción: la **tarjeta de ayuda** de §11,
+    que solo aparece **con la sesión en pausa** tras 3 correcciones seguidas.
 - **Navegación:**
   - pila con desplazamiento lateral y fundido (`animation: 'slide_from_right'`, o `fade_from_bottom` en las
     modales: login y confirmar fin);
@@ -169,18 +170,25 @@ Es solo visual. Se calcula a partir del nivel en `src/gamification/levelTitle.ts
 - Desenfoque real sobre la cámara (solo translúcido).
 - Rive.
 
-## 11. Guías de ejercicio animadas (decisión del usuario, 2026-10-31)
-- **Qué son.** Un personaje ilustrado plano: cabeza, torso y miembros en cápsulas, sin cara, en colores de
-  `tokens` y sin sombras.
-  - Hace una repetición lenta en bucle de 2-3 s.
-  - Hay una por ejercicio y vista: sentadilla y flexión de frente y de lado; jumping jack de frente.
-- **De dónde salen.** Es **arte propio generado por código** (`scripts/lottie/buildExerciseLottie.mjs`), con los
-  ángulos de nuestros generadores de cinemática: la guía hace lo mismo que la app cuenta, y no hay licencias de
-  terceros (`docs/licencias-assets.md` §5).
-  - **Alternativa,** solo con el visto bueno del usuario: animaciones gratuitas de LottieFiles con la Lottie Simple
-    License, revisadas una a una y registradas.
-- **Dónde aparecen.**
-  - **Colocación:** tarjeta "Así se hace" de ≈ 200 dp, con 2-3 consejos.
-  - **Entrenamiento:** mini-guía de ≤ 96 dp en una esquina, con la excepción medida de §5. Un toque la oculta.
-- **Accesibilidad.** Con "reducir movimiento", cuadro fijo. La guía nunca es la única fuente: los consejos van en
-  texto.
+## 11. Guías de ejercicio (decisión del usuario, 2026-10-31)
+- **Qué son.** Una tarjeta con una animación de cómo se hace el ejercicio, más un título y 2-3 consejos en texto.
+  - Las animaciones son **diseños del usuario** (GIF o WebP animado) y viven en `assets/guides/`. El manifiesto
+    `src/features/workout/guides.ts` (`guideFor`) devuelve `null` si un ejercicio aún no tiene la suya.
+  - Por ahora solo existe la del jumping jack.
+  - Límites: ≤ 2 MB y ≤ 720 px. La procedencia va en `docs/licencias-assets.md`.
+- **La primera vez de cada ejercicio** se muestra "Así se hace" antes de la colocación, con "Entendido" (marca
+  `guideSeen`) y "No mostrar más ayudas" (`techniqueHelp=false`). En la colocación hay siempre un enlace "Ver cómo
+  se hace".
+- **Durante el entrenamiento no se muestra**, salvo que haya **3 correcciones seguidas**: repeticiones incompletas,
+  con falta crítica o válidas con falta de forma. Una repetición limpia reinicia el contador. Entonces:
+  1. la sesión se **pausa**;
+  2. aparece una tarjeta emergente con la animación y el texto de la última corrección;
+  3. se cierra sola a los `max(un ciclo, 3 s)` o con "Seguir";
+  4. la sesión **se reanuda**.
+
+  Como mucho una ayuda cada 60 s [H].
+- **Desactivable** desde la tarjeta y en Perfil ("Ayudas de técnica"), donde también está "Volver a ver las guías".
+- **Accesibilidad.** Con "reducir movimiento", el primer cuadro fijo. La guía nunca es la única fuente: los consejos
+  van en texto.
+- El personaje Lottie generado por código (`scripts/lottie/`, G1) **no se usa**. Se retira si el usuario lo
+  confirma.

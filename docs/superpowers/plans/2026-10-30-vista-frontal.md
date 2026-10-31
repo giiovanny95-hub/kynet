@@ -1,7 +1,7 @@
 # Plan: los tres ejercicios de frente (vista elegible)
 
 > **Para quien ejecuta.** Las tareas `[claude]` las hace Claude Code en la PC, con `superpowers:executing-plans` y
-> TDD. Las tareas `[codex]` las delega Claude Code con `/delegar-codex` (worktree `feat/codex-<id>`, entrega por SHA;
+> TDD. (Desde el 2026-10-31 no se delega en Codex: todo lo hace Claude Code.) Las tareas `[codex]` las delegaba Claude Code con `/delegar-codex` (worktree `feat/codex-<id>`, entrega por SHA;
 > ver `docs/colaboracion-agentes.md`), revisa el resultado y lo integra. Una tarea, un commit. Spec: `docs/spec-vista-frontal.md`, que manda sobre este plan.
 >
 > **En paralelo:** Codex sigue con el plan de diseño (E2-E3) y Claude Code con este. Los dos tocan
@@ -71,6 +71,18 @@ Si un test de conteo no pasa con estos umbrales, **no los cambies en silencio**:
 propuesta.
 
 ---
+
+## F2.2c Guardia de sujeto con mediana (decisión del 2026-10-31; **la vista de frente está en pausa por el usuario**)
+Con σ 0,008 a 3 m, el torso crudo varía ±15 % por cuadro. `quality/subjectGuard.ts` lo compara con el último cuadro
+aceptado, lo toma como un salto > 30 % y emite `SUBJECT_CHANGED`, con lo que se pierde la repetición.
+- [ ] Comparar con la **mediana del torso de los últimos 500 ms aceptados**, en lugar de con el último cuadro.
+  - Mismo umbral del 30 % y 3 rechazos seguidos.
+  - Vale para las dos vistas.
+- [ ] Tests:
+  - lateral y `test:benchmark` sin cambios;
+  - un sujeto nuevo real (torso +40 % sostenido) sigue dando `SUBJECT_CHANGED`;
+  - la rejilla de frente con σ 0,008 da ≥ 9/10 en todo;
+  - 0 falsos de pie.
 
 ## F0 `[claude]` Herramientas de medición
 - [ ] **F0.1 Reproductor en el repo.** El de la PC (con el que se analizó la ronda 2) pasa a
@@ -151,7 +163,7 @@ propuesta.
 - [ ] **F4.4 Contrato para Codex:** un mensaje corto en el commit o en `para-nube/` con los nombres exactos que usará
   F5: preferencia, claves i18n, códigos nuevos y función para leer o guardar la vista.
 
-## F5 `[codex]` Pantallas (Claude Code la lanza tras F4 y revisa el diff)
+## F5 `[claude]` Pantallas (sustituida por H3 y H7 de `2026-10-31-diseno-v2-guias.md`)
 Delegación: `/delegar-codex F5.x` con alcance `app/workout/[exercise]/*`, `src/ui/silhouettes*`, `src/features/workout/placement*`
 y `locales`; contexto: `AGENTS.md`, `docs/spec-vista-frontal.md` §5 y `docs/spec-diseno.md`.
 - [ ] **F5.1 Selector Frente/Lado** en `app/workout/[exercise]/setup.tsx`:

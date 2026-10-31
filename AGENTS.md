@@ -5,6 +5,9 @@ detecta la pose en el teléfono y cuenta repeticiones; tiene hábito tipo Duolin
 Supabase. Español primero.
 
 ## Tu papel en el equipo (decisión del usuario, 2026-10-30)
+> **Desde el 2026-10-31 te usa el usuario directamente** para crear diseños y assets; Claude Code no te delega
+> tareas. Lo que sigue vale cuando trabajes en el repositorio.
+
 - **Codex = principalmente diseño y pantallas:** el plan `docs/superpowers/plans/2026-10-30-diseno-premium.md` (E2-E3)
   y las tareas marcadas `[codex]` en otros planes. También revisiones independientes cuando te las pidan.
 - **Claude Code (PC)** hace la lógica (cinemática, motor, datos, módulo nativo y mediciones en teléfono). Además
