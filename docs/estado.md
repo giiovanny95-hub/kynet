@@ -4,11 +4,9 @@
 2026-10-31. Sesión de la **nube**: guías con los GIF del usuario, ayuda tras 3 correcciones y Codex fuera de los planes. Último commit de la PC: `560cd95`.
 
 ## Estado
-- **Equipo (2026-10-30):** la nube planifica y revisa; **Codex** (PC) hace principalmente diseño y pantallas
-  (`AGENTS.md`); **Claude Code** (PC) hace la lógica y es el integrador único.
-  - Mecanismo: plugin oficial `codex@openai-codex` con worktree propio y entrega por SHA.
-  - Política: `docs/colaboracion-agentes.md` (`be32bc3`, revisada en la nube).
-  - CLI de reservas: `scripts/agent-coordination.mjs`.
+- **Equipo (2026-10-31):** la nube planifica y revisa; **Claude Code (PC)** implementa todo (lógica y pantallas).
+  - El usuario usa Codex por su cuenta para diseñar y entrega assets.
+  - Política: `docs/colaboracion-agentes.md`, válida si el usuario vuelve a delegar en Codex.
   - `npm run verify`, también en CI.
 - **Vista de frente (2026-10-30):** spec `docs/spec-vista-frontal.md` y plan
   `docs/superpowers/plans/2026-10-30-vista-frontal.md`. El usuario elige Frente (por defecto) o Lado en sentadilla y
