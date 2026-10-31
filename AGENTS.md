@@ -28,7 +28,7 @@ Si una spec y la tarea se contradicen, **para y dilo** en tu resumen; no elijas.
 - Colores, tipografías, espaciado y radios **solo** desde `src/ui/tokens.ts`. Sin sombras.
 - Textos **solo por i18n** (`src/i18n/locales/es.json` y `en.json`); `npm run i18n:check` debe pasar.
 - Las animaciones van por `useMotion()` (respeta "reducir movimiento") y solo animan `transform` y `opacity`.
-- Sobre la cámara: nada de Lottie, Skia extra ni desenfoque.
+- Sobre la cámara: nada de Lottie, Skia extra ni desenfoque. Única excepción: la mini-guía `ExerciseGuide` (≤ 96 dp, en una esquina), medida en G4m (`spec-diseno` §5 y §11).
 - TypeScript `strict` y `noUncheckedIndexedAccess`, **sin `any`**.
 - No toques `src/kinematics/**`, `src/vision/**`, `modules/**` ni `supabase/**` salvo que la tarea lo diga.
 - **Dos archivos no pueden diferir solo en mayúsculas** (`confetti.ts` y `Confetti.tsx`): la PC es Windows y chocan.

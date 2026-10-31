@@ -25,6 +25,8 @@ visual, manda la PNG de Stitch; ante una duda de comportamiento, `spec-producto.
    - nunca solo color: siempre icono y texto.
 
 ## 2. Mapa Stitch → app
+**Mockup v2 (2026-10-31):** el usuario actualizó el mockup en Stitch. Tras exportarlo (G0 de `docs/superpowers/plans/2026-10-31-diseno-v2-guias.md`), mandan los PNG v2 y `docs/diseno/stitch/CAMBIOS.md`. Las pantallas nuevas se añaden a esta tabla antes de implementarlas.
+
 | Stitch | Ruta de la app | Notas |
 |---|---|---|
 | `01-hoy` | `app/(tabs)/index.tsx` | Sin avatar con foto: iniciales sobre Slate, por privacidad. Los nombres de ejercicio son los del MVP (Sentadilla, Jumping jack, Flexión), no "profunda" ni "isométrica". "Entrena a tu manera" lleva al flujo `workout/[exercise]/setup`. "ENTRENAR AHORA" abre `exercises`. La tarjeta de calibración solo aparece si hay perfil de calibración |
@@ -92,6 +94,7 @@ visual, manda la PNG de Stitch; ante una duda de comportamiento, `spec-producto.
 | `TabBar` | Indicador teal que se desliza bajo la pestaña activa (`snappy`); icono activo con escala 1,08 | Reanimated |
 | `Segmented` | Fondo activo que se desliza entre segmentos | Reanimated `layout` |
 | `Skeleton` de carga | Bloques Slate con un brillo que se desplaza (1,2 s); sin bucle con `reduced` | Reanimated |
+| `ExerciseGuide` | Personaje que hace una repetición lenta en bucle (§11); con `reduced`, cuadro fijo; `playing` para congelarla | `lottie-react-native`, `renderMode="HARDWARE"` |
 
 ## 5. Coreografía por pantalla
 - **Hoy:**
@@ -118,7 +121,9 @@ visual, manda la PNG de Stitch; ante una duda de comportamiento, `spec-producto.
     buena forma, como dice `tema.md`.
   - El aviso entra con deslizamiento corto y fundido y sale a los 2,5 s.
   - Pausa y confirmación en hoja inferior con `base`.
-  - **Nada de Lottie, Skia extra ni desenfoque sobre la cámara.**
+  - **Nada de Lottie, Skia extra ni desenfoque sobre la cámara**, con una única excepción (decisión del usuario, 2026-10-31): la **mini-guía** `ExerciseGuide`.
+    - ≤ 96 dp, en una esquina superior y fuera del 70 % central.
+    - Se mide con `audit_performance.sh` con y sin ella (G4m). Si empeora más de 1 punto, se congela mientras se cuenta; si aun así no cumple, se quita del HUD.
 - **Navegación:**
   - pila con desplazamiento lateral y fundido (`animation: 'slide_from_right'`, o `fade_from_bottom` en las
     modales: login y confirmar fin);
@@ -163,3 +168,19 @@ Es solo visual. Se calcula a partir del nivel en `src/gamification/levelTitle.ts
 - Cadencia por serie.
 - Desenfoque real sobre la cámara (solo translúcido).
 - Rive.
+
+## 11. Guías de ejercicio animadas (decisión del usuario, 2026-10-31)
+- **Qué son.** Un personaje ilustrado plano: cabeza, torso y miembros en cápsulas, sin cara, en colores de
+  `tokens` y sin sombras.
+  - Hace una repetición lenta en bucle de 2-3 s.
+  - Hay una por ejercicio y vista: sentadilla y flexión de frente y de lado; jumping jack de frente.
+- **De dónde salen.** Es **arte propio generado por código** (`scripts/lottie/buildExerciseLottie.mjs`), con los
+  ángulos de nuestros generadores de cinemática: la guía hace lo mismo que la app cuenta, y no hay licencias de
+  terceros (`docs/licencias-assets.md` §5).
+  - **Alternativa,** solo con el visto bueno del usuario: animaciones gratuitas de LottieFiles con la Lottie Simple
+    License, revisadas una a una y registradas.
+- **Dónde aparecen.**
+  - **Colocación:** tarjeta "Así se hace" de ≈ 200 dp, con 2-3 consejos.
+  - **Entrenamiento:** mini-guía de ≤ 96 dp en una esquina, con la excepción medida de §5. Un toque la oculta.
+- **Accesibilidad.** Con "reducir movimiento", cuadro fijo. La guía nunca es la única fuente: los consejos van en
+  texto.

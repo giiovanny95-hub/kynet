@@ -1,7 +1,7 @@
 # Estado del proyecto (traspaso entre sesiones)
 
 ## Última actualización
-2026-10-31. Sesión de la **nube**: F1.4 y la histéresis de F2.2 decididas. Último commit de la PC: `2f0d898`.
+2026-10-31. Sesión de la **nube**: plan de diseño v2 (Stitch actualizado, HUD y guías Lottie) para Codex. Último commit de la PC: `87cd8bd`.
 
 ## Estado
 - **Equipo (2026-10-30):** la nube planifica y revisa; **Codex** (PC) hace principalmente diseño y pantallas
@@ -89,8 +89,12 @@
 
 ## Siguiente paso
 0. **En paralelo (decisión del usuario, 2026-10-30):**
-   - **Codex:** plan de diseño `2026-10-30-diseno-premium.md`, desde E2.1 en cuanto tenga cuota (E0 y E1 hechos), y
-     después F5 de la vista de frente.
+   - **Diseño v2 (decisión del usuario, 2026-10-31):** plan `docs/superpowers/plans/2026-10-31-diseno-v2-guias.md`.
+     - La PC exporta el mockup actualizado de Stitch (G0).
+     - **Codex** hace a la vez el personaje Lottie propio (G1) y `ExerciseGuide` (G2).
+     - Después Codex hace la colocación con "Así se hace" (G3), el HUD en vivo con la mini-guía (G4) y las pantallas
+       v2 (G5). G3 y G4 sustituyen a E2.8 y F5.
+     - La PC mide el HUD (G4m).
    - **Claude Code (PC):** ruta rápida del plan de vista de frente: F1.3b → F2.2 → F2.2b → F3.2 → F2.4 → F4.1 → F4.2, más
      un mínimo de pantalla. Después, **prueba de hoy con el usuario** en los dos teléfonos.
    - Decisiones de diseño ya tomadas: títulos de nivel solo visuales, Progreso combinado y detalle de sesión simple.
