@@ -46,6 +46,13 @@ Fecha de verificación: 2026-10-28. Solo investigación; no se descargó ningún
 
 ## 6. Plan de atribución
 
+| Asset | Procedencia |
+|---|---|
+| Guías de ejercicio | Guías de ejercicio: arte propio generado por código (KYNET), sin terceros |
+
+Las cinco guías de `assets/lottie/exercises/` se regeneran con `npm run lottie:build`, a partir de poses
+sintéticas del proyecto y colores de `src/ui/tokens.ts`. No contienen grabaciones ni landmarks de personas.
+
 - Pantalla "Créditos / Licencias" accesible desde Ajustes, y copia en el sitio web.
 - Si se usa RepDB: "Exercise data by RepDB (repdb.co)" con enlace visible.
 - Si se usa wger o cualquier CC: autor, licencia y enlace por ejercicio, más aviso de adaptación.
